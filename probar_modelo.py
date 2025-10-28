@@ -20,14 +20,30 @@ from sklearn.metrics import (
     precision_recall_curve, average_precision_score
 )
 
+import matplotlib.pyplot as plt
+import seaborn as sns  # si lo usas
+
+plt.rcParams.update({
+    "figure.dpi": 120,      # opcional, que se vea más nítido
+    "axes.titlesize": 18,   # título
+    "axes.labelsize": 15,   # etiquetas de ejes (xlabel/ylabel)
+    "xtick.labelsize": 13,  # ticks de eje X (abajo)
+    "ytick.labelsize": 13,  # ticks de eje Y (lateral)
+    "legend.fontsize": 13   # leyenda
+})
+
+sns.set_context("talk", font_scale=1.1)
+
+
+
 # === CONFIGURACIÓN ===
-MODELO_PATH       = "D:/alejandro/plantas/buck/modelo/95/autoencoder_rds_2.keras"
-SCALER_PATH       = "D:/alejandro/plantas/buck/modelo/95/autoencoder_rds_2.pkl"
-CARPETA_VERIFICAR = "D:/alejandro/plantas/buck/buck_rds2_predecir"
-ENTRENAMIENTO_PATH = "D:/alejandro/plantas/buck/buck_rds2_entrenamiento"
+MODELO_PATH       = "D:/alejandro/plantas/buck/modelo/95/autoencoder_esr_l.keras"
+SCALER_PATH       = "D:/alejandro/plantas/buck/modelo/95/autoencoder_esr_l.pkl"
+CARPETA_VERIFICAR = "D:/alejandro/plantas/buck/buck_esr_l_predecir"
+ENTRENAMIENTO_PATH = "D:/alejandro/plantas/buck/buck_esr_l_entrenamiento"
 
-'''
 
+#Estas son las líneas que menciono en el word.
 # ===================================================================
 #ESR L
 BUENOS = set()
@@ -36,7 +52,9 @@ BUENOS = set()
 for v in np.arange(-5.0, 5.1, 0.1):  # de -10.0 a 10.0 con paso 0.01
     nombre = f"Esr_L_{v:.8f}%.txt"
     BUENOS.add(nombre)
+BUENOS.add("Esr_L_0.00000000%.txt")
 
+'''
 # ===================================================================
 
 #Cout
@@ -50,7 +68,6 @@ for v in np.arange(-5.0, 5.1, 0.1):
 
 # Añadir el archivo para 0 manualmente
 BUENOS.add("Cout_0.00000000%.txt")
-
 
 # ===================================================================
 #Para lout
@@ -82,6 +99,7 @@ for v in np.arange(-5.0, 5.05, 0.05):
 BUENOS.add("Esr_C_0.00000000%.txt")
 
 
+
 # ===================================================================
 #Para Rds_1
 BUENOS = set()
@@ -94,7 +112,7 @@ for v in np.arange(-5.0, 5.05, 0.05):
 
 # Añadir el archivo para 0 manualmente
 BUENOS.add("Rds_1_0.00000000%.txt")
-'''
+
 # ===================================================================
 #Para Rds_2
 BUENOS = set()
@@ -107,6 +125,11 @@ for v in np.arange(-5.0, 5.01, 0.01):
 
 # Añadir el archivo para 0 manualmente
 BUENOS.add("Rds_2_0.00000000%.txt")
+'''
+#########
+
+
+
 #---------------------
 def mostrar_buenos(buenos_set):
     print("Archivos buenos:")
@@ -545,55 +568,3 @@ def plot_confusion_matrix(y_true, y_pred, title):
     plt.show()
 
 plot_confusion_matrix(y_true, y_pred_final, "Matriz de Confusión")
-
-'''
-# === MATRIZ DE CARACTERÍSTICAS ===
-X_feat = np.column_stack([
-    errs_mse,
-    err_d_re,
-    err_d_im,
-    np.max(np.abs(recon - Xv), axis=1),
-    np.std(recon - Xv, axis=1),
-])
-
-# === ESCALAR CARACTERÍSTICAS ===
-scaler_feat = StandardScaler()
-X_scaled = scaler_feat.fit_transform(X_feat)
-
-# === DIVISIÓN TRAIN/TEST ===
-X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_true, test_size=0.2, random_state=42)
-
-# === ENTRENAR REGRESIÓN LOGÍSTICA SIN REGULARIZACIÓN ===
-clf = LogisticRegression(penalty=None, solver='lbfgs', max_iter=10000)
-clf.fit(X_train, y_train)
-
-# === PREDICCIONES (PROBABILIDADES) ===
-y_proba_log = clf.predict_proba(X_scaled)[:, 1]  # Probabilidades de clase 1 (anómalo)
-
-# === BÚSQUEDA DE UMBRAL ÓPTIMO ===
-umbral_opt = 0
-mejor_f1 = 0
-for thr in np.linspace(0, 1, 1000):
-    y_pred_thr = (y_proba_log > thr).astype(int)
-    f1 = f1_score(y_true, y_pred_thr)
-    if f1 > mejor_f1:
-        mejor_f1 = f1
-        umbral_opt = thr
-
-# === PREDICCIONES FINALES ===
-y_pred_final = (y_proba_log > umbral_opt).astype(int)
-
-# === MÉTRICAS ===
-print(f"\nUmbral óptimo encontrado: {umbral_opt:.10f}")
-print(f"F1-score óptimo: {mejor_f1:.4f}")
-print(f"Accuracy : {accuracy_score(y_true, y_pred_final):.4f}")
-print(f"Precision: {precision_score(y_true, y_pred_final):.4f}")
-print(f"Recall   : {recall_score(y_true, y_pred_final):.4f}")
-print(f"F1-score : {f1_score(y_true, y_pred_final):.4f}")
-
-# === ARCHIVOS CLASIFICADOS COMO BUENOS ===
-print("\n--- Archivos que la Regresión Logística considera BUENOS ---")
-for name, pred in zip(nombres, y_pred_final):
-    if pred == 0:
-        print(f"- {name}")
-'''

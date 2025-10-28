@@ -32,7 +32,7 @@ for nombre in archivos:
                 shutil.move(ruta_origen, ruta_destino)
                 total_movidos += 1
             except Exception as e:
-                print(f"❌ Error al mover {nombre}: {e}")
+                print(f"Error al mover {nombre}: {e}")
 
 print(f"Total de archivos movidos a entrenamiento: {total_movidos}")
 

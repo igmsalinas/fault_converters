@@ -84,26 +84,3 @@ autoencoder.fit(X_train, X_train,
 
 autoencoder.save(modelo_path)
 joblib.dump(scaler, scaler_path)
-
-
-'''
-# === VERIFICACIÓN ===
-datos_verificacion, nombres_verificacion = cargar_datos_carpeta_complejo(carpeta_verificacion)
-X_verif = np.array([scaler.transform(d[["Re(Z)", "Im(Z)"]].values).reshape(-1) for d in datos_verificacion])
-
-errores_test = np.mean((autoencoder.predict(X_val) - X_val) ** 2, axis=1)
-umbral = np.percentile(errores_test, 98.5)
-print("X_verif shape:", X_verif.shape)
-errores_verif = np.mean((autoencoder.predict(X_verif) - X_verif) ** 2, axis=1)
-y_pred = (errores_verif > umbral).astype(int)
-
-# === ETIQUETAS ===
-buenos = {f"{i}.txt" for i in range(510, 516)} | {f"{i}.txt" for i in range(785, 790)}
-y_true = [0 if nombre in buenos else 1 for nombre in nombres_verificacion]
-
-print("=== Métricas de Evaluación ===")
-print(f"Accuracy : {accuracy_score(y_true, y_pred):.4f}")
-print(f"Precision: {precision_score(y_true, y_pred):.4f}")
-print(f"Recall   : {recall_score(y_true, y_pred):.4f}")
-print(f"F1-score : {f1_score(y_true, y_pred):.4f}")
-'''
