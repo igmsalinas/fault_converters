@@ -1,101 +1,91 @@
 [
   {
     "model_name": "Keras FP32 (Baseline)",
-    "latency_mean_ms": 20.869755466652958,
-    "latency_std_ms": 2.1324824504936544,
-    "latency_min_ms": 17.799727000237908,
-    "latency_max_ms": 30.772939999224036,
+    "latency_mean_ms": 18.859153120004823,
+    "latency_std_ms": 1.0434382354466532,
+    "latency_min_ms": 16.8491140000242,
+    "latency_max_ms": 23.97022099989954,
     "net_ram_mb": 0.0,
     "net_vram_mb": 0.0,
-    "peak_ram_mb": 4190.671875,
-    "peak_vram_mb": 2.69482421875
+    "peak_ram_mb": 3446.4609375,
+    "peak_vram_mb": 2.671875
   },
   {
-    "model_name": "TFLite FP16",
-    "latency_mean_ms": 0.18190241999642845,
-    "latency_std_ms": 0.07577566908654232,
-    "latency_min_ms": 0.13541800035454798,
-    "latency_max_ms": 0.5646150002576178,
-    "net_ram_mb": 0.0,
+    "model_name": "Keras FP32 (CPU)",
+    "latency_mean_ms": 289.20322722000043,
+    "latency_std_ms": 19.31606688382932,
+    "latency_min_ms": 242.70232099979694,
+    "latency_max_ms": 357.2529929999746,
+    "net_ram_mb": 29.09375,
     "net_vram_mb": 0.0,
-    "peak_ram_mb": 4192.796875,
-    "peak_vram_mb": 2.69482421875
+    "peak_ram_mb": 1039.95703125,
+    "peak_vram_mb": 10395.0,
+    "size_mb": 3.419769287109375
   },
   {
     "model_name": "TFLite Dynamic",
-    "latency_mean_ms": 0.15675222672143718,
-    "latency_std_ms": 0.04894416184133767,
-    "latency_min_ms": 0.12963900007889606,
-    "latency_max_ms": 0.36551700031850487,
+    "latency_mean_ms": 0.13338644666873734,
+    "latency_std_ms": 0.009515697211614235,
+    "latency_min_ms": 0.12785900003109418,
+    "latency_max_ms": 0.23279799984265992,
     "net_ram_mb": 0.0,
     "net_vram_mb": 0.0,
-    "peak_ram_mb": 4193.10546875,
-    "peak_vram_mb": 2.69482421875
+    "peak_ram_mb": 3446.8359375,
+    "peak_vram_mb": 2.671875
   },
   {
     "model_name": "TFLite INT8",
-    "latency_mean_ms": 0.13322275323541058,
-    "latency_std_ms": 0.039567163484552685,
-    "latency_min_ms": 0.10648999887052923,
-    "latency_max_ms": 0.31640699853596743,
+    "latency_mean_ms": 0.11819222000667651,
+    "latency_std_ms": 0.016397445540411306,
+    "latency_min_ms": 0.10683899995456159,
+    "latency_max_ms": 0.20155900006102456,
     "net_ram_mb": 0.0,
     "net_vram_mb": 0.0,
-    "peak_ram_mb": 4193.51953125,
-    "peak_vram_mb": 2.69482421875
+    "peak_ram_mb": 3446.9609375,
+    "peak_vram_mb": 2.671875
   },
   {
     "model_name": "ONNX (CPU)",
-    "latency_mean_ms": 0.4174996999790892,
-    "latency_std_ms": 0.10479379182031658,
-    "latency_min_ms": 0.3581569999369094,
-    "latency_max_ms": 1.0837059999175835,
+    "latency_mean_ms": 0.39292459335380653,
+    "latency_std_ms": 0.0675646434099885,
+    "latency_min_ms": 0.3523679999943852,
+    "latency_max_ms": 0.8189739999124868,
     "net_ram_mb": 0.0,
     "net_vram_mb": 0.0,
-    "peak_ram_mb": 4196.14453125,
-    "peak_vram_mb": 2.69482421875
-  },
-  {
-    "model_name": "TensorRT FP16 (GPU)",
-    "latency_mean_ms": 0.7924534000388425,
-    "latency_std_ms": 0.3949881286579483,
-    "latency_min_ms": 0.466366000182461,
-    "latency_max_ms": 3.6562210007105023,
-    "net_ram_mb": 0.0,
-    "net_vram_mb": 0.0,
-    "peak_ram_mb": 4199.39453125,
-    "peak_vram_mb": 2.69482421875
+    "peak_ram_mb": 3447.3359375,
+    "peak_vram_mb": 2.671875
   },
   {
     "model_name": "TensorRT FP32 (GPU)",
-    "latency_mean_ms": 0.9373191199726231,
-    "latency_std_ms": 0.41367574809922647,
-    "latency_min_ms": 0.44642600005317945,
-    "latency_max_ms": 2.0421530007297406,
+    "latency_mean_ms": 1.124302913347795,
+    "latency_std_ms": 0.39222568878072056,
+    "latency_min_ms": 0.8543940000436123,
+    "latency_max_ms": 2.426033000119787,
     "net_ram_mb": 0.0,
     "net_vram_mb": 0.0,
-    "peak_ram_mb": 4201.76953125,
-    "peak_vram_mb": 2.69482421875
+    "peak_ram_mb": 3447.3359375,
+    "peak_vram_mb": 2.671875
   },
   {
     "model_name": "TensorRT FP16 (GPU)",
-    "latency_mean_ms": 0.6588813999042031,
-    "latency_std_ms": 0.351122520048859,
-    "latency_min_ms": 0.4045170007884735,
-    "latency_max_ms": 2.0124849997955607,
+    "latency_mean_ms": 0.8854778200020519,
+    "latency_std_ms": 0.2764437760667183,
+    "latency_min_ms": 0.637315999938437,
+    "latency_max_ms": 2.9881109999223554,
     "net_ram_mb": 0.0,
     "net_vram_mb": 0.0,
-    "peak_ram_mb": 4202.64453125,
-    "peak_vram_mb": 2.69482421875
+    "peak_ram_mb": 3448.3359375,
+    "peak_vram_mb": 2.671875
   },
   {
     "model_name": "TensorRT INT8 (GPU)",
-    "latency_mean_ms": 0.752888266700514,
-    "latency_std_ms": 0.4228642706011039,
-    "latency_min_ms": 0.3832460006378824,
-    "latency_max_ms": 2.5153000005957438,
+    "latency_mean_ms": 0.8325333733318985,
+    "latency_std_ms": 0.20968222968477537,
+    "latency_min_ms": 0.6198559999575082,
+    "latency_max_ms": 1.6346089998933166,
     "net_ram_mb": 0.0,
     "net_vram_mb": 0.0,
-    "peak_ram_mb": 4203.26953125,
-    "peak_vram_mb": 2.69482421875
+    "peak_ram_mb": 3448.9609375,
+    "peak_vram_mb": 2.671875
   }
 ]

@@ -90,6 +90,7 @@ def compile_onnx_to_tensorrt(
     """
     logger.info(f"Initiating ONNX to TensorRT compilation (precision: {precision_mode})...")
     
+    # (We rely on trt.BuilderFlag.FP16 natively instead of manual ONNX cast to prevent NaNs)
     # 1. Defensive Check: Check if TensorRT is available in Python
     try:
         import tensorrt as trt
@@ -123,11 +124,11 @@ def compile_onnx_to_tensorrt(
                     logger.error(f"ONNX Parser Error: {parser.get_error(error)}")
                 return False
                 
-        # 3. Configure the builder
+        # Configure the builder
         config = builder.create_builder_config()
         
-        # Set workspace memory limit (1GB)
-        config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, 1 << 30)
+        # We allow TRT to use available memory instead of restricting to 1GB to prevent OOM
+        # config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, 1 << 30)
         
         # Configure optimization profile for dynamic shapes if any are present
         has_dynamic = False
@@ -161,82 +162,68 @@ def compile_onnx_to_tensorrt(
                 config.set_flag(trt.BuilderFlag.FP16)
                 logger.info("FP16 precision enabled.")
             else:
-                logger.info("FP16 builder flag not available in this TensorRT version (strongly typed network default).")
+                logger.info("FP16 builder flag not available in this TensorRT version (strongly typed network default). Pre-cast ONNX was loaded.")
         elif precision_mode == "INT8":
-            if hasattr(trt.BuilderFlag, "INT8"):
-                config.set_flag(trt.BuilderFlag.INT8)
-                logger.info("INT8 precision enabled.")
-                # Configure calibrator if calibration data is available
-                if calibration_data is not None:
-                    class NumpyDataCalibrator(trt.IInt8EntropyCalibrator2):
-                        def __init__(self, data, batch_size=64, cache_file="calibration.cache"):
-                            trt.IInt8EntropyCalibrator2.__init__(self)
-                            self.cache_file = cache_file
-                            self.data = np.ascontiguousarray(data.astype(np.float32))
-                            self.batch_size = min(batch_size, self.data.shape[0])
+            if calibration_data is not None:
+                try:
+                    import onnxruntime as ort
+                    from onnxruntime.quantization import quantize_static, CalibrationDataReader, QuantFormat, QuantType
+                    
+                    logger.info("Executing Post-Training Quantization (PTQ) to insert QDQ nodes for TensorRT 11+...")
+                    
+                    # Determine input name from ONNX model
+                    session = ort.InferenceSession(onnx_path, providers=['CPUExecutionProvider'])
+                    input_name = session.get_inputs()[0].name
+                    
+                    class NumpyCalibrationDataReader(CalibrationDataReader):
+                        def __init__(self, data, input_name, batch_size=64):
+                            self.data = data.astype(np.float32)
+                            self.input_name = input_name
+                            self.batch_size = batch_size
                             self.current_index = 0
                             
-                            self.bytes_per_batch = self.batch_size * self.data.shape[1] * self.data.shape[2] * 4 # float32
-                            
-                            try:
-                                from cuda.bindings import runtime as cudart
-                                err, self.device_input = cudart.cudaMalloc(self.bytes_per_batch)
-                                if err != 0:
-                                    raise RuntimeError(f"cudaMalloc failed with error code {err}")
-                                self.cudart = cudart
-                                self._use_pycuda = False
-                            except ImportError:
-                                import pycuda.driver as cuda
-                                import pycuda.autoinit  # noqa: F401
-                                self.device_input = cuda.mem_alloc(self.bytes_per_batch)
-                                self.cuda = cuda
-                                self._use_pycuda = True
-
-                        def get_batch_size(self):
-                            return self.batch_size
-
-                        def get_batch(self, names):
+                        def get_next(self):
                             if self.current_index + self.batch_size > self.data.shape[0]:
                                 return None
-
                             batch = self.data[self.current_index : self.current_index + self.batch_size]
-                            
-                            if self._use_pycuda:
-                                self.cuda.memcpy_htod(self.device_input, batch)
-                                ptr = int(self.device_input)
-                            else:
-                                self.cudart.cudaMemcpy(
-                                    self.device_input, batch.ctypes.data,
-                                    self.bytes_per_batch, self.cudart.cudaMemcpyKind.cudaMemcpyHostToDevice
-                                )
-                                ptr = self.device_input
-
                             self.current_index += self.batch_size
-                            return [ptr]
+                            return {self.input_name: batch}
 
-                        def read_calibration_cache(self):
-                            import os
-                            if os.path.exists(self.cache_file):
-                                with open(self.cache_file, "rb") as f:
-                                    return f.read()
-                            return None
-
-                        def write_calibration_cache(self, cache):
-                            with open(self.cache_file, "wb") as f:
-                                f.write(cache)
-
-                        def free(self):
-                            if self.device_input is not None:
-                                if self._use_pycuda:
-                                    self.device_input.free()
-                                else:
-                                    self.cudart.cudaFree(self.device_input)
+                    data_reader = NumpyCalibrationDataReader(calibration_data, input_name)
                     
-                    calibrator = NumpyDataCalibrator(calibration_data)
-                    config.int8_calibrator = calibrator
-                    logger.info("Custom IInt8EntropyCalibrator2 attached.")
+                    int8_onnx_path = onnx_path.replace(".onnx", "_int8_qdq.onnx")
+                    
+                    # Perform static quantization to QDQ format
+                    quantize_static(
+                        model_input=onnx_path,
+                        model_output=int8_onnx_path,
+                        calibration_data_reader=data_reader,
+                        quant_format=QuantFormat.QDQ,
+                        activation_type=QuantType.QInt8,
+                        weight_type=QuantType.QInt8,
+                        extra_options={'ActivationSymmetric': True, 'WeightSymmetric': True}
+                    )
+                    
+                    onnx_path = int8_onnx_path
+                    logger.info(f"QDQ Quantization completed. Natively typed INT8 ONNX saved to {onnx_path}")
+                    
+                    # We must reload the network and parser since onnx_path changed
+                    network = builder.create_network(network_flags)
+                    parser = trt.OnnxParser(network, TRT_LOGGER)
+                    with open(onnx_path, "rb") as model_file:
+                        if not parser.parse(model_file.read()):
+                            for error in range(parser.num_errors):
+                                logger.error(f"ONNX Parser Error (QDQ model): {parser.get_error(error)}")
+                            return False
+                    logger.info("Re-parsed QDQ ONNX model into TensorRT network.")
+                    
+                except ImportError:
+                    logger.warning("onnxruntime is not installed. INT8 PTQ is skipped. "
+                                   "Please install it to enable INT8 precision in TensorRT 11+.")
+                except Exception as e:
+                    logger.error(f"PTQ failed: {e}. Falling back to original FP32 ONNX.")
             else:
-                logger.info("INT8 builder flag not available in this TensorRT version (strongly typed network default).")
+                logger.warning("No calibration data provided. Cannot perform INT8 PTQ. Falling back to FP32 execution.")
         elif precision_mode == "FP32":
             logger.info("FP32 precision selected. No extra flags needed.")
 

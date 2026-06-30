@@ -1,0 +1,254 @@
+"""
+Deployment Evaluation Script
+=============================
+
+Runs benchmarking on converted models.
+"""
+import argparse
+import sys
+import json
+import subprocess
+from pathlib import Path
+import numpy as np
+from typing import Dict, Any, List
+
+from .deployment import (
+    load_deployment_datasets,
+    run_deployment_benchmarks,
+    save_benchmark_report,
+    run_full_performance_suite,
+    save_performance_report,
+    run_deployment_evaluations,
+    save_evaluation_report,
+    run_batch_size_study,
+    save_batch_size_report,
+)
+from .inference.predictor import AnomalyPredictor
+from .utils.logger import get_logger, setup_logger
+
+setup_logger()
+logger = get_logger(__name__)
+
+def parse_args(argv=None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Evaluate deployed models.")
+    parser.add_argument("--model-dir", type=str, required=True, help="Path to the trained model directory.")
+    parser.add_argument("--data-dir", type=str, default="data/buck/buck_data", help="Directory containing simulation files.")
+    parser.add_argument("--cache-dir", type=str, default="cache", help="Directory for caching preprocessed data.")
+    parser.add_argument("--normal-threshold", type=float, default=5.0, help="Tolerance threshold.")
+    parser.add_argument("--max-files", type=int, default=None, help="Maximum files to load.")
+    parser.add_argument("--output-dir", type=str, default=None, help="Custom output directory for deployment files.")
+    parser.add_argument("--batch-sizes", type=str, default="1,2,4,8,16,32,64,128", help="Batch sizes.")
+    return parser.parse_args(argv)
+
+def get_converted_models(output_dir: Path) -> Dict[str, str]:
+    """Scan output directory for converted models."""
+    models = {}
+    
+    # Check for TFLite
+    if (output_dir / "model_dynamic.tflite").exists():
+        models["tflite_dynamic"] = str(output_dir / "model_dynamic.tflite")
+    if (output_dir / "model_fp16.tflite").exists():
+        models["tflite_fp16"] = str(output_dir / "model_fp16.tflite")
+    if (output_dir / "model_int8.tflite").exists():
+        models["tflite_int8"] = str(output_dir / "model_int8.tflite")
+        
+    # Check for ONNX
+    if (output_dir / "model.onnx").exists():
+        models["onnx"] = str(output_dir / "model.onnx")
+        
+    # Check for TensorRT
+    if (output_dir / "model_fp32.engine").exists():
+        models["tensorrt_fp32"] = str(output_dir / "model_fp32.engine")
+    if (output_dir / "model_fp16.engine").exists():
+        models["tensorrt_fp16"] = str(output_dir / "model_fp16.engine")
+    if (output_dir / "model_int8.engine").exists():
+        models["tensorrt_int8"] = str(output_dir / "model_int8.engine")
+        
+    return models
+
+def generate_unified_markdown_report(
+    benchmark_results: Dict[str, Any],
+    perf_results: List[Dict[str, Any]],
+    eval_results: List[Dict[str, Any]],
+    study_results: Dict[str, Any],
+    output_path: str
+):
+    md = ["# Edge Compute Unified Deployment Report", "", "This report aggregates optimizations across size, latency, memory, and classification fidelity.", ""]
+
+    # Section 1: Fidelity & Basic Latency
+    md.extend(["## 1. Inference Fidelity & Baseline Latency", "", "| Format | Size (MB) | Batch 1 Latency (ms) | Batch 32 Latency (ms) | Reconstruction MSE | MSE Shift from Baseline |", "| :--- | :---: | :---: | :---: | :---: | :---: |"])
+    for k, v in benchmark_results.items():
+        if k == "baseline": continue
+        bs32_str = f"{v.get('latency_bs32_mean', 0):.3f} ± {v.get('latency_bs32_std', 0):.3f}" if v.get('latency_bs32_mean', 0) > 0 else "N/A"
+        md.append(f"| **{v['name']}** | {v['size_mb']:.3f} MB | {v['latency_bs1_mean']:.3f} ± {v['latency_bs1_std']:.3f} ms | {bs32_str} ms | {v['mse']:.6e} | {v['mse_diff_from_baseline']:.6e} |")
+    md.append("")
+
+    # Section 2: Hardware Performance (Memory & VRAM)
+    md.extend(["## 2. Hardware Resource Profiling", "", "| Model Format | Mean Latency | Min / Max Latency | Net RAM Used | Net VRAM Used | Peak RAM | Peak VRAM |", "| :--- | :---: | :---: | :---: | :---: | :---: | :---: |"])
+    for r in perf_results:
+        latency_str = f"{r['latency_mean_ms']:.3f} ± {r['latency_std_ms']:.3f} ms"
+        min_max_str = f"{r['latency_min_ms']:.2f} / {r['latency_max_ms']:.2f} ms"
+        md.append(f"| **{r['model_name']}** | {latency_str} | {min_max_str} | {r['net_ram_mb']:.3f} MB | {r['net_vram_mb']:.3f} MB | {r['peak_ram_mb']:.3f} MB | {r['peak_vram_mb']:.3f} MB |")
+    md.append("")
+
+    # Section 3: Classification Metrics
+    md.extend(["## 3. Classification Degradation Evaluation", "", "| Model Format | Size (MB) | Latency Per Sample (ms) | Accuracy | Precision | Recall | F1-Score | AUC-ROC |", "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |"])
+    for r in eval_results:
+        # Support fallback to old scalar values for backward compatibility if old JSONs exist
+        mean = r.get('latency_per_sample_mean_ms', r.get('latency_per_sample_ms', 0.0))
+        std = r.get('latency_per_sample_std_ms', 0.0)
+        latency_str = f"{mean:.4f} ± {std:.4f}"
+        md.append(f"| **{r['model_name']}** | {r['size_mb']:.3f} MB | {latency_str} ms | {r['accuracy']:.4f} | {r['precision']:.4f} | {r['recall']:.4f} | {r['f1']:.4f} | {r['auc_roc']:.4f} |")
+    md.append("")
+
+    # Section 4: Batch Size Scaling Study
+    md.extend(["## 4. Batch Size Scaling Dynamics", ""])
+    for format_name, bs_data in study_results.items():
+        md.append(f"### {format_name}")
+        md.append("| Batch Size | Batch Latency (ms) | Sample Latency (ms) | Net RAM (MB) | Net VRAM (MB) |")
+        md.append("| :---: | :---: | :---: | :---: | :---: |")
+        sorted_bs = sorted([int(k) for k in bs_data.keys()])
+        for bs in sorted_bs:
+            data = bs_data[bs] if bs in bs_data else bs_data[str(bs)]
+            md.append(f"| {bs} | {data['latency_batch_ms']:.2f} | {data['latency_sample_ms']:.3f} | {data['net_ram_mb']:.2f} | {data['net_vram_mb']:.2f} |")
+        md.append("")
+
+    out_p = Path(output_path)
+    with open(out_p, "w") as f:
+        f.write("\n".join(md))
+    logger.info(f"Saved unified benchmark report to {out_p}")
+
+
+def main(argv=None):
+    args = parse_args(argv)
+
+    model_dir = Path(args.model_dir)
+    if not model_dir.exists():
+        logger.error(f"Model directory does not exist: {model_dir}")
+        sys.exit(1)
+
+    output_dir = Path(args.output_dir) if args.output_dir else model_dir / "deployment"
+    if not output_dir.exists():
+        logger.error(f"Deployment output directory does not exist. Run optimization first: {output_dir}")
+        sys.exit(1)
+
+    logger.info(f"Deployment evaluation for: {output_dir}")
+
+    try:
+        predictor = AnomalyPredictor(model_dir=str(model_dir))
+        logger.info(f"Loaded baseline predictor successfully.")
+    except Exception as e:
+        logger.error(f"Failed to load baseline predictor: {e}")
+        sys.exit(1)
+
+    try:
+        _, splits = load_deployment_datasets(
+            data_dir=args.data_dir,
+            cache_dir=args.cache_dir,
+            normal_threshold=args.normal_threshold,
+            max_files=args.max_files,
+            preprocessor=predictor.preprocessor,
+        )
+        test_data = splits["test"]
+    except Exception as e:
+        logger.error(f"Failed to prepare datasets: {e}")
+        sys.exit(1)
+
+    converted_models = get_converted_models(output_dir)
+    if not converted_models:
+        logger.warning("No converted models found in output directory.")
+
+    # ---- Benchmarking ----
+    logger.info("--- Starting Benchmarking Suite ---")
+    try:
+        benchmark_results = run_deployment_benchmarks(
+            model_dir=str(model_dir),
+            test_data=test_data,
+            converted_models=converted_models,
+        )
+
+        report_path = str(output_dir / "deployment_benchmark_report")
+        save_benchmark_report(benchmark_results, report_path)
+
+        # ---------------- CPU BENCHMARK RUNNER ----------------
+        logger.info("--- Running CPU-only Benchmark via Subprocess ---")
+        temp_data_file = str(output_dir / "temp_test_data.npy")
+        temp_labels_file = str(output_dir / "temp_test_labels.npy")
+        cpu_out_file = str(output_dir / "cpu_res.json")
+        np.save(temp_data_file, test_data)
+        np.save(temp_labels_file, splits["test_labels"])
+        
+        cpu_res = None
+        try:
+            subprocess.run([
+                "uv", "run", "python", "-m", "src.deployment.benchmark_cpu",
+                "--model-dir", str(model_dir),
+                "--data-file", temp_data_file,
+                "--labels-file", temp_labels_file,
+                "--output-file", cpu_out_file
+            ], check=True)
+            if Path(cpu_out_file).exists():
+                with open(cpu_out_file, "r") as f:
+                    cpu_res = json.load(f)
+        except Exception as e:
+            logger.error(f"Failed to run CPU benchmark: {e}")
+        # ------------------------------------------------------
+
+        # Run timing and memory performance benchmark
+        logger.info("--- Running Timing and Memory Performance Benchmark ---")
+        perf_results = run_full_performance_suite(
+            model_dir=str(model_dir),
+            deployment_dir=str(output_dir),
+            test_data=test_data,
+        )
+
+        if cpu_res and "benchmark" in cpu_res:
+            perf_results.insert(1, cpu_res["benchmark"])
+        perf_report_path = str(output_dir / "performance_benchmark_report")
+        save_performance_report(perf_results, perf_report_path)
+
+        # Run timing and classification evaluation
+        logger.info("--- Running Timing and Classification Evaluation Benchmark ---")
+        eval_results = run_deployment_evaluations(
+            model_dir=str(model_dir),
+            deployment_dir=str(output_dir),
+            test_data=test_data,
+            test_labels=splits["test_labels"],
+        )
+        eval_report_path = str(output_dir / "evaluation_benchmark_report")
+        
+        if cpu_res and "evaluation" in cpu_res:
+            eval_results.insert(1, cpu_res["evaluation"])
+            
+        save_evaluation_report(eval_results, eval_report_path)
+
+        # Run batch size scaling study
+        logger.info("--- Running Batch Size Scaling Study ---")
+        try:
+            bs_list = [int(x.strip()) for x in args.batch_sizes.split(",") if x.strip().isdigit()]
+        except Exception:
+            bs_list = [1, 2, 4, 8, 16, 32, 64, 128]
+
+        study_results = run_batch_size_study(
+            model_dir=str(model_dir),
+            deployment_dir=str(output_dir),
+            test_data=test_data,
+            batch_sizes=bs_list,
+        )
+        study_report_path = str(output_dir / "batch_size_study_report")
+        save_batch_size_report(study_results, study_report_path)
+
+        # Generate Unified Markdown Report
+        logger.info("--- Generating Unified Markdown Report ---")
+        generate_unified_markdown_report(
+            benchmark_results, perf_results, eval_results, study_results,
+            str(output_dir / "unified_deployment_report.md")
+        )
+
+    except Exception as e:
+        logger.error(f"Benchmarking suite run failed: {e}")
+
+    logger.info(f"Deployment evaluation complete! All reports in: {output_dir}")
+
+if __name__ == "__main__":
+    main()

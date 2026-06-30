@@ -1,29 +1,29 @@
 [
   {
-    "latency_per_sample_ms": 0.030613743058791082,
-    "total_time_ms": 2038.7222190001921,
-    "accuracy": 0.9555372024926796,
-    "precision": 0.9701922847816246,
-    "recall": 0.9596964268879042,
-    "f1": 0.964915814543171,
-    "auc_roc": 0.9851214963004766,
+    "latency_per_sample_mean_ms": 0.04056978832895904,
+    "latency_per_sample_std_ms": 0.058057339957963194,
+    "accuracy": 0.9555071702079736,
+    "precision": 0.9701908642504825,
+    "recall": 0.9596492882059018,
+    "f1": 0.9648912850287339,
+    "auc_roc": 0.9851335418556016,
     "model_name": "Keras FP32 (Baseline)",
     "size_mb": 3.419769287109375
   },
   {
-    "latency_per_sample_ms": 0.15679257849688547,
-    "total_time_ms": 10441.601765000087,
-    "accuracy": 0.9575643817103386,
-    "precision": 0.9730969560854399,
-    "recall": 0.9599321202979165,
-    "f1": 0.9664697088346266,
-    "auc_roc": 0.9854382063334173,
-    "model_name": "TFLite FP16",
-    "size_mb": 0.5777587890625
+    "latency_per_sample_mean_ms": 0.11616860560346258,
+    "latency_per_sample_std_ms": 0.009032655742897279,
+    "accuracy": 0.9600120129138824,
+    "precision": 0.9800333180424443,
+    "recall": 0.9567266899217498,
+    "f1": 0.9682397700573664,
+    "auc_roc": 0.9861046860890104,
+    "model_name": "Keras FP32 (CPU)",
+    "size_mb": 3.419769287109375
   },
   {
-    "latency_per_sample_ms": 0.14540481961107554,
-    "total_time_ms": 9683.233961999576,
+    "latency_per_sample_mean_ms": 0.13946854095682393,
+    "latency_per_sample_std_ms": 0.00430129802424373,
     "accuracy": 0.6371048877543359,
     "precision": 0.6371048877543359,
     "recall": 1.0,
@@ -33,8 +33,8 @@
     "size_mb": 0.34896087646484375
   },
   {
-    "latency_per_sample_ms": 0.12914423569337077,
-    "total_time_ms": 8600.360376000026,
+    "latency_per_sample_mean_ms": 0.1135633125558734,
+    "latency_per_sample_std_ms": 0.0015698188032077225,
     "accuracy": 0.6371048877543359,
     "precision": 0.6371048877543359,
     "recall": 1.0,
@@ -44,14 +44,47 @@
     "size_mb": 0.3875732421875
   },
   {
-    "latency_per_sample_ms": 0.14406500949020656,
-    "total_time_ms": 9594.009307000306,
+    "latency_per_sample_mean_ms": 0.12075796275895903,
+    "latency_per_sample_std_ms": 0.01023821337098197,
     "accuracy": 0.9600420451985885,
     "precision": 0.9800574615514619,
     "recall": 0.956750259262751,
     "f1": 0.9682636230276576,
     "auc_roc": 0.9861047563084233,
     "model_name": "ONNX (CPU)",
-    "size_mb": 1.1291875839233398
+    "size_mb": 1.1292457580566406
+  },
+  {
+    "latency_per_sample_mean_ms": 0.004530795882259207,
+    "latency_per_sample_std_ms": 0.0012237117853082047,
+    "accuracy": 0.9590059313762295,
+    "precision": 0.9784274971075974,
+    "recall": 0.956750259262751,
+    "f1": 0.9674674674674675,
+    "auc_roc": 0.9853512542195576,
+    "model_name": "TensorRT FP32 (GPU)",
+    "size_mb": 1.4540443420410156
+  },
+  {
+    "latency_per_sample_mean_ms": 0.00623046550278152,
+    "latency_per_sample_std_ms": 0.0012597231920830484,
+    "accuracy": 0.958780689240934,
+    "precision": 0.9779587117288561,
+    "recall": 0.9568681059677572,
+    "f1": 0.9672984596323608,
+    "auc_roc": 0.9852327609107909,
+    "model_name": "TensorRT FP16 (GPU)",
+    "size_mb": 1.4377021789550781
+  },
+  {
+    "latency_per_sample_mean_ms": 0.008803501974109371,
+    "latency_per_sample_std_ms": 0.003264488029899077,
+    "accuracy": 0.6371048877543359,
+    "precision": 0.6371048877543359,
+    "recall": 1.0,
+    "f1": 0.7783311778248626,
+    "auc_roc": 0.8946387045214268,
+    "model_name": "TensorRT INT8 (GPU)",
+    "size_mb": 0.6907920837402344
   }
 ]

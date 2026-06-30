@@ -51,10 +51,23 @@ def _evaluate_with_runner(
     """
     logger.info(f"Evaluating {name}...")
 
-    # 1. Measure execution latency
+    # 1. Measure execution latency (Cyclic Measurement)
+    num_runs = 10
+    latencies_per_sample = []
+    
+    # Run the first iteration to get the actual reconstructions for classification
     t0 = time.perf_counter()
     reconstruction = run_inference_loop(runner, test_data, batch_size=batch_size)
     total_time = (time.perf_counter() - t0) * 1000.0  # ms
+    latencies_per_sample.append(float(total_time / len(test_data)))
+
+    # Run remaining cycles purely for latency metrics on a subset to save time
+    # (Especially critical for TFLite which runs batch_size=1 natively)
+    latency_subset = test_data[:2000]
+    for _ in range(num_runs - 1):
+        t0 = time.perf_counter()
+        _ = run_inference_loop(runner, latency_subset, batch_size=batch_size)
+        latencies_per_sample.append(float(((time.perf_counter() - t0) * 1000.0) / len(latency_subset)))
 
     # 2. Compute anomaly scores (MSE)
     errors = np.mean(np.square(test_data - reconstruction), axis=(1, 2))
@@ -64,8 +77,8 @@ def _evaluate_with_runner(
     metrics = compute_classification_metrics(predictions, test_labels, scores=errors)
 
     return {
-        "latency_per_sample_ms": float(total_time / len(test_data)),
-        "total_time_ms": float(total_time),
+        "latency_per_sample_mean_ms": float(np.mean(latencies_per_sample)),
+        "latency_per_sample_std_ms": float(np.std(latencies_per_sample)),
         "accuracy": float(metrics.accuracy),
         "precision": float(metrics.precision),
         "recall": float(metrics.recall),
@@ -134,7 +147,7 @@ def evaluate_tensorrt_model(
     if runner is None:
         return {}
     return _evaluate_with_runner(
-        f"TensorRT ({engine_path})", runner, test_data, test_labels, threshold,
+        f"TensorRT ({engine_path})", runner, test_data, test_labels, threshold, batch_size=128,
     )
 
 
@@ -208,11 +221,11 @@ def run_deployment_evaluations(
 
     # Print comparison table
     logger.info("================================== CLASSIFICATION & TIMING EVALUATION SUMMARY ==================================")
-    logger.info(f"{'Model Format':<22} | {'Size (MB)':<10} | {'Latency/S (ms)':<15} | {'F1-Score':<10} | {'ROC-AUC':<10} | {'Recall':<10}")
+    logger.info(f"{'Model Format':<22} | {'Size (MB)':<10} | {'Latency/S Mean ± Std (ms)':<28} | {'F1-Score':<10} | {'ROC-AUC':<10} | {'Recall':<10}")
     logger.info("-" * 110)
     for r in results:
         logger.info(
-            f"{r['model_name']:<22} | {r['size_mb']:<10.3f} | {r['latency_per_sample_ms']:<15.4f} | "
+            f"{r['model_name']:<22} | {r['size_mb']:<10.3f} | {r['latency_per_sample_mean_ms']:<7.4f} ± {r['latency_per_sample_std_ms']:<7.4f}      | "
             f"{r['f1']:<10.4f} | {r['auc_roc']:<10.4f} | {r['recall']:<10.4f}"
         )
     logger.info("================================================================================================================")

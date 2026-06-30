@@ -2,81 +2,71 @@
   "baseline": {
     "name": "Keras FP32 (Baseline)",
     "size_mb": 3.419769287109375,
-    "latency_bs1_mean": 22.097176860206673,
-    "latency_bs1_std": 5.384595777474679,
-    "latency_bs32_mean": 20.29241134008771,
-    "latency_bs32_std": 1.705033833780604,
-    "mse": 0.1315251737833023,
+    "latency_bs1_mean": 18.494185180020395,
+    "latency_bs1_std": 1.0513406273497732,
+    "latency_bs32_mean": 20.48235475999263,
+    "latency_bs32_std": 7.48885651249853,
+    "mse": 0.1315314918756485,
     "mse_diff_from_baseline": 0.0
   },
   "tflite_dynamic": {
     "name": "TFLite DYNAMIC",
     "size_mb": 0.34896087646484375,
-    "latency_bs1_mean": 0.13264983013868914,
-    "latency_bs1_std": 0.006229748701777293,
-    "latency_bs32_mean": 4.6333918000345875,
-    "latency_bs32_std": 0.27561518934494794,
+    "latency_bs1_mean": 0.14151014999470135,
+    "latency_bs1_std": 0.03900124895864538,
+    "latency_bs32_mean": 4.360471940019579,
+    "latency_bs32_std": 0.2949720002826692,
     "mse": 0.13115191459655762,
-    "mse_diff_from_baseline": 0.00037325918674468994
-  },
-  "tflite_fp16": {
-    "name": "TFLite FP16",
-    "size_mb": 0.5777587890625,
-    "latency_bs1_mean": 0.1606672801062814,
-    "latency_bs1_std": 0.03579280489406595,
-    "latency_bs32_mean": 4.6817527200619224,
-    "latency_bs32_std": 0.2897083524062024,
-    "mse": 0.1315157413482666,
-    "mse_diff_from_baseline": 9.432435035705566e-06
+    "mse_diff_from_baseline": 0.00037957727909088135
   },
   "tflite_int8": {
     "name": "TFLite INT8",
     "size_mb": 0.3875732421875,
-    "latency_bs1_mean": 0.11474239012386533,
-    "latency_bs1_std": 0.010392894577911036,
-    "latency_bs32_mean": 3.480686200018681,
-    "latency_bs32_std": 0.23757314987305314,
+    "latency_bs1_mean": 0.10991637000643095,
+    "latency_bs1_std": 0.004378479998020266,
+    "latency_bs32_mean": 3.4156284800064896,
+    "latency_bs32_std": 0.20674520529232882,
     "mse": 0.6766403913497925,
-    "mse_diff_from_baseline": 0.5451152175664902
+    "mse_diff_from_baseline": 0.545108899474144
   },
   "onnx": {
     "name": "ONNX (CPU)",
-    "size_mb": 1.1291875839233398,
-    "latency_bs1_mean": 0.5279171099573432,
-    "latency_bs1_std": 0.7196433959597973,
-    "latency_bs32_mean": 2.3269888299910235,
-    "latency_bs32_std": 0.41068428004298546,
+    "size_mb": 1.1292457580566406,
+    "latency_bs1_mean": 0.40380089999871416,
+    "latency_bs1_std": 0.07010387550822102,
+    "latency_bs32_mean": 2.333670470004563,
+    "latency_bs32_std": 0.3655605483037329,
     "mse": 0.13152962923049927,
-    "mse_diff_from_baseline": 4.455447196960449e-06
+    "mse_diff_from_baseline": 1.862645149230957e-06
   },
   "tensorrt_fp32": {
     "name": "TensorRT FP32 (GPU)",
-    "size_mb": 1.4337196350097656,
-    "latency_bs1_mean": 0.5725337699732336,
-    "latency_bs1_std": 0.21933274571376074,
-    "latency_bs32_mean": 0.8516949199838564,
-    "latency_bs32_std": 0.3572732675302269,
-    "mse": 0.13152535259723663,
-    "mse_diff_from_baseline": 1.7881393432617188e-07
+    "size_mb": 1.4540443420410156,
+    "latency_bs1_mean": 0.3319785600024261,
+    "latency_bs1_std": 0.08140636773563549,
+    "latency_bs32_mean": 0.33218934999240446,
+    "latency_bs32_std": 0.060300020590538926,
+    "mse": 0.13153193891048431,
+    "mse_diff_from_baseline": 4.470348358154297e-07
   },
   "tensorrt_fp16": {
     "name": "TensorRT FP16 (GPU)",
-    "size_mb": 1.4700584411621094,
-    "latency_bs1_mean": 0.7309506898673135,
-    "latency_bs1_std": 0.18815824212020538,
-    "latency_bs32_mean": 0.7769332000498252,
-    "latency_bs32_std": 0.2877912588543929,
-    "mse": 0.13152751326560974,
-    "mse_diff_from_baseline": 2.339482307434082e-06
+    "size_mb": 1.4377021789550781,
+    "latency_bs1_mean": 0.5404146499859053,
+    "latency_bs1_std": 0.16343396481476413,
+    "latency_bs32_mean": 0.6493959800150151,
+    "latency_bs32_std": 0.10588619552720402,
+    "mse": 0.13152892887592316,
+    "mse_diff_from_baseline": 2.562999725341797e-06
   },
   "tensorrt_int8": {
     "name": "TensorRT INT8 (GPU)",
-    "size_mb": 1.4636116027832031,
-    "latency_bs1_mean": 0.4397763399720134,
-    "latency_bs1_std": 0.1284859673367917,
-    "latency_bs32_mean": 0.5000019999170036,
-    "latency_bs32_std": 0.13358872278396117,
-    "mse": 0.13151834905147552,
-    "mse_diff_from_baseline": 6.8247318267822266e-06
+    "size_mb": 0.6907920837402344,
+    "latency_bs1_mean": 0.47083223000072394,
+    "latency_bs1_std": 0.11111363395743942,
+    "latency_bs32_mean": 0.6546691800076587,
+    "latency_bs32_std": 0.20000137182455188,
+    "mse": 0.13478177785873413,
+    "mse_diff_from_baseline": 0.0032502859830856323
   }
 }

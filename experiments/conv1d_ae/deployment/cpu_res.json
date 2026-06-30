@@ -1,0 +1,25 @@
+{
+  "benchmark": {
+    "model_name": "Keras FP32 (CPU)",
+    "latency_mean_ms": 289.20322722000043,
+    "latency_std_ms": 19.31606688382932,
+    "latency_min_ms": 242.70232099979694,
+    "latency_max_ms": 357.2529929999746,
+    "net_ram_mb": 29.09375,
+    "net_vram_mb": 0.0,
+    "peak_ram_mb": 1039.95703125,
+    "peak_vram_mb": 10395.0,
+    "size_mb": 3.419769287109375
+  },
+  "evaluation": {
+    "latency_per_sample_mean_ms": 0.11616860560346258,
+    "latency_per_sample_std_ms": 0.009032655742897279,
+    "accuracy": 0.9600120129138824,
+    "precision": 0.9800333180424443,
+    "recall": 0.9567266899217498,
+    "f1": 0.9682397700573664,
+    "auc_roc": 0.9861046860890104,
+    "model_name": "Keras FP32 (CPU)",
+    "size_mb": 3.419769287109375
+  }
+}
