@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+.env
+.ruff_cache
+.pytest_cache
+.agents
+
+simulation_results/
+data/buck/buck_data
+data/buck/simulation_results.zip
+./data/buck/simulation_results.zip
+cache/

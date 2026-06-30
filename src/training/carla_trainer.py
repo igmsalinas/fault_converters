@@ -1,0 +1,769 @@
+"""
+CARLA Trainer
+=============
+
+Training orchestration for CARLA-style contrastive anomaly detection.
+
+Implements the training loop with:
+1. Synthetic anomaly injection as negative samples
+2. Combined reconstruction + contrastive loss
+3. Anomaly score computation using k-NN in latent space
+
+Reference:
+    Darban et al., "CARLA: Self-supervised Contrastive Representation Learning
+    for Time Series Anomaly Detection", arXiv:2308.09296
+"""
+
+import keras
+from keras import ops
+import numpy as np
+import tensorflow as tf
+from typing import Optional, Dict, Any, Tuple, List
+from dataclasses import dataclass
+import json
+import time
+
+from .base_trainer import BaseTrainer, BaseTrainingConfig
+
+from ..models.contrastive_ae import ContrastiveAutoencoder
+from ..data.anomaly_injection import AnomalyInjector, AnomalyConfig, AnomalyType
+from ..losses.contrastive import CARLALoss, anomaly_score_from_embeddings
+from ..utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+
+@dataclass
+class CARLAConfig(BaseTrainingConfig):
+    """Configuration for CARLA training."""
+
+    # CARLA-specific params
+    reconstruction_weight: float = 1.0
+    contrastive_weight: float = 1.0
+    temperature: float = 0.1
+    anomaly_ratio: float = 0.5  # Ratio of anomalous samples in each batch
+
+    # Anomaly injection
+    n_negative_per_sample: int = 1  # Number of negative samples per anchor
+    anomaly_types: Optional[List[str]] = None  # None for all types
+
+    # Anomaly scoring
+    scoring_method: str = "knn"  # "knn", "centroid", "mahalanobis"
+    k_neighbors: int = 5
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        d = super().to_dict()
+        d.update(
+            {
+                "reconstruction_weight": self.reconstruction_weight,
+                "contrastive_weight": self.contrastive_weight,
+                "temperature": self.temperature,
+                "anomaly_ratio": self.anomaly_ratio,
+                "n_negative_per_sample": self.n_negative_per_sample,
+                "anomaly_types": self.anomaly_types,
+                "scoring_method": self.scoring_method,
+                "k_neighbors": self.k_neighbors,
+            }
+        )
+        return d
+
+
+class CARLATrainer(BaseTrainer):
+    """
+    Trainer for CARLA-style contrastive anomaly detection.
+
+    Handles:
+    - Synthetic anomaly injection during training
+    - Combined reconstruction + contrastive loss
+    - Custom training loop with gradient accumulation
+    - Anomaly scoring using k-NN in latent space
+    """
+
+    def __init__(
+        self,
+        config: CARLAConfig,
+        experiment_name: str = "carla_experiment",
+    ):
+        """
+        Initialize CARLA trainer.
+
+        Args:
+            config: Training configuration
+            experiment_name: Name for this experiment
+        """
+        super().__init__(config, experiment_name)
+
+        # Components
+        self.model: Optional[ContrastiveAutoencoder] = None
+        self.anomaly_injector: Optional[AnomalyInjector] = None
+        self.optimizer: Optional[keras.optimizers.Optimizer] = None
+        self.loss_fn: Optional[CARLALoss] = None
+
+        # History
+        self.history: Dict[str, List[float]] = {
+            "loss": [],
+            "reconstruction_loss": [],
+            "contrastive_loss": [],
+            "val_loss": [],
+            "val_reconstruction_loss": [],
+            "val_contrastive_loss": [],
+        }
+
+        # Reference embeddings for anomaly scoring
+        self.reference_embeddings: Optional[np.ndarray] = None
+
+    def create_model(
+        self,
+        input_shape: Tuple[int, int],
+        latent_dim: int = 32,
+        projection_dim: int = 64,
+        encoder_type: str = "conv1d",
+        **model_kwargs,
+    ) -> ContrastiveAutoencoder:
+        """
+        Create ContrastiveAutoencoder model.
+
+        Args:
+            input_shape: Input shape (seq_len, n_features)
+            latent_dim: Dimension of latent space
+            projection_dim: Dimension of contrastive projection
+            encoder_type: Type of encoder ("conv1d", "lstm", "gru", "transformer", "mlp")
+            **model_kwargs: Additional model arguments
+
+        Returns:
+            Built model instance
+        """
+        self.model = ContrastiveAutoencoder(
+            input_shape=input_shape,
+            latent_dim=latent_dim,
+            projection_dim=projection_dim,
+            encoder_type=encoder_type,
+            **model_kwargs,
+        )
+        self.model.build()
+
+        logger.info(f"Created ContrastiveAutoencoder with {encoder_type} encoder")
+
+        return self.model
+
+    def setup_training(self) -> None:
+        """Setup optimizer, loss, and anomaly injector."""
+        if self.model is None:
+            raise RuntimeError("No model created. Call create_model() first.")
+
+        # Optimizer
+        if self.config.optimizer == "adam":
+            self.optimizer = keras.optimizers.Adam(
+                learning_rate=self.config.learning_rate
+            )
+        elif self.config.optimizer == "adamw":
+            self.optimizer = keras.optimizers.AdamW(
+                learning_rate=self.config.learning_rate
+            )
+        else:
+            self.optimizer = keras.optimizers.SGD(
+                learning_rate=self.config.learning_rate
+            )
+
+        # Loss function
+        self.loss_fn = CARLALoss(
+            reconstruction_weight=self.config.reconstruction_weight,
+            contrastive_weight=self.config.contrastive_weight,
+            temperature=self.config.temperature,
+        )
+
+        # Anomaly injector
+        anomaly_types = None
+        if self.config.anomaly_types:
+            anomaly_types = [AnomalyType(t) for t in self.config.anomaly_types]
+
+        self.anomaly_injector = AnomalyInjector(
+            config=AnomalyConfig(anomaly_prob=self.config.anomaly_ratio),
+            anomaly_types=anomaly_types,
+        )
+
+        from pathlib import Path
+
+        latest_path = Path(self.config.checkpoint_dir) / "latest"
+        if latest_path.exists():
+            try:
+                self.load_checkpoint("latest")
+                logger.info("Successfully loaded latest checkpoint for resumption.")
+            except Exception as e:
+                logger.warning(f"Failed to load latest checkpoint: {e}")
+
+        logger.info("Training setup complete")
+
+    def _prepare_batch(
+        self,
+        batch: np.ndarray,
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Prepare batch with positive and negative samples.
+
+        Args:
+            batch: Original batch of normal samples
+
+        Returns:
+            Tuple of (anchors, positives, negatives, is_normal)
+        """
+        batch_size = batch.shape[0]
+
+        # Anchors are the original samples
+        anchors = batch.copy()
+
+        # Positives: light augmentation of anchors (jitter, small noise)
+        positives = self._light_augment_batch(batch)
+
+        # Negatives: inject anomalies
+        negatives = []
+        for i in range(batch_size):
+            neg_samples = []
+            for _ in range(self.config.n_negative_per_sample):
+                anomalous, _, _ = self.anomaly_injector.inject(batch[i])
+                neg_samples.append(anomalous)
+            negatives.append(neg_samples)
+
+        negatives = np.array(negatives)  # (batch_size, n_neg, seq_len, n_features)
+
+        # Labels: 1 for normal (anchor/positive), 0 for anomalous (negative)
+        is_normal = np.ones(batch_size)
+
+        return anchors, positives, negatives, is_normal
+
+    def _light_augment_batch(self, batch: np.ndarray) -> np.ndarray:
+        """Apply light augmentation for positive pairs."""
+        augmented = batch.copy()
+
+        # Small Gaussian noise
+        noise_std = 0.01 * np.std(batch, axis=(1, 2), keepdims=True)
+        augmented += np.random.normal(0, 1, batch.shape) * noise_std
+
+        # Small scaling
+        scale = np.random.uniform(0.98, 1.02, (batch.shape[0], 1, 1))
+        augmented *= scale
+
+        return augmented
+
+    import tensorflow as tf
+
+    @tf.function
+    def _train_step(
+        self,
+        anchors: tf.Tensor,
+        positives: tf.Tensor,
+        negatives: tf.Tensor,
+    ) -> Tuple[float, float, float]:
+        """
+        Single training step.
+
+        Args:
+            anchors: Anchor samples
+            positives: Positive samples (augmented normal)
+            negatives: Negative samples (with anomalies)
+
+        Returns:
+            Tuple of (total_loss, recon_loss, contrast_loss)
+        """
+        with keras.name_scope("carla_train_step"):
+            # Convert to tensors
+            anchors_t = ops.convert_to_tensor(anchors, dtype="float32")
+            positives_t = ops.convert_to_tensor(positives, dtype="float32")
+
+            # Reshape negatives: (batch, n_neg, seq, feat) -> (batch*n_neg, seq, feat)
+            negatives_t = ops.convert_to_tensor(negatives, dtype="float32")
+            neg_shape = ops.shape(negatives_t)
+            batch = neg_shape[0]
+            n_neg = neg_shape[1]
+            negatives_t = ops.reshape(
+                negatives_t, (batch * n_neg, neg_shape[2], neg_shape[3])
+            )
+
+            with tf.GradientTape() as tape:
+                # Encode anchors and positives
+                z_anchor = self.model.encoder(anchors_t, training=True)
+                z_positive = self.model.encoder(positives_t, training=True)
+
+                # Encode negatives
+                z_negative_flat = self.model.encoder(negatives_t, training=True)
+
+                # Project to contrastive space
+                proj_anchor = self.model.projection_head(z_anchor, training=True)
+                proj_positive = self.model.projection_head(z_positive, training=True)
+                proj_negative = ops.reshape(
+                    self.model.projection_head(z_negative_flat, training=True),
+                    (neg_shape[0], neg_shape[1], -1),
+                )
+
+                # Reconstruct anchors
+                reconstructed = self.model.decoder(z_anchor, training=True)
+
+                # Compute loss
+                total_loss, recon_loss, contrast_loss = self.loss_fn(
+                    x_original=anchors_t,
+                    x_reconstructed=reconstructed,
+                    z_anchor=proj_anchor,
+                    z_positive=proj_positive,
+                    z_negative=proj_negative,
+                )
+
+            # Compute gradients
+            trainable_vars = (
+                self.model.encoder.trainable_variables
+                + self.model.decoder.trainable_variables
+                + self.model.projection_head.trainable_variables
+            )
+            gradients = tape.gradient(total_loss, trainable_vars)
+
+            # Apply gradients
+            self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+
+        return float(total_loss), float(recon_loss), float(contrast_loss)
+
+    def _validate_step(
+        self,
+        anchors: np.ndarray,
+        positives: np.ndarray,
+        negatives: np.ndarray,
+    ) -> Tuple[float, float, float]:
+        """
+        Validation step (no gradient computation).
+
+        Args:
+            anchors: Anchor samples
+            positives: Positive samples
+            negatives: Negative samples
+
+        Returns:
+            Tuple of (total_loss, recon_loss, contrast_loss)
+        """
+        batch_size = anchors.shape[0]
+        n_neg = negatives.shape[1]
+
+        # Convert to tensors
+        anchors_t = ops.convert_to_tensor(anchors, dtype="float32")
+        positives_t = ops.convert_to_tensor(positives, dtype="float32")
+        neg_flat = negatives.reshape(-1, *negatives.shape[2:])
+        negatives_t = ops.convert_to_tensor(neg_flat, dtype="float32")
+
+        # Encode
+        z_anchor = self.model.encoder(anchors_t, training=False)
+        z_positive = self.model.encoder(positives_t, training=False)
+        z_negative_flat = self.model.encoder(negatives_t, training=False)
+
+        # Project
+        proj_anchor = self.model.projection_head(z_anchor, training=False)
+        proj_positive = self.model.projection_head(z_positive, training=False)
+        proj_negative = ops.reshape(
+            self.model.projection_head(z_negative_flat, training=False),
+            (batch_size, n_neg, -1),
+        )
+
+        # Reconstruct
+        reconstructed = self.model.decoder(z_anchor, training=False)
+
+        # Compute loss
+        total_loss, recon_loss, contrast_loss = self.loss_fn(
+            x_original=anchors_t,
+            x_reconstructed=reconstructed,
+            z_anchor=proj_anchor,
+            z_positive=proj_positive,
+            z_negative=proj_negative,
+        )
+
+        return float(total_loss), float(recon_loss), float(contrast_loss)
+
+    def train(
+        self,
+        train_data: np.ndarray,
+        val_data: Optional[np.ndarray] = None,
+        verbose: int = 1,
+    ) -> Dict[str, List[float]]:
+        """
+        Train the CARLA model.
+
+        Args:
+            train_data: Training data (normal samples only)
+            val_data: Validation data (normal samples only)
+            verbose: Verbosity level
+
+        Returns:
+            Training history
+        """
+        if self.model is None:
+            raise RuntimeError("No model created. Call create_model() first.")
+        if self.optimizer is None:
+            raise RuntimeError("Training not setup. Call setup_training() first.")
+
+        n_samples = len(train_data)
+        n_batches = max(1, n_samples // self.config.batch_size)
+
+        # Early stopping state
+        best_loss = float("inf")
+        patience_counter = 0
+
+        start_epoch = len(self.history["loss"])
+        if start_epoch > 0:
+            logger.info(f"Resuming training from epoch {start_epoch + 1}")
+            if self.history["val_loss"]:
+                best_loss = min(self.history["val_loss"])
+            else:
+                best_loss = min(self.history["loss"])
+
+        logger.info(f"Starting CARLA training for {self.config.epochs} epochs")
+        logger.info(
+            f"Training samples: {n_samples}, Batch size: {self.config.batch_size}"
+        )
+
+        start_time = time.time()
+
+        for epoch in range(start_epoch, self.config.epochs):
+            epoch_start = time.time()
+
+            # Shuffle training data
+            indices = np.random.permutation(n_samples)
+            train_data_shuffled = train_data[indices]
+
+            # Training metrics
+            epoch_loss = 0.0
+            epoch_recon_loss = 0.0
+            epoch_contrast_loss = 0.0
+
+            for batch_idx in range(n_batches):
+                # Get batch
+                start_idx = batch_idx * self.config.batch_size
+                end_idx = min(start_idx + self.config.batch_size, n_samples)
+                batch = train_data_shuffled[start_idx:end_idx]
+
+                # Prepare batch with augmentation and anomaly injection
+                anchors, positives, negatives, _ = self._prepare_batch(batch)
+
+                # Convert numpy arrays to tensors to prevent tf.function from retracing each batch (Memory Leak fix)
+                anchors_t = tf.convert_to_tensor(anchors, dtype=tf.float32)
+                positives_t = tf.convert_to_tensor(positives, dtype=tf.float32)
+                negatives_t = tf.convert_to_tensor(negatives, dtype=tf.float32)
+
+                # Training step
+                loss, recon_loss, contrast_loss = self._train_step(
+                    anchors_t, positives_t, negatives_t
+                )
+
+                epoch_loss += loss
+                epoch_recon_loss += recon_loss
+                epoch_contrast_loss += contrast_loss
+
+                # Progress bar
+                if verbose > 0 and batch_idx % 10 == 0:
+                    progress = (batch_idx + 1) / n_batches * 100
+                    print(
+                        f"\rEpoch {epoch + 1}/{self.config.epochs} "
+                        f"[{progress:3.0f}%] loss: {loss:.4f}",
+                        end="",
+                    )
+
+            # Average epoch metrics
+            epoch_loss /= n_batches
+            epoch_recon_loss /= n_batches
+            epoch_contrast_loss /= n_batches
+
+            self.history["loss"].append(epoch_loss)
+            self.history["reconstruction_loss"].append(epoch_recon_loss)
+            self.history["contrastive_loss"].append(epoch_contrast_loss)
+
+            # Validation
+            val_metrics = ""
+            if val_data is not None:
+                val_loss, val_recon, val_contrast = self._validate_epoch(val_data)
+                self.history["val_loss"].append(val_loss)
+                self.history["val_reconstruction_loss"].append(val_recon)
+                self.history["val_contrastive_loss"].append(val_contrast)
+                val_metrics = f" - val_loss: {val_loss:.4f}"
+
+                # Early stopping check
+                if self.config.early_stopping:
+                    if val_loss < best_loss - self.config.min_delta:
+                        best_loss = val_loss
+                        patience_counter = 0
+                        # Save best model
+                        if self.config.save_best_only:
+                            self.save_checkpoint("best")
+                    else:
+                        patience_counter += 1
+                        if patience_counter >= self.config.patience:
+                            logger.info(f"Early stopping at epoch {epoch + 1}")
+                            break
+            else:
+                # Use training loss for early stopping if no validation
+                if self.config.early_stopping:
+                    if epoch_loss < best_loss - self.config.min_delta:
+                        best_loss = epoch_loss
+                        patience_counter = 0
+                        if self.config.save_best_only:
+                            self.save_checkpoint("best")
+                    else:
+                        patience_counter += 1
+                        if patience_counter >= self.config.patience:
+                            logger.info(f"Early stopping at epoch {epoch + 1}")
+                            break
+
+            epoch_time = time.time() - epoch_start
+
+            if verbose > 0:
+                print(
+                    f"\rEpoch {epoch + 1}/{self.config.epochs} - "
+                    f"loss: {epoch_loss:.4f} "
+                    f"(recon: {epoch_recon_loss:.4f}, contrast: {epoch_contrast_loss:.4f})"
+                    f"{val_metrics} - {epoch_time:.1f}s"
+                )
+
+            # Log to file
+            self.training_logger.log_message(
+                f"Epoch {epoch + 1}: loss={epoch_loss:.4f}, "
+                f"recon={epoch_recon_loss:.4f}, contrast={epoch_contrast_loss:.4f}",
+                level="info",
+            )
+
+            self.save_checkpoint("latest")
+
+        total_time = time.time() - start_time
+        logger.info(f"Training completed in {total_time / 60:.1f} minutes")
+
+        # Build reference embeddings from training data
+        self._build_reference_embeddings(train_data)
+
+        # Save final model
+        self.save_checkpoint("final")
+
+        return self.history
+
+    def _validate_epoch(self, val_data: np.ndarray) -> Tuple[float, float, float]:
+        """Compute validation metrics for entire epoch."""
+        n_samples = len(val_data)
+        n_batches = max(1, n_samples // self.config.batch_size)
+
+        total_loss = 0.0
+        total_recon = 0.0
+        total_contrast = 0.0
+
+        for batch_idx in range(n_batches):
+            start_idx = batch_idx * self.config.batch_size
+            end_idx = min(start_idx + self.config.batch_size, n_samples)
+            batch = val_data[start_idx:end_idx]
+
+            anchors, positives, negatives, _ = self._prepare_batch(batch)
+            loss, recon, contrast = self._validate_step(anchors, positives, negatives)
+
+            total_loss += loss
+            total_recon += recon
+            total_contrast += contrast
+
+        return (
+            total_loss / n_batches,
+            total_recon / n_batches,
+            total_contrast / n_batches,
+        )
+
+    def _build_reference_embeddings(self, normal_data: np.ndarray) -> None:
+        """Build reference embeddings from normal training data."""
+        logger.info("Building reference embeddings for anomaly scoring...")
+
+        batch_size = self.config.batch_size
+        ref_embeddings_list = []
+        n_samples = len(normal_data)
+
+        for i in range(0, n_samples, batch_size):
+            chunk = normal_data[i:i + batch_size]
+            embeddings = self.model.get_embeddings(chunk)
+            ref_embeddings_list.append(embeddings["projection"])
+
+        ref_embeddings = np.concatenate(ref_embeddings_list, axis=0)
+
+        # L2 Normalize reference embeddings (matching training objective)
+        norms = np.linalg.norm(ref_embeddings, axis=1, keepdims=True)
+        self.reference_embeddings = ref_embeddings / (norms + 1e-8)
+
+        logger.info(f"Reference embeddings shape: {self.reference_embeddings.shape}")
+
+    def compute_anomaly_scores(
+        self,
+        data: np.ndarray,
+        method: Optional[str] = None,
+        k: Optional[int] = None,
+        normalize: bool = True,
+        batch_size: Optional[int] = None,
+    ) -> np.ndarray:
+        """
+        Compute anomaly scores for samples.
+
+        Args:
+            data: Input data
+            method: Scoring method (None uses config default)
+            k: Number of neighbors for kNN (None uses config default)
+            normalize: Whether to normalize embeddings (default: True)
+            batch_size: Batch size for model inference and scoring
+
+        Returns:
+            Anomaly scores per sample
+        """
+        if self.reference_embeddings is None:
+            raise RuntimeError(
+                "No reference embeddings. Train model first or call "
+                "_build_reference_embeddings()."
+            )
+
+        method = method or self.config.scoring_method
+        k = k or self.config.k_neighbors
+        b_size = batch_size or self.config.batch_size
+
+        # Get embeddings for test data in batches
+        test_embeddings_list = []
+        n_samples = len(data)
+
+        for i in range(0, n_samples, b_size):
+            chunk = data[i:i + b_size]
+            embeddings = self.model.get_embeddings(chunk)
+            test_embeddings_list.append(embeddings["projection"])
+
+        test_embeddings = np.concatenate(test_embeddings_list, axis=0)
+
+        # Compute scores using normalized embeddings (matching training objective)
+        scores = anomaly_score_from_embeddings(
+            test_embeddings,
+            self.reference_embeddings,
+            method=method,
+            k=k,
+            normalize=normalize,
+            batch_size=b_size,
+        )
+
+        return scores
+
+    def detect_anomalies(
+        self,
+        data: np.ndarray,
+        threshold: Optional[float] = None,
+        percentile: float = 95.0,
+        batch_size: Optional[int] = None,
+    ) -> Tuple[np.ndarray, np.ndarray, float]:
+        """
+        Detect anomalies in data.
+
+        Args:
+            data: Input data
+            threshold: Anomaly threshold (None to compute from percentile)
+            percentile: Percentile for automatic threshold
+            batch_size: Batch size for model inference and scoring
+
+        Returns:
+            Tuple of (predictions, scores, threshold)
+            predictions: Boolean array, True for anomalies
+            scores: Anomaly scores
+            threshold: Applied threshold
+        """
+        scores = self.compute_anomaly_scores(data, batch_size=batch_size)
+
+        if threshold is None:
+            # Compute threshold from reference scores
+            b_size = batch_size or self.config.batch_size
+            ref_scores = anomaly_score_from_embeddings(
+                self.reference_embeddings,
+                self.reference_embeddings,
+                method=self.config.scoring_method,
+                k=self.config.k_neighbors,
+                batch_size=b_size,
+            )
+            threshold = np.percentile(ref_scores, percentile)
+
+        predictions = scores > threshold
+
+        return predictions, scores, threshold
+
+    def save_checkpoint(self, name: Optional[str] = "checkpoint") -> None:
+        """Save model checkpoint."""
+        from pathlib import Path
+
+        if name:
+            checkpoint_path = Path(self.config.checkpoint_dir) / name
+        else:
+            checkpoint_path = Path(self.config.checkpoint_dir)
+
+        checkpoint_path.mkdir(parents=True, exist_ok=True)
+        self.model.save(str(checkpoint_path))
+
+        # Save reference embeddings
+        if self.reference_embeddings is not None:
+            np.save(
+                checkpoint_path / "reference_embeddings.npy", self.reference_embeddings
+            )
+
+        # Save config and history
+        # Save as model_config.json for consistency with predictor
+        config_dict = self.config.to_dict()
+        with open(checkpoint_path / "model_config.json", "w") as f:
+            json.dump(config_dict, f, indent=2)
+
+        with open(checkpoint_path / "carla_config.json", "w") as f:
+            json.dump(config_dict, f, indent=2)
+
+        with open(checkpoint_path / "history.json", "w") as f:
+            # Force serialization of array types when saving history dict
+            safe_history = {
+                k: [float(v) for v in vals] for k, vals in self.history.items()
+            }
+            json.dump(safe_history, f, indent=2)
+
+        logger.info(f"Checkpoint saved to {checkpoint_path}")
+
+    def load_checkpoint(self, name: Optional[str] = "best") -> None:
+        """Load model checkpoint."""
+        from pathlib import Path
+
+        if name:
+            checkpoint_path = Path(self.config.checkpoint_dir) / name
+        else:
+            checkpoint_path = Path(self.config.checkpoint_dir)
+
+        if not checkpoint_path.exists():
+            # Fallback: try root if name provided but doesn't exist as subdir
+            if (
+                name
+                and Path(self.config.checkpoint_dir).exists()
+                and (Path(self.config.checkpoint_dir) / "autoencoder.keras").exists()
+            ):
+                checkpoint_path = Path(self.config.checkpoint_dir)
+            else:
+                raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
+
+        # Load model
+        self.model = ContrastiveAutoencoder.load(str(checkpoint_path))
+
+        # Load reference embeddings
+        ref_path = checkpoint_path / "reference_embeddings.npy"
+        if ref_path.exists():
+            self.reference_embeddings = np.load(ref_path)
+
+        # Load history
+        history_path = checkpoint_path / "history.json"
+        if history_path.exists():
+            with open(history_path, "r") as f:
+                self.history = json.load(f)
+
+        logger.info(f"Checkpoint loaded from {checkpoint_path}")
+
+    def get_summary(self) -> Dict[str, Any]:
+        """Get training summary."""
+        return {
+            "experiment_name": self.experiment_name,
+            "config": self.config.to_dict(),
+            "model_params": self.model.autoencoder.count_params() if self.model else 0,
+            "history": {
+                "final_loss": self.history["loss"][-1]
+                if self.history["loss"]
+                else None,
+                "best_loss": min(self.history["loss"])
+                if self.history["loss"]
+                else None,
+                "epochs_trained": len(self.history["loss"]),
+            },
+        }

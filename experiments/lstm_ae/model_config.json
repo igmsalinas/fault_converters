@@ -1,0 +1,19 @@
+{
+  "name": "lstm_ae",
+  "type": "standard",
+  "input_shape": [
+    101,
+    2
+  ],
+  "latent_dim": 64,
+  "units_idx": 0,
+  "dropout_rate": 0.0,
+  "bidirectional": true,
+  "activation": "gelu",
+  "optimizer": "lion",
+  "learning_rate": 0.00014172054406407075,
+  "weight_decay": 0.0013766299263848877,
+  "lr_schedule": "cosine",
+  "warmup_ratio": 0.0,
+  "clipnorm": 1.0
+}

@@ -1,0 +1,302 @@
+{
+  "Keras FP32 (Baseline)": {
+    "1": {
+      "latency_batch_ms": 21.731666966540313,
+      "latency_sample_ms": 21.731666966540313,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "2": {
+      "latency_batch_ms": 20.791499266670144,
+      "latency_sample_ms": 10.395749633335072,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "4": {
+      "latency_batch_ms": 22.556725600043137,
+      "latency_sample_ms": 5.639181400010784,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "8": {
+      "latency_batch_ms": 23.32515453357094,
+      "latency_sample_ms": 2.9156443166963677,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "16": {
+      "latency_batch_ms": 22.75927303332234,
+      "latency_sample_ms": 1.4224545645826463,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "32": {
+      "latency_batch_ms": 20.36912399992919,
+      "latency_sample_ms": 0.6365351249977872,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "64": {
+      "latency_batch_ms": 20.8614881000661,
+      "latency_sample_ms": 0.3259607515635328,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "128": {
+      "latency_batch_ms": 22.202243133324373,
+      "latency_sample_ms": 0.17345502447909666,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    }
+  },
+  "TFLite FP16": {
+    "1": {
+      "latency_batch_ms": 0.17817026649330123,
+      "latency_sample_ms": 0.17817026649330123,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "2": {
+      "latency_batch_ms": 0.3140358333136343,
+      "latency_sample_ms": 0.15701791665681716,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "4": {
+      "latency_batch_ms": 0.5640631667726362,
+      "latency_sample_ms": 0.14101579169315906,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "8": {
+      "latency_batch_ms": 1.1325732664772659,
+      "latency_sample_ms": 0.14157165830965823,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "16": {
+      "latency_batch_ms": 2.3916103333855667,
+      "latency_sample_ms": 0.14947564583659792,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "32": {
+      "latency_batch_ms": 5.240816133361174,
+      "latency_sample_ms": 0.1637755041675367,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "64": {
+      "latency_batch_ms": 10.16055016655931,
+      "latency_sample_ms": 0.1587585963524892,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "128": {
+      "latency_batch_ms": 20.13910476671299,
+      "latency_sample_ms": 0.15733675598994523,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    }
+  },
+  "TFLite Dynamic": {
+    "1": {
+      "latency_batch_ms": 0.15135543368766471,
+      "latency_sample_ms": 0.15135543368766471,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "2": {
+      "latency_batch_ms": 0.2925213000101697,
+      "latency_sample_ms": 0.14626065000508484,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "4": {
+      "latency_batch_ms": 0.5414902664294156,
+      "latency_sample_ms": 0.1353725666073539,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "8": {
+      "latency_batch_ms": 1.1430523666907295,
+      "latency_sample_ms": 0.1428815458363412,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "16": {
+      "latency_batch_ms": 2.378717966894328,
+      "latency_sample_ms": 0.1486698729308955,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "32": {
+      "latency_batch_ms": 4.500896466561244,
+      "latency_sample_ms": 0.14065301458003887,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "64": {
+      "latency_batch_ms": 10.20177283329152,
+      "latency_sample_ms": 0.15940270052018,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "128": {
+      "latency_batch_ms": 19.91089806670061,
+      "latency_sample_ms": 0.15555389114609852,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    }
+  },
+  "TFLite INT8": {
+    "1": {
+      "latency_batch_ms": 0.11908003313389297,
+      "latency_sample_ms": 0.11908003313389297,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "2": {
+      "latency_batch_ms": 0.22886153346917126,
+      "latency_sample_ms": 0.11443076673458563,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "4": {
+      "latency_batch_ms": 0.45677839995429775,
+      "latency_sample_ms": 0.11419459998857444,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "8": {
+      "latency_batch_ms": 0.881989699943612,
+      "latency_sample_ms": 0.1102487124929515,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "16": {
+      "latency_batch_ms": 1.7585505000170087,
+      "latency_sample_ms": 0.10990940625106305,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "32": {
+      "latency_batch_ms": 3.4809344667640594,
+      "latency_sample_ms": 0.10877920208637686,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "64": {
+      "latency_batch_ms": 7.025694233076744,
+      "latency_sample_ms": 0.10977647239182413,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "128": {
+      "latency_batch_ms": 13.709125700067185,
+      "latency_sample_ms": 0.10710254453177488,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    }
+  },
+  "ONNX (CPU)": {
+    "1": {
+      "latency_batch_ms": 0.4263868999866342,
+      "latency_sample_ms": 0.4263868999866342,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "2": {
+      "latency_batch_ms": 0.6076198998925975,
+      "latency_sample_ms": 0.30380994994629873,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "4": {
+      "latency_batch_ms": 0.756101966787052,
+      "latency_sample_ms": 0.189025491696763,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "8": {
+      "latency_batch_ms": 0.9871406336969812,
+      "latency_sample_ms": 0.12339257921212266,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "16": {
+      "latency_batch_ms": 1.597831466824573,
+      "latency_sample_ms": 0.09986446667653581,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "32": {
+      "latency_batch_ms": 2.9660597999585057,
+      "latency_sample_ms": 0.0926893687487033,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "64": {
+      "latency_batch_ms": 4.552488333380704,
+      "latency_sample_ms": 0.0711326302090735,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "128": {
+      "latency_batch_ms": 9.672559666917854,
+      "latency_sample_ms": 0.07556687239779573,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    }
+  },
+  "TensorRT (GPU)": {
+    "1": {
+      "latency_batch_ms": 0.9388260332949964,
+      "latency_sample_ms": 0.9388260332949964,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "2": {
+      "latency_batch_ms": 0.8976987997812103,
+      "latency_sample_ms": 0.4488493998906051,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "4": {
+      "latency_batch_ms": 0.7138594334416363,
+      "latency_sample_ms": 0.17846485836040907,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "8": {
+      "latency_batch_ms": 0.8826454334363613,
+      "latency_sample_ms": 0.11033067917954516,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "16": {
+      "latency_batch_ms": 0.9854176000468821,
+      "latency_sample_ms": 0.06158860000293013,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "32": {
+      "latency_batch_ms": 1.6952444996907918,
+      "latency_sample_ms": 0.052976390615337245,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "64": {
+      "latency_batch_ms": 1.069338000343123,
+      "latency_sample_ms": 0.016708406255361297,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    },
+    "128": {
+      "latency_batch_ms": 1.6156591000253684,
+      "latency_sample_ms": 0.01262233671894819,
+      "net_ram_mb": 0.0,
+      "net_vram_mb": 0.0
+    }
+  }
+}

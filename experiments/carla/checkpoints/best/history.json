@@ -1,0 +1,20 @@
+{
+  "loss": [
+    0.08111663162708282
+  ],
+  "reconstruction_loss": [
+    0.2964349091053009
+  ],
+  "contrastive_loss": [
+    0.10294625908136368
+  ],
+  "val_loss": [
+    0.21777002132953482
+  ],
+  "val_reconstruction_loss": [
+    0.3532137991266048
+  ],
+  "val_contrastive_loss": [
+    0.3648972821996567
+  ]
+}
