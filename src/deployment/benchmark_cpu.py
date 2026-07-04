@@ -41,9 +41,10 @@ def main():
 
     # 1. Timing Benchmark
     print("Running Timing Benchmark on CPU...")
-    # Take a single slice for timing consistency if needed, or use full
-    x_single = test_data[:2000]
-    bench_res = benchmark_timing_memory("Keras FP32 (CPU)", runner, x_single)
+    # Multi-sample inference test (mean/std) — must match the batch used by
+    # run_full_performance_suite so CPU and GPU latencies are comparable.
+    x_perf = test_data[:min(2000, len(test_data))]
+    bench_res = benchmark_timing_memory("Keras FP32 (CPU)", runner, x_perf)
     bench_res["size_mb"] = get_file_size_mb(str(Path(args.model_dir) / "best_model.weights.h5"))
 
     # 2. Evaluation Benchmark

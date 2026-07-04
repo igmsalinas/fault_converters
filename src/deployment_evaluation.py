@@ -15,13 +15,9 @@ from typing import Dict, Any, List
 from .deployment import (
     load_deployment_datasets,
     run_deployment_benchmarks,
-    save_benchmark_report,
     run_full_performance_suite,
-    save_performance_report,
     run_deployment_evaluations,
-    save_evaluation_report,
     run_batch_size_study,
-    save_batch_size_report,
 )
 from .inference.predictor import AnomalyPredictor
 from .utils.logger import get_logger, setup_logger
@@ -47,8 +43,8 @@ def get_converted_models(output_dir: Path) -> Dict[str, str]:
     # Check for TFLite
     if (output_dir / "model_dynamic.tflite").exists():
         models["tflite_dynamic"] = str(output_dir / "model_dynamic.tflite")
-    if (output_dir / "model_fp16.tflite").exists():
-        models["tflite_fp16"] = str(output_dir / "model_fp16.tflite")
+    if (output_dir / "model_float16.tflite").exists():
+        models["tflite_fp16"] = str(output_dir / "model_float16.tflite")
     if (output_dir / "model_int8.tflite").exists():
         models["tflite_int8"] = str(output_dir / "model_int8.tflite")
         
@@ -119,6 +115,111 @@ def generate_unified_markdown_report(
     logger.info(f"Saved unified benchmark report to {out_p}")
 
 
+def build_unified_results(
+    benchmark_results: Dict[str, Any],
+    perf_results: List[Dict[str, Any]],
+    eval_results: List[Dict[str, Any]],
+    study_results: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Merge every deployment measurement into a single dict keyed by strategy.
+
+    Each top-level key is a deployment strategy display name (e.g.
+    ``"TensorRT FP16 (GPU)"``) mapping to a unified record with ``size_mb`` plus
+    ``benchmark``, ``performance``, ``evaluation`` and ``batch_scaling`` sections.
+    Any section is ``None`` if that strategy was not covered by the corresponding suite.
+    """
+    unified: Dict[str, Any] = {}
+
+    # Canonicalize display-name variants so the same strategy merges into one key.
+    name_aliases = {"TFLite DYNAMIC": "TFLite Dynamic"}
+
+    def _canon(name: str) -> str:
+        return name_aliases.get(name, name)
+
+    def _entry(name: str) -> Dict[str, Any]:
+        return unified.setdefault(name, {
+            "size_mb": None,
+            "benchmark": None,
+            "performance": None,
+            "evaluation": None,
+            "batch_scaling": None,
+        })
+
+    # 1. Inference fidelity & baseline latency (internal keys carry a display "name")
+    for v in benchmark_results.values():
+        name = _canon(v.get("name"))
+        if not name:
+            continue
+        e = _entry(name)
+        if v.get("size_mb") is not None:
+            e["size_mb"] = v["size_mb"]
+        e["benchmark"] = {
+            "latency_bs1_mean_ms": v.get("latency_bs1_mean"),
+            "latency_bs1_std_ms": v.get("latency_bs1_std"),
+            "latency_bs32_mean_ms": v.get("latency_bs32_mean"),
+            "latency_bs32_std_ms": v.get("latency_bs32_std"),
+            "mse": v.get("mse"),
+            "mse_diff_from_baseline": v.get("mse_diff_from_baseline"),
+        }
+
+    # 2. Hardware resource profiling
+    for r in perf_results:
+        name = _canon(r.get("model_name"))
+        if not name:
+            continue
+        e = _entry(name)
+        if r.get("size_mb") is not None:
+            e["size_mb"] = r["size_mb"]
+        e["performance"] = {
+            "latency_mean_ms": r.get("latency_mean_ms"),
+            "latency_std_ms": r.get("latency_std_ms"),
+            "latency_min_ms": r.get("latency_min_ms"),
+            "latency_max_ms": r.get("latency_max_ms"),
+            "net_ram_mb": r.get("net_ram_mb"),
+            "net_vram_mb": r.get("net_vram_mb"),
+            "peak_ram_mb": r.get("peak_ram_mb"),
+            "peak_vram_mb": r.get("peak_vram_mb"),
+        }
+
+    # 3. Classification degradation
+    for r in eval_results:
+        name = _canon(r.get("model_name"))
+        if not name:
+            continue
+        e = _entry(name)
+        if r.get("size_mb") is not None:
+            e["size_mb"] = r["size_mb"]
+        e["evaluation"] = {
+            "latency_per_sample_mean_ms": r.get(
+                "latency_per_sample_mean_ms", r.get("latency_per_sample_ms")
+            ),
+            "latency_per_sample_std_ms": r.get("latency_per_sample_std_ms"),
+            "accuracy": r.get("accuracy"),
+            "precision": r.get("precision"),
+            "recall": r.get("recall"),
+            "f1": r.get("f1"),
+            "auc_roc": r.get("auc_roc"),
+        }
+
+    # 4. Batch size scaling
+    for name, bs_data in study_results.items():
+        e = _entry(_canon(name))
+        e["batch_scaling"] = {
+            str(bs): bs_data[bs] for bs in sorted(bs_data, key=lambda k: int(k))
+        }
+
+    return unified
+
+
+def save_unified_json_report(unified: Dict[str, Any], output_path: str) -> None:
+    """Write the unified deployment results dict to a single JSON file."""
+    out_p = Path(output_path)
+    out_p.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_p, "w") as f:
+        json.dump(unified, f, indent=2)
+    logger.info(f"Saved unified deployment JSON report to {out_p}")
+
+
 def main(argv=None):
     args = parse_args(argv)
 
@@ -167,9 +268,6 @@ def main(argv=None):
             converted_models=converted_models,
         )
 
-        report_path = str(output_dir / "deployment_benchmark_report")
-        save_benchmark_report(benchmark_results, report_path)
-
         # ---------------- CPU BENCHMARK RUNNER ----------------
         logger.info("--- Running CPU-only Benchmark via Subprocess ---")
         temp_data_file = str(output_dir / "temp_test_data.npy")
@@ -204,8 +302,6 @@ def main(argv=None):
 
         if cpu_res and "benchmark" in cpu_res:
             perf_results.insert(1, cpu_res["benchmark"])
-        perf_report_path = str(output_dir / "performance_benchmark_report")
-        save_performance_report(perf_results, perf_report_path)
 
         # Run timing and classification evaluation
         logger.info("--- Running Timing and Classification Evaluation Benchmark ---")
@@ -215,12 +311,9 @@ def main(argv=None):
             test_data=test_data,
             test_labels=splits["test_labels"],
         )
-        eval_report_path = str(output_dir / "evaluation_benchmark_report")
-        
+
         if cpu_res and "evaluation" in cpu_res:
             eval_results.insert(1, cpu_res["evaluation"])
-            
-        save_evaluation_report(eval_results, eval_report_path)
 
         # Run batch size scaling study
         logger.info("--- Running Batch Size Scaling Study ---")
@@ -235,15 +328,24 @@ def main(argv=None):
             test_data=test_data,
             batch_sizes=bs_list,
         )
-        study_report_path = str(output_dir / "batch_size_study_report")
-        save_batch_size_report(study_results, study_report_path)
 
-        # Generate Unified Markdown Report
-        logger.info("--- Generating Unified Markdown Report ---")
+        # Merge everything into a single unified report keyed by deployment strategy
+        logger.info("--- Generating Unified Deployment Report ---")
+        unified = build_unified_results(
+            benchmark_results, perf_results, eval_results, study_results
+        )
+        save_unified_json_report(unified, str(output_dir / "unified_deployment_report.json"))
         generate_unified_markdown_report(
             benchmark_results, perf_results, eval_results, study_results,
             str(output_dir / "unified_deployment_report.md")
         )
+
+        # Clean up intermediate artifacts
+        for tmp in (temp_data_file, temp_labels_file, cpu_out_file):
+            try:
+                Path(tmp).unlink(missing_ok=True)
+            except Exception:
+                pass
 
     except Exception as e:
         logger.error(f"Benchmarking suite run failed: {e}")

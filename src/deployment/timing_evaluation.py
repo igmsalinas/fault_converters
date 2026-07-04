@@ -180,7 +180,7 @@ def run_deployment_evaluations(
 
     # 2. TFLite models
     tflite_files = {
-        "TFLite FP16": "model_fp16.tflite",
+        "TFLite FP16": "model_float16.tflite",
         "TFLite Dynamic": "model_dynamic.tflite",
         "TFLite INT8": "model_int8.tflite",
     }

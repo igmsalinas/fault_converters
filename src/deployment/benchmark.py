@@ -180,13 +180,15 @@ def run_deployment_benchmarks(
     }
 
     # 2. Benchmark TFLite models
+    tflite_labels = {"dynamic": "Dynamic", "float16": "FP16", "fp16": "FP16", "int8": "INT8"}
     for key, path in converted_models.items():
         if "tflite" in key and Path(path).exists():
             try:
                 tf_res = benchmark_tflite_model(path, test_data)
                 mse_diff = abs(tf_res["mse"] - baseline_results["mse"])
+                variant = key.replace("tflite_", "")
                 results[key] = {
-                    "name": f"TFLite {key.replace('tflite_', '').upper()}",
+                    "name": f"TFLite {tflite_labels.get(variant, variant.upper())}",
                     "size_mb": get_file_size_mb(path),
                     "latency_bs1_mean": tf_res["latency_bs1_mean"],
                     "latency_bs1_std": tf_res["latency_bs1_std"],

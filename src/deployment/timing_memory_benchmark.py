@@ -142,22 +142,24 @@ def run_full_performance_suite(
     dep_path = Path(deployment_dir)
     results = []
 
-    # Ensure shape fits sequence and feature sizes
-    x_single = np.expand_dims(test_data[0], axis=0).astype(np.float32)
+    # Multi-sample inference test: measure latency (mean/std) over a fixed batch
+    # so results stay comparable with the CPU-only benchmark subprocess, which
+    # uses the same batch size.
+    x_perf = test_data[:min(2000, len(test_data))].astype(np.float32)
 
     # 1. Baseline Keras model
     try:
         from ..inference.predictor import AnomalyPredictor
         predictor = AnomalyPredictor(model_dir=model_dir)
         keras_runner = create_keras_runner(predictor.model.autoencoder)
-        res = benchmark_timing_memory("Keras FP32 (Baseline)", keras_runner, x_single)
+        res = benchmark_timing_memory("Keras FP32 (Baseline)", keras_runner, x_perf)
         results.append(res)
     except Exception as e:
         logger.error(f"Failed to benchmark Keras Baseline: {e}")
 
     # 2. TFLite models
     tflite_files = {
-        "TFLite FP16": "model_fp16.tflite",
+        "TFLite FP16": "model_float16.tflite",
         "TFLite Dynamic": "model_dynamic.tflite",
         "TFLite INT8": "model_int8.tflite",
     }
@@ -167,7 +169,7 @@ def run_full_performance_suite(
         if tflite_path.exists():
             try:
                 tflite_runner = create_tflite_runner(str(tflite_path))
-                res = benchmark_timing_memory(label, tflite_runner, x_single)
+                res = benchmark_timing_memory(label, tflite_runner, x_perf)
                 results.append(res)
             except Exception as e:
                 logger.error(f"Failed to benchmark {label}: {e}")
@@ -178,7 +180,7 @@ def run_full_performance_suite(
         try:
             onnx_runner = create_onnx_runner(str(onnx_path))
             if onnx_runner is not None:
-                res = benchmark_timing_memory("ONNX (CPU)", onnx_runner, x_single)
+                res = benchmark_timing_memory("ONNX (CPU)", onnx_runner, x_perf)
                 results.append(res)
         except Exception as e:
             logger.error(f"Failed to benchmark ONNX: {e}")
@@ -190,7 +192,7 @@ def run_full_performance_suite(
             if trt_runner is not None:
                 # E.g. model_fp16.engine -> TensorRT fp16 (GPU)
                 name_suffix = engine_path.stem.split("_")[-1] if "_" in engine_path.stem else "fp16"
-                res = benchmark_timing_memory(f"TensorRT {name_suffix.upper()} (GPU)", trt_runner, x_single)
+                res = benchmark_timing_memory(f"TensorRT {name_suffix.upper()} (GPU)", trt_runner, x_perf)
                 results.append(res)
         except Exception as e:
             logger.error(f"Failed to benchmark {engine_path.name}: {e}")
@@ -267,7 +269,7 @@ def run_batch_size_study(
 
     # 2. TFLite Models
     tflite_files = {
-        "TFLite FP16": "model_fp16.tflite",
+        "TFLite FP16": "model_float16.tflite",
         "TFLite Dynamic": "model_dynamic.tflite",
         "TFLite INT8": "model_int8.tflite",
     }
@@ -321,9 +323,11 @@ def run_batch_size_study(
         if onnx_data:
             study_results["ONNX (CPU)"] = onnx_data
 
-    # 4. TensorRT Engine
-    engine_path = dep_path / "model.engine"
-    if engine_path.exists():
+    # 4. TensorRT Engines
+    for engine_path in sorted(dep_path.glob("*.engine")):
+        # E.g. model_fp16.engine -> TensorRT FP16 (GPU)
+        name_suffix = engine_path.stem.split("_")[-1] if "_" in engine_path.stem else "fp16"
+        label = f"TensorRT {name_suffix.upper()} (GPU)"
         trt_data = {}
         try:
             trt_runner = create_tensorrt_runner(str(engine_path))
@@ -331,7 +335,7 @@ def run_batch_size_study(
                 for bs in batch_sizes:
                     try:
                         x_batch = _prepare_batch(bs)
-                        res = benchmark_timing_memory(f"TensorRT (BS={bs})", trt_runner, x_batch, num_warmup=5, num_runs=30)
+                        res = benchmark_timing_memory(f"{label} (BS={bs})", trt_runner, x_batch, num_warmup=5, num_runs=30)
                         trt_data[bs] = {
                             "latency_batch_ms": res["latency_mean_ms"],
                             "latency_sample_ms": res["latency_mean_ms"] / bs,
@@ -339,12 +343,12 @@ def run_batch_size_study(
                             "net_vram_mb": res["net_vram_mb"],
                         }
                     except Exception as e:
-                        logger.error(f"TensorRT scaling failed for batch size {bs}: {e}")
+                        logger.error(f"{label} scaling failed for batch size {bs}: {e}")
         except Exception as e:
-            logger.error(f"Failed to setup scaling TensorRT runner: {e}")
+            logger.error(f"Failed to setup scaling TensorRT runner for {engine_path.name}: {e}")
 
         if trt_data:
-            study_results["TensorRT (GPU)"] = trt_data
+            study_results[label] = trt_data
 
     # Print results summary table
     logger.info("=================================== BATCH SIZE SCALING STUDY ===================================")

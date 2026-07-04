@@ -16,17 +16,26 @@ dependencies = [
     "scikit-learn>=1.8.0",
     "seaborn>=0.13.2",
     "tensorboard>=2.20.0",
-    "tensorflow[and-cuda]>=2.21.0",
     "tqdm>=4.67.3",
     "onnx>=1.16.0",
     "tf2onnx>=1.16.0",
     "onnxruntime>=1.18.0",
     "psutil>=5.9.0",
-    "tensorrt-cu12>=11.1.0.106",
     "pytest>=9.1.1",
-    "cuda-python>=13.3.1",
     "onnxconverter-common>=1.16.0",
+    # TensorFlow: CUDA build on Linux for training/eval on GPU, plain build on macOS (CPU/Metal).
+    "tensorflow[and-cuda]>=2.21.0 ; sys_platform == 'linux'",
+    "tensorflow>=2.21.0 ; sys_platform == 'darwin'",
+    # GPU deployment stack (TensorRT / CUDA) is Linux-only and has no macOS wheels.
+    "tensorrt-cu12>=11.1.0.106 ; sys_platform == 'linux'",
+    "cuda-python>=13.3.1 ; sys_platform == 'linux'",
 ]
+
+# NVIDIA index provides real Linux wheels for the TensorRT stub packages so uv can
+# resolve/lock them from macOS (they still only install on Linux via the markers above).
+[[tool.uv.index]]
+name = "nvidia"
+url = "https://pypi.nvidia.com/"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

@@ -8,7 +8,7 @@ author:
   - name: Cristina Fernandez
     affiliation: Depto. de Tecnología Electrónica, Universidad Carlos III de Madrid, Madrid, Spain
 abstract: |
-  This work presents a comprehensive, modular deep learning framework optimized for high-performance edge computing to perform unsupervised and self-supervised anomaly detection in Power Electronic Converters (PECs). Designed for high-reliability applications such as aerospace, electric vehicles, and critical industrial systems, the system leverages frequency-domain transfer function (Bode plot) signatures to isolate subtle, early-stage parametric degradation before catastrophic failure occurs. The framework integrates three key components: a physics-aware simulation dataset (227,698 unique responses), a modular deep autoencoder suite (Conv1D, LSTM, VAE, Transformer), and a Self-Supervised Contrastive Engine (CARLA).  To address the stringent latency and resource requirements of real-time monitoring on edge devices, we present a rigorous hardware resource profiling and deployment pipeline utilizing NVIDIA TensorRT. Experimental results demonstrate that our TensorRT FP16 optimization achieves a batch-1 inference latency of 0.540 ms (a 34x speedup over the Keras FP32 GPU baseline of 18.86 ms) while maintaining near-perfect classification fidelity (ROC-AUC > 0.98). This effectively bridges the gap between state-of-the-art contrastive learning accuracy and the strict real-time constraints of power electronic edge deployment.
+  This work presents a comprehensive, modular deep learning framework optimized for high-performance edge computing to perform unsupervised and self-supervised anomaly detection in Power Electronic Converters (PECs). Designed for high-reliability applications such as aerospace, electric vehicles, and critical industrial systems, the system leverages frequency-domain transfer function (Bode plot) signatures to isolate subtle, early-stage parametric degradation before catastrophic failure occurs. The framework integrates three key components: a physics-aware simulation dataset (227,698 unique responses), a modular deep autoencoder suite (Conv1D, LSTM, VAE, Transformer), and a Self-Supervised Contrastive Engine (CARLA).  To address the stringent latency and resource requirements of real-time monitoring on edge devices, we present a rigorous hardware resource profiling and deployment pipeline utilizing NVIDIA TensorRT. Experimental results demonstrate that our TensorRT FP16 optimization achieves a batch-1 inference latency of 0.540 ms (a 34x speedup over the Keras FP32 GPU batch-1 baseline of 18.49 ms) while maintaining near-perfect classification fidelity (ROC-AUC > 0.98). This effectively bridges the gap between state-of-the-art contrastive learning accuracy and the strict real-time constraints of power electronic edge deployment.
 keywords: [Anomaly Detection, Power Electronics, Self-Supervised Learning, Contrastive Learning (CARLA), Edge Computing, TensorRT, High-Performance Computing]
 ---
 
@@ -78,49 +78,45 @@ Translating methods that work well in controlled lab environments to field appli
 
 All hardware benchmarking was conducted on a unified testbed featuring an NVIDIA RTX 4070 GPU (Ada Lovelace architecture, 12 GB VRAM, 5888 CUDA Cores, and 4th-generation Tensor Cores) paired with an AMD Ryzen 7 5800X 8-Core Processor (3.8 GHz, 8 physical / 16 logical cores). To isolate compiler-level software optimizations from hardware-level acceleration, the Keras baseline was explicitly executed on both the CPU and GPU, guaranteeing a fair baseline evaluation.
 
-Table 1 details the resource consumption and latency distribution across different optimization strategies for the Conv1D architecture. 
+Table 1 details the resource consumption and latency distribution across different optimization strategies for the Conv1D architecture.
 
-\begin{table}[h!]
-\centering
-\caption{Hardware Resource Profiling across Deployment Formats}
-\begin{tabular}{lcccc}
-\toprule
-\textbf{Model Format} & \textbf{Mean Latency (ms)} & \textbf{Min / Max Latency (ms)} & \textbf{Peak RAM (MB)} & \textbf{Peak VRAM (MB)} \\
-\midrule
-Keras FP32 (CPU) & $289.203 \pm 19.316$ & $242.70 / 357.25$ & $1039.96$ & $10395.00$ \\
-Keras FP32 (GPU Baseline) & $18.859 \pm 1.043$ & $16.85 / 23.97$ & $3446.46$ & $2.67$ \\
-TFLite FP16 & $0.147 \pm 0.034$ & $0.13 / 0.31$ & $3456.23$ & $2.67$ \\
-TFLite INT8 & $0.118 \pm 0.030$ & $0.11 / 0.27$ & $3456.11$ & $2.67$ \\
-ONNX (CPU) & $0.393 \pm 0.068$ & $0.35 / 0.82$ & $3447.34$ & $2.67$ \\
-TensorRT FP32 (GPU) & $1.124 \pm 0.392$ & $0.85 / 2.43$ & $3447.34$ & $2.67$ \\
-TensorRT FP16 (GPU) & $0.885 \pm 0.276$ & $0.64 / 2.99$ & $3448.34$ & $2.67$ \\
-TensorRT INT8 (GPU) & $0.833 \pm 0.210$ & $0.62 / 1.63$ & $3448.96$ & $2.67$ \\
-\bottomrule
-\end{tabular}
-\end{table}
+**Table 1: Hardware Resource Profiling across Deployment Formats.**
 
-The TensorRT optimizations achieved massive reductions in mean latency compared to the Keras GPU baseline. A strict cyclic latency evaluation on the Keras FP32 CPU model ($275.98\text{ ms}$) demonstrates that executing unoptimized deep learning frameworks natively on the host processor incurs prohibitive latency compared to the Keras GPU execution ($17.56\text{ ms}$). However, TensorRT aggressively fuses convolution kernels and eliminates memory copy overhead, bringing the GPU latency down to $\approx 0.7\text{ ms}$, effectively reclaiming the edge GPU's maximum potential. Interestingly, TensorRT INT8 marginally outperformed the FP16 optimization in batch processing, highlighting the value of symmetric QDQ node quantization for accelerating inference on modern Tensor Cores, despite the inherent casting overhead.
+| Model Format | Mean Latency (ms) | Min / Max Latency (ms) | Peak RAM (MB) | Peak VRAM (MB) |
+|---|---|---|---|---|
+| Keras FP32 (CPU) | 289.203 ± 19.316 | 242.70 / 357.25 | 1039.96 | 10395.00 |
+| Keras FP32 (GPU Baseline) | 18.859 ± 1.043 | 16.85 / 23.97 | 3446.46 | 2.67 |
+| TFLite Dynamic | 0.133 ± 0.010 | 0.13 / 0.23 | 3446.84 | 2.67 |
+| TFLite INT8 | 0.118 ± 0.016 | 0.11 / 0.20 | 3446.96 | 2.67 |
+| ONNX (CPU) | 0.393 ± 0.068 | 0.35 / 0.82 | 3447.34 | 2.67 |
+| TensorRT FP32 (GPU) | 1.124 ± 0.392 | 0.85 / 2.43 | 3447.34 | 2.67 |
+| TensorRT FP16 (GPU) | 0.885 ± 0.276 | 0.64 / 2.99 | 3448.34 | 2.67 |
+| TensorRT INT8 (GPU) | 0.833 ± 0.210 | 0.62 / 1.63 | 3448.96 | 2.67 |
+
+The TensorRT optimizations achieved massive reductions in mean latency compared to the Keras GPU baseline. The cyclic latency evaluation on the Keras FP32 CPU model ($289.20\text{ ms}$) demonstrates that executing unoptimized deep learning frameworks natively on the host processor incurs prohibitive latency compared to the Keras GPU execution ($18.86\text{ ms}$). However, TensorRT aggressively fuses convolution kernels and eliminates memory copy overhead, bringing the GPU latency down to sub-millisecond levels ($0.885\text{ ms}$ for FP16 and $0.833\text{ ms}$ for INT8), effectively reclaiming the edge GPU's maximum potential. Interestingly, in the single-sample performance benchmark TensorRT INT8 marginally outperformed the FP16 optimization ($0.833\text{ ms}$ vs $0.885\text{ ms}$), highlighting the value of symmetric QDQ node quantization for accelerating inference on modern Tensor Cores, despite the inherent casting overhead.
+
+![Per-format single-sample inference latency for the Conv1D deployment. TensorRT and TFLite/ONNX exports collapse the Keras CPU baseline latency by two to three orders of magnitude.](plots/deploy_latency_conv1d_ae.png)
+
+![Hardware resource footprint (peak RAM and VRAM) across deployment formats.](plots/deploy_hardware_conv1d_ae.png)
+
+![Serialized model size across export formats, illustrating the compression achieved by quantization and graph optimization relative to the Keras FP32 checkpoint.](plots/deploy_model_size_conv1d_ae.png)
 
 ### 4.2 Batch Size Scaling Dynamics
 
-To understand throughput limits for multi-sensor edge gateways, we profiled batch scaling dynamics.
+To understand throughput limits for multi-sensor edge gateways, we profiled batch scaling dynamics across the CPU-deployable formats and the Keras GPU baseline.
 
-\begin{table}[h!]
-\centering
-\caption{Batch Size Latency Scaling for TensorRT (GPU) vs Baseline Keras}
-\begin{tabular}{ccccc}
-\toprule
-\textbf{Batch Size} & \textbf{Keras Batch (ms)} & \textbf{Keras Sample (ms)} & \textbf{TensorRT Batch (ms)} & \textbf{TensorRT Sample (ms)} \\
-\midrule
-1 & $18.23$ & $18.228$ & $1.16$ & $1.162$ \\
-16 & $18.01$ & $1.126$ & $1.27$ & $0.079$ \\
-64 & $17.73$ & $0.277$ & $1.88$ & $0.029$ \\
-128 & $18.67$ & $0.146$ & $3.12$ & $0.024$ \\
-\bottomrule
-\end{tabular}
-\end{table}
+**Table 2: Per-Sample Latency Amortization across Batch Sizes.**
 
-TensorRT demonstrates exceptional scalability; processing a batch of $128$ samples takes only $3.12\text{ ms}$ ($0.024\text{ ms}$ per sample), highlighting its efficiency for parallelized multi-converter monitoring.
+| Batch Size | Keras Batch (ms) | Keras / Sample (ms) | ONNX Batch (ms) | ONNX / Sample (ms) | TFLite Dyn. / Sample (ms) |
+|---|---|---|---|---|---|
+| 1 | 23.25 | 23.245 | 0.45 | 0.446 | 0.136 |
+| 16 | 19.64 | 1.228 | 1.39 | 0.087 | 0.131 |
+| 64 | 20.16 | 0.315 | 4.43 | 0.069 | 0.135 |
+| 128 | 18.82 | 0.147 | 8.27 | 0.065 | 0.137 |
+
+The Keras GPU baseline only amortizes its fixed kernel-dispatch overhead once batching is applied, dropping from $23.245\text{ ms}$ per sample at batch-1 to $0.147\text{ ms}$ per sample at batch-128. Among the lightweight formats, ONNX Runtime scales best on the CPU ($0.065\text{ ms}$ per sample at batch-128), while TFLite maintains an essentially flat $\approx 0.13\text{ ms}$ per-sample profile independent of batch size. On the GPU, TensorRT sustains sub-millisecond batch latency: a batch of $32$ samples completes in $0.649\text{ ms}$ under FP16 ($\approx 0.020\text{ ms}$ per sample), highlighting its efficiency for parallelized multi-converter monitoring.
+
+![Per-sample latency versus batch size across deployment formats, showing how batching amortizes the fixed dispatch overhead of the Keras GPU baseline while the exported CPU formats remain efficient at small batch sizes.](plots/deploy_batch_scaling_conv1d_ae.png)
 
 ## 5. Experimental Results and Discussion
 
@@ -128,47 +124,41 @@ TensorRT demonstrates exceptional scalability; processing a batch of $128$ sampl
 
 High-performance optimizations often come at the cost of model accuracy, especially when utilizing lower precision formats like INT8. 
 
-\begin{table}[h!]
-\centering
-\caption{Classification Degradation Evaluation}
-\begin{tabular}{lccccccc}
-\toprule
-\textbf{Model Format} & \textbf{Size (MB)} & \textbf{Latency/S (ms)} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{AUC-ROC} \\
-\midrule
-Keras FP32 (Baseline) & $3.42$ & $0.0406 \pm 0.0581$ & $0.9555$ & $0.9702$ & $0.9596$ & $0.9649$ & $0.9851$ \\
-TFLite FP16 & $0.58$ & $0.1448 \pm 0.0009$ & $0.9576$ & $0.9731$ & $0.9599$ & $0.9665$ & $0.9854$ \\
-ONNX (CPU) & $1.13$ & $0.1208 \pm 0.0102$ & $0.9600$ & $0.9801$ & $0.9568$ & $0.9683$ & $0.9861$ \\
-TFLite INT8 & $0.39$ & $0.1136 \pm 0.0016$ & $0.6371$ & $0.6371$ & $1.0000$ & $0.7783$ & $0.3213$ \\
-TensorRT FP32 (GPU) & $1.45$ & $0.0045 \pm 0.0012$ & $0.9590$ & $0.9784$ & $0.9568$ & $0.9675$ & $0.9854$ \\
-TensorRT FP16 (GPU) & $1.44$ & $0.0062 \pm 0.0013$ & $0.9588$ & $0.9780$ & $0.9569$ & $0.9673$ & $0.9852$ \\
-TensorRT INT8 (GPU) & $0.69$ & $0.0088 \pm 0.0033$ & $0.6371$ & $0.6371$ & $1.0000$ & $0.7783$ & $0.8946$ \\
-\bottomrule
-\end{tabular}
-\end{table}
+**Table 3: Classification Degradation Evaluation across Deployment Formats.**
 
-Our evaluation shows that while TFLite INT8 suffers catastrophic degradation (AUC dropping from $0.985$ to $0.321$), half-precision (FP16) via TFLite or natively via TensorRT maintains near-perfect parity with the FP32 baseline while cutting the model footprint significantly. Crucially, while TFLite fails to preserve structural integrity under 8-bit quantization without severe representation collapse, TensorRT handles INT8 quantization securely. Our deployment profiles show that by relying on TensorRT's native FP16 layer execution, the engine successfully preserves the classification fidelity (AUC $0.9852$, F1 $0.9673$) of the Keras FP32 baseline while heavily optimizing compute. Furthermore, our improved TensorRT INT8 quantization pipeline, leveraging symmetric quantization profiles, managed to recover a significant portion of the classification fidelity, achieving an AUC of $0.8946$, demonstrating an acceptable performance tradeoff for the most aggressive latency requirements.
+| Model Format | Size (MB) | Latency/Sample (ms) | Accuracy | Precision | Recall | F1-Score | AUC-ROC |
+|---|---|---|---|---|---|---|---|
+| Keras FP32 (Baseline) | 3.42 | 0.0406 ± 0.0581 | 0.9555 | 0.9702 | 0.9596 | 0.9649 | 0.9851 |
+| ONNX (CPU) | 1.13 | 0.1208 ± 0.0102 | 0.9600 | 0.9801 | 0.9568 | 0.9683 | 0.9861 |
+| TensorRT FP32 (GPU) | 1.45 | 0.0045 ± 0.0012 | 0.9590 | 0.9784 | 0.9568 | 0.9675 | 0.9854 |
+| TensorRT FP16 (GPU) | 1.44 | 0.0062 ± 0.0013 | 0.9588 | 0.9780 | 0.9569 | 0.9673 | 0.9852 |
+| TFLite Dynamic | 0.35 | 0.1395 ± 0.0043 | 0.6371 | 0.6371 | 1.0000 | 0.7783 | 0.9446 |
+| TensorRT INT8 (GPU) | 0.69 | 0.0088 ± 0.0033 | 0.6371 | 0.6371 | 1.0000 | 0.7783 | 0.8946 |
+| TFLite INT8 | 0.39 | 0.1136 ± 0.0016 | 0.6371 | 0.6371 | 1.0000 | 0.7783 | 0.3213 |
+
+Our evaluation reveals two distinct failure modes. First, the fixed decision threshold calibrated on the Keras FP32 baseline does not transfer cleanly to several exported formats: TFLite Dynamic, TFLite INT8, and TensorRT INT8 all collapse to a trivial accuracy of $0.6371$, predicting every sample as anomalous (hence recall $1.0$ and precision equal to the anomaly prevalence). Second, the threshold-independent ROC-AUC exposes the true ranking capability retained by each format. Under this metric, TFLite INT8 suffers catastrophic degradation (AUC dropping from $0.9851$ to $0.3213$), whereas TFLite Dynamic still preserves strong discriminative power (AUC $0.9446$) despite its miscalibrated threshold. Crucially, TensorRT's native FP16 layer execution preserves the full classification fidelity of the Keras FP32 baseline (AUC $0.9852$, F1 $0.9673$, accuracy $0.9588$) while heavily optimizing compute, making it the recommended deployment target. Furthermore, our symmetric TensorRT INT8 quantization pipeline recovers a substantial portion of the ranking fidelity (AUC $0.8946$)—far above the TFLite INT8 collapse—demonstrating an acceptable tradeoff for the most aggressive latency requirements, provided the detection threshold is re-calibrated post-quantization.
+
+![Detection metrics (accuracy, precision, recall, F1, ROC-AUC) across deployment formats. The threshold-independent ROC-AUC distinguishes formats that preserve ranking capability from those that collapse.](plots/deploy_metrics_conv1d_ae.png)
+
+![Reconstruction MSE shift relative to the Keras FP32 baseline. FP16 and FP32 exports are numerically near-identical, while INT8 quantization introduces a measurable reconstruction error.](plots/deploy_mse_shift_conv1d_ae.png)
+
+![Latency versus fidelity (ROC-AUC) trade-off across deployment formats. TensorRT FP16 occupies the Pareto-optimal corner, combining sub-millisecond latency with baseline-level fidelity.](plots/deploy_tradeoff_conv1d_ae.png)
 
 While Conv1D was selected for intensive edge deployment benchmarking due to its fast $\mathcal{O}(N)$ computational complexity, future extended studies will incorporate the latency and memory scaling dynamics for all considered architectures. Table 4 demonstrates the overall classification fidelity achieved by each tested architecture prior to quantization. To ensure strict architectural optimization and prevent overfitting, each model was exposed to an automated Hyperparameter Search Phase using Bayesian Optimization via Keras Tuner. The search spaces evaluated variations in latent dimensions, topological constraints (e.g., filter sizes, attention heads), activation functions (GELU, Swish), and adaptive optimizers (AdamW, Lion). Furthermore, training reconstruction was explicitly stabilized using learning rate schedulers featuring a Warmup Cosine Decay mapped over the total dataset iterations and Early Stopping (based on validation loss plateau constraints).
 
-\begin{table}[h!]
-\centering
-\caption{Model Architecture Performance Comparison}
-\begin{tabular}{lcc}
-\toprule
-\textbf{Architecture} & \textbf{F1-Score} & \textbf{AUC-ROC} \\
-\midrule
-MLP-AE & $0.7018$ & $0.6571$ \\
-Transformer-AE & $0.8950$ & $0.8800$ \\
-LSTM-AE & $0.9161$ & $0.9554$ \\
-VAE & $0.8688$ & $0.9229$ \\
-CARLA (Base) & $0.8245$ & $0.8309$ \\
-Conv1D-AE (Optimal) & $0.9630$ & $0.9840$ \\
-GRU-AE & $0.5496$ & $0.5045$ \\
-\bottomrule
-\end{tabular}
-\end{table}
+**Table 4: Model Architecture Performance Comparison (sorted by F1-Score).**
 
-![Comparison of Final Metrics across different model architectures.](plots/final_metrics_comparison.png)
+| Architecture | Accuracy | Precision | Recall | F1-Score | AUC-ROC |
+|---|---|---|---|---|---|
+| Conv1D-AE (Optimal) | 0.9569 | 0.9762 | 0.9501 | 0.9630 | 0.9840 |
+| LSTM-AE | 0.9065 | 0.9724 | 0.8659 | 0.9161 | 0.9554 |
+| Transformer-AE | 0.8875 | 0.9948 | 0.8134 | 0.8950 | 0.8800 |
+| VAE | 0.8534 | 0.9188 | 0.8240 | 0.8688 | 0.9229 |
+| CARLA (Base) | 0.7771 | 0.7688 | 0.8890 | 0.8245 | 0.8309 |
+| MLP-AE | 0.7224 | 0.9555 | 0.5546 | 0.7018 | 0.6571 |
+| GRU-AE | 0.6067 | 0.8450 | 0.4072 | 0.5496 | 0.5045 |
+
+![Comparison of final detection metrics across the evaluated model architectures.](plots/final_metrics_comparison.png)
 
 ### 5.2 Single-Component Analysis
 

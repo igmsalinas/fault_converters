@@ -6,14 +6,12 @@ CLI entry-point to compile, quantize, and benchmark trained models.
 
 Usage::
 
-    python -m src.deploy --model-dir experiments/conv1d_ae --data-dir data/buck/buck_data --run-all
+    python -m src.deploy --model-dir experiments/conv1d_ae --data-dir data/buck/buck_data
 """
 
 import argparse
 import sys
 from pathlib import Path
-import numpy as np
-from typing import Dict, Any, List
 
 from .deployment import (
     load_deployment_datasets,
@@ -23,14 +21,6 @@ from .deployment import (
     convert_keras_to_onnx,
     compile_onnx_to_tensorrt,
     quantize_for_vitis_ai,
-    run_deployment_benchmarks,
-    save_benchmark_report,
-    run_full_performance_suite,
-    save_performance_report,
-    run_deployment_evaluations,
-    save_evaluation_report,
-    run_batch_size_study,
-    save_batch_size_report,
 )
 from .inference.predictor import AnomalyPredictor
 from .utils.logger import get_logger, setup_logger
@@ -95,11 +85,6 @@ def parse_args(argv=None) -> argparse.Namespace:
         help="Target hardware profile for Xilinx Vitis AI quantization.",
     )
     parser.add_argument(
-        "--run-all",
-        action="store_true",
-        help="Run all available optimization and quantization conversions.",
-    )
-    parser.add_argument(
         "--batch-sizes",
         type=str,
         default="1,2,4,8,16,32,64,128",
@@ -154,8 +139,6 @@ def main(argv=None):
         logger.error(f"Failed to prepare datasets: {e}")
         sys.exit(1)
 
-    converted_models = {}
-
     # ---- 1. Keras backend and TFLite conversions ----
     logger.info("--- Starting Pipeline 1: Keras & TFLite Quantization ---")
 
@@ -175,7 +158,6 @@ def main(argv=None):
         kwargs = {"calibration_data": calibration_data} if mode == "int8" else {}
         try:
             convert_to_tflite(keras_model, mode, output_path=path_tflite, **kwargs)
-            converted_models[f"tflite_{mode}"] = path_tflite
         except Exception as e:
             logger.error(f"TFLite {mode} conversion failed: {e}")
 
@@ -184,13 +166,10 @@ def main(argv=None):
     path_onnx = str(output_dir / "model.onnx")
     onnx_success = convert_keras_to_onnx(keras_model, path_onnx)
     if onnx_success:
-        converted_models["onnx"] = path_onnx
-
         for mode in ["FP32", "FP16", "INT8"]:
             path_engine = str(output_dir / f"model_{mode.lower()}.engine")
             kwargs = {"calibration_data": calibration_data} if mode == "INT8" else {}
-            if compile_onnx_to_tensorrt(onnx_path=path_onnx, engine_path=path_engine, precision_mode=mode, **kwargs):
-                converted_models[f"tensorrt_{mode.lower()}"] = path_engine
+            compile_onnx_to_tensorrt(onnx_path=path_onnx, engine_path=path_engine, precision_mode=mode, **kwargs)
 
     # ---- 3. Vitis AI Quantization ----
     logger.info("--- Starting Pipeline 3: Xilinx Vitis AI Quantization ---")
@@ -204,7 +183,7 @@ def main(argv=None):
     except Exception as e:
         logger.warning(f"Vitis AI Quantization skipped or failed: {e}")
 
-        logger.info(f"Deployment optimization complete! All files generated in: {output_dir}")
+    logger.info(f"Deployment optimization complete! All files generated in: {output_dir}")
 
 if __name__ == "__main__":
     main()
