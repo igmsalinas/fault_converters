@@ -34,6 +34,7 @@ def _evaluate_with_runner(
     test_data: np.ndarray,
     test_labels: np.ndarray,
     threshold: float,
+    recon_batch_size: int = 1,
 ) -> Dict[str, Any]:
     """Run full classification evaluation using a generic runner callable.
 
@@ -48,6 +49,10 @@ def _evaluate_with_runner(
         test_data: Test dataset array.
         test_labels: Ground truth labels (0 = normal, 1 = anomaly).
         threshold: Anomaly decision threshold on per-sample MSE.
+        recon_batch_size: Batch size used only for the reconstruction pass over
+            the full test set. Converted formats are exported with a fixed batch
+            of 1, but the dynamic-batch Keras baseline can use a large batch to
+            avoid crippling per-sample dispatch overhead on CPU.
 
     Returns:
         Dictionary with latency and classification metrics.
@@ -66,8 +71,8 @@ def _evaluate_with_runner(
         latencies_per_sample.append((time.perf_counter() - t0) * 1000.0)  # ms
 
     # 2. Compute reconstructions over the full test set (batch-invariant metrics).
-    #    Models are exported for single-sample inference, so feed one at a time.
-    reconstruction = run_inference_loop(runner, test_data, batch_size=1)
+    #    Fixed batch-1 exports feed one at a time; the Keras baseline batches.
+    reconstruction = run_inference_loop(runner, test_data, batch_size=recon_batch_size)
     errors = np.mean(np.square(test_data - reconstruction), axis=(1, 2))
     predictions = (errors > threshold).astype(int)
 
@@ -93,7 +98,12 @@ def evaluate_keras_model(
 ) -> Dict[str, Any]:
     """Run full test evaluation on baseline Keras model."""
     runner = create_keras_runner(model)
-    return _evaluate_with_runner("Keras FP32 Model", runner, test_data, test_labels, threshold)
+    # The Keras baseline accepts any batch shape, so reconstruct in large
+    # batches; feeding one sample at a time is prohibitively slow on CPU.
+    return _evaluate_with_runner(
+        "Keras FP32 Model", runner, test_data, test_labels, threshold,
+        recon_batch_size=1024,
+    )
 
 
 def evaluate_tflite_model(
