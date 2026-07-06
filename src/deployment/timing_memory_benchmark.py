@@ -26,6 +26,7 @@ from .runners import (
     create_onnx_runner,
     create_tensorrt_runner,
 )
+from .utils import TIMING_BATCH_SIZE, TIMING_WARMUP, TIMING_RUNS
 from ..utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -67,8 +68,8 @@ def benchmark_timing_memory(
     model_name: str,
     runner_fn: Any,
     input_data: np.ndarray,
-    num_warmup: int = 15,
-    num_runs: int = 150,
+    num_warmup: int = TIMING_WARMUP,
+    num_runs: int = TIMING_RUNS,
 ) -> Dict[str, Any]:
     """
     Run execution timing loops and memory checks.
@@ -142,10 +143,9 @@ def run_full_performance_suite(
     dep_path = Path(deployment_dir)
     results = []
 
-    # Multi-sample inference test: measure latency (mean/std) over a fixed batch
-    # so results stay comparable with the CPU-only benchmark subprocess, which
-    # uses the same batch size.
-    x_perf = test_data[:min(2000, len(test_data))].astype(np.float32)
+    # Uniform single-sample (n=1) latency so every backend is directly
+    # comparable under the same protocol (matches benchmark_cpu.py).
+    x_perf = test_data[:TIMING_BATCH_SIZE].astype(np.float32)
 
     # 1. Baseline Keras model
     try:
@@ -221,157 +221,3 @@ def save_performance_report(results: List[Dict[str, Any]], output_path: str) -> 
     with open(out_p.with_suffix(".json"), "w") as f:
         json.dump(results, f, indent=2)
     logger.info(f"Saved performance benchmark JSON data to {out_p.with_suffix('.json')}")
-
-
-def run_batch_size_study(
-    model_dir: str,
-    deployment_dir: str,
-    test_data: np.ndarray,
-    batch_sizes: List[int] = [1, 2, 4, 8, 16, 32, 64, 128],
-) -> Dict[str, Any]:
-    """
-    Run execution timing and memory checks across a range of batch sizes.
-    """
-    logger.info(f"Initiating Batch Size Scaling Study for batch sizes: {batch_sizes}...")
-    dep_path = Path(deployment_dir)
-    study_results = {}
-
-    # Load baseline model
-    from ..inference.predictor import AnomalyPredictor
-    predictor = AnomalyPredictor(model_dir=model_dir)
-
-    def _prepare_batch(bs: int) -> np.ndarray:
-        """Prepare a batch of the given size, tiling if necessary."""
-        x_batch = test_data[:bs].astype(np.float32)
-        if len(x_batch) < bs:
-            repeats = (bs // len(test_data)) + 1
-            x_batch = np.tile(test_data, (repeats, 1, 1))[:bs].astype(np.float32)
-        return x_batch
-
-    # 1. Keras FP32
-    keras_runner = create_keras_runner(predictor.model.autoencoder)
-    keras_data = {}
-    for bs in batch_sizes:
-        try:
-            x_batch = _prepare_batch(bs)
-            res = benchmark_timing_memory(f"Keras FP32 (BS={bs})", keras_runner, x_batch, num_warmup=5, num_runs=30)
-            keras_data[bs] = {
-                "latency_batch_ms": res["latency_mean_ms"],
-                "latency_sample_ms": res["latency_mean_ms"] / bs,
-                "net_ram_mb": res["net_ram_mb"],
-                "net_vram_mb": res["net_vram_mb"],
-            }
-        except Exception as e:
-            logger.error(f"Keras scaling benchmark failed for batch size {bs}: {e}")
-
-    if keras_data:
-        study_results["Keras FP32 (Baseline)"] = keras_data
-
-    # 2. TFLite Models
-    tflite_files = {
-        "TFLite FP16": "model_float16.tflite",
-        "TFLite Dynamic": "model_dynamic.tflite",
-        "TFLite INT8": "model_int8.tflite",
-    }
-
-    for label, filename in tflite_files.items():
-        tflite_path = dep_path / filename
-        if tflite_path.exists():
-            tf_data = {}
-            try:
-                tflite_runner = create_tflite_runner(str(tflite_path))
-                for bs in batch_sizes:
-                    try:
-                        x_batch = _prepare_batch(bs)
-                        res = benchmark_timing_memory(f"{label} (BS={bs})", tflite_runner, x_batch, num_warmup=5, num_runs=30)
-                        tf_data[bs] = {
-                            "latency_batch_ms": res["latency_mean_ms"],
-                            "latency_sample_ms": res["latency_mean_ms"] / bs,
-                            "net_ram_mb": res["net_ram_mb"],
-                            "net_vram_mb": res["net_vram_mb"],
-                        }
-                    except Exception as e:
-                        logger.error(f"{label} scaling failed for batch size {bs}: {e}")
-            except Exception as e:
-                logger.error(f"Failed to setup scaling runner for {label}: {e}")
-
-            if tf_data:
-                study_results[label] = tf_data
-
-    # 3. ONNX Model
-    onnx_path = dep_path / "model.onnx"
-    if onnx_path.exists():
-        onnx_data = {}
-        try:
-            onnx_runner = create_onnx_runner(str(onnx_path))
-            if onnx_runner is not None:
-                for bs in batch_sizes:
-                    try:
-                        x_batch = _prepare_batch(bs)
-                        res = benchmark_timing_memory(f"ONNX (BS={bs})", onnx_runner, x_batch, num_warmup=5, num_runs=30)
-                        onnx_data[bs] = {
-                            "latency_batch_ms": res["latency_mean_ms"],
-                            "latency_sample_ms": res["latency_mean_ms"] / bs,
-                            "net_ram_mb": res["net_ram_mb"],
-                            "net_vram_mb": res["net_vram_mb"],
-                        }
-                    except Exception as e:
-                        logger.error(f"ONNX scaling failed for batch size {bs}: {e}")
-        except Exception as e:
-            logger.error(f"Failed to setup scaling ONNX session: {e}")
-
-        if onnx_data:
-            study_results["ONNX (CPU)"] = onnx_data
-
-    # 4. TensorRT Engines
-    for engine_path in sorted(dep_path.glob("*.engine")):
-        # E.g. model_fp16.engine -> TensorRT FP16 (GPU)
-        name_suffix = engine_path.stem.split("_")[-1] if "_" in engine_path.stem else "fp16"
-        label = f"TensorRT {name_suffix.upper()} (GPU)"
-        trt_data = {}
-        try:
-            trt_runner = create_tensorrt_runner(str(engine_path))
-            if trt_runner is not None:
-                for bs in batch_sizes:
-                    try:
-                        x_batch = _prepare_batch(bs)
-                        res = benchmark_timing_memory(f"{label} (BS={bs})", trt_runner, x_batch, num_warmup=5, num_runs=30)
-                        trt_data[bs] = {
-                            "latency_batch_ms": res["latency_mean_ms"],
-                            "latency_sample_ms": res["latency_mean_ms"] / bs,
-                            "net_ram_mb": res["net_ram_mb"],
-                            "net_vram_mb": res["net_vram_mb"],
-                        }
-                    except Exception as e:
-                        logger.error(f"{label} scaling failed for batch size {bs}: {e}")
-        except Exception as e:
-            logger.error(f"Failed to setup scaling TensorRT runner for {engine_path.name}: {e}")
-
-        if trt_data:
-            study_results[label] = trt_data
-
-    # Print results summary table
-    logger.info("=================================== BATCH SIZE SCALING STUDY ===================================")
-    for model_name, data in study_results.items():
-        logger.info(f"Model Format: {model_name}")
-        logger.info(f"  {'Batch Size':<12} | {'Batch Latency (ms)':<20} | {'Sample Latency (ms)':<20} | {'Net RAM (MB)':<15}")
-        logger.info("-" * 80)
-        for bs, metrics in data.items():
-            logger.info(
-                f"  {bs:<12} | {metrics['latency_batch_ms']:<20.3f} | {metrics['latency_sample_ms']:<20.3f} | {metrics['net_ram_mb']:<15.3f}"
-            )
-        logger.info("=" * 80)
-
-    return study_results
-
-
-def save_batch_size_report(study_results: Dict[str, Any], output_path: str) -> None:
-    """Save batch size scaling study results to JSON and Markdown reports."""
-    import json
-    out_p = Path(output_path)
-    out_p.parent.mkdir(parents=True, exist_ok=True)
-
-    # 1. Save JSON
-    with open(out_p.with_suffix(".json"), "w") as f:
-        json.dump(study_results, f, indent=2)
-    logger.info(f"Saved batch size study JSON data to {out_p.with_suffix('.json')}")

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 560" width="620" height="560" role="img" font-family='"ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif' preserveAspectRatio="xMidYMid meet">
+  <style>
+    .bg { fill: none; }
+    .title { font: 600 22px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #121212; }
+    .subtitle { font: 400 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #8a837b; }
+    .axis-title { font: 500 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .tick { font: 400 13px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #8a837b; }
+    .tick-strong { font: 500 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .value { font: 500 12px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .legend { font: 400 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .grid { stroke: rgba(17,17,17,0.08); stroke-width: 1; }
+    .axis { stroke: rgba(17,17,17,0.18); stroke-width: 1.2; }
+    .cm-count { font: 600 30px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; }
+    .cm-frac { font: 400 17px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; opacity: 0.85; }</style>
+  <rect class="bg" x="0" y="0" width="620" height="560"/>
+<text x="310.0" y="40.0" class="title" text-anchor="middle">Confusion matrix · Conv1D-AE</text>
+<rect x="132.0" y="92.0" width="221.0" height="189.0" fill="#554f48" rx="4"/>
+<text x="244.0" y="184.0" text-anchor="middle" class="cm-count" fill="#fbf9f5">23,355</text>
+<text x="244.0" y="214.0" text-anchor="middle" class="cm-frac" fill="#fbf9f5">96.7%</text>
+<rect x="356.0" y="92.0" width="221.0" height="189.0" fill="#f8f5ef" rx="4"/>
+<text x="468.0" y="184.0" text-anchor="middle" class="cm-count" fill="#121212">804</text>
+<text x="468.0" y="214.0" text-anchor="middle" class="cm-frac" fill="#121212">3.3%</text>
+<rect x="132.0" y="284.0" width="221.0" height="189.0" fill="#f4f0e9" rx="4"/>
+<text x="244.0" y="376.0" text-anchor="middle" class="cm-count" fill="#121212">1,729</text>
+<text x="244.0" y="406.0" text-anchor="middle" class="cm-frac" fill="#121212">5.0%</text>
+<rect x="356.0" y="284.0" width="221.0" height="189.0" fill="#121212" rx="4"/>
+<text x="468.0" y="376.0" text-anchor="middle" class="cm-count" fill="#fbf9f5">32,920</text>
+<text x="468.0" y="406.0" text-anchor="middle" class="cm-frac" fill="#fbf9f5">95.0%</text>
+<text x="244.0" y="76.0" class="tick-strong" text-anchor="middle">Normal</text>
+<text x="468.0" y="76.0" class="tick-strong" text-anchor="middle">Anomaly</text>
+<text x="356.0" y="536.0" class="axis-title" text-anchor="middle">Predicted label</text>
+<text x="114.0" y="192.0" class="tick-strong" text-anchor="end">Normal</text>
+<text x="114.0" y="384.0" class="tick-strong" text-anchor="end">Anomaly</text>
+<text x="34" y="284.0" text-anchor="middle" class="axis-title" transform="rotate(-90 34 284.0)">True label</text>
+</svg>

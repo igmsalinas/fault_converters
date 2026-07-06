@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 620" width="1040" height="620" role="img" font-family='"ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif' preserveAspectRatio="xMidYMid meet">
+  <style>
+    .bg { fill: none; }
+    .title { font: 600 22px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #121212; }
+    .subtitle { font: 400 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #8a837b; }
+    .axis-title { font: 500 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .tick { font: 400 13px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #8a837b; }
+    .tick-strong { font: 500 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .value { font: 500 12px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .legend { font: 400 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .grid { stroke: rgba(17,17,17,0.08); stroke-width: 1; }
+    .axis { stroke: rgba(17,17,17,0.18); stroke-width: 1.2; }</style>
+  <rect class="bg" x="0" y="0" width="1040" height="620"/>
+<text x="24.0" y="34.0" class="title" text-anchor="start">Per-sample inference time by export format</text>
+<text x="24.0" y="56.0" class="subtitle" text-anchor="start">Lower is faster · TensorRT engines highlighted</text>
+<line class="grid" x1="232.0" y1="74" x2="232.0" y2="566"/>
+<text x="232.0" y="590.0" class="tick" text-anchor="middle">10⁻⁶</text>
+<line class="grid" x1="462.0" y1="74" x2="462.0" y2="566"/>
+<text x="462.0" y="590.0" class="tick" text-anchor="middle">10⁻⁵</text>
+<line class="grid" x1="692.0" y1="74" x2="692.0" y2="566"/>
+<text x="692.0" y="590.0" class="tick" text-anchor="middle">10⁻⁴</text>
+<line class="grid" x1="922.0" y1="74" x2="922.0" y2="566"/>
+<text x="922.0" y="590.0" class="tick" text-anchor="middle">10⁻³</text>
+<line class="axis" x1="232" y1="566" x2="922" y2="566"/>
+<text x="577.0" y="608.0" class="axis-title" text-anchor="middle">Seconds per sample (log scale)</text>
+<rect x="232.0" y="84.4" width="149.1" height="33.9" fill="#a7623f" rx="2"/>
+<text x="218.0" y="105.3" class="tick-strong" text-anchor="end">TensorRT FP16 (GPU)</text>
+<text x="391.1" y="105.3" class="value" text-anchor="start">4.4×10⁻⁶</text>
+<rect x="232.0" y="139.1" width="155.9" height="33.9" fill="#a7623f" rx="2"/>
+<text x="218.0" y="160.0" class="tick-strong" text-anchor="end">TensorRT FP32 (GPU)</text>
+<text x="397.9" y="160.0" class="value" text-anchor="start">4.8×10⁻⁶</text>
+<rect x="232.0" y="193.7" width="203.1" height="33.9" fill="#a7623f" rx="2"/>
+<text x="218.0" y="214.7" class="tick-strong" text-anchor="end">TensorRT INT8 (GPU)</text>
+<text x="445.1" y="214.7" class="value" text-anchor="start">7.6×10⁻⁶</text>
+<rect x="232.0" y="248.4" width="370.5" height="33.9" fill="#4a6670" rx="2"/>
+<text x="218.0" y="269.3" class="tick-strong" text-anchor="end">Keras FP32 (Baseline)</text>
+<text x="612.5" y="269.3" class="value" text-anchor="start">4.1×10⁻⁵</text>
+<rect x="232.0" y="303.1" width="477.2" height="33.9" fill="#4a6670" rx="2"/>
+<text x="218.0" y="324.0" class="tick-strong" text-anchor="end">TFLite INT8</text>
+<text x="719.2" y="324.0" class="value" text-anchor="start">1.2×10⁻⁴</text>
+<rect x="232.0" y="357.7" width="479.2" height="33.9" fill="#4a6670" rx="2"/>
+<text x="218.0" y="378.7" class="tick-strong" text-anchor="end">Keras FP32 (CPU)</text>
+<text x="721.2" y="378.7" class="value" text-anchor="start">1.2×10⁻⁴</text>
+<rect x="232.0" y="412.4" width="479.7" height="33.9" fill="#4a6670" rx="2"/>
+<text x="218.0" y="433.3" class="tick-strong" text-anchor="end">ONNX (CPU)</text>
+<text x="721.7" y="433.3" class="value" text-anchor="start">1.2×10⁻⁴</text>
+<rect x="232.0" y="467.1" width="498.1" height="33.9" fill="#4a6670" rx="2"/>
+<text x="218.0" y="488.0" class="tick-strong" text-anchor="end">TFLite Dynamic</text>
+<text x="740.1" y="488.0" class="value" text-anchor="start">1.5×10⁻⁴</text>
+<rect x="232.0" y="521.7" width="503.8" height="33.9" fill="#4a6670" rx="2"/>
+<text x="218.0" y="542.7" class="tick-strong" text-anchor="end">TFLite FP16</text>
+<text x="745.8" y="542.7" class="value" text-anchor="start">1.6×10⁻⁴</text>
+</svg>

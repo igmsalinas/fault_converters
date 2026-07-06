@@ -2,7 +2,7 @@
 Unified Edge Compute Benchmarking Suite
 ========================================
 
-Measures model file size, inference latency (batch sizes 1 & 32),
+Measures model file size, single-sample (n=1) inference latency,
 and reconstruction fidelity (MSE) across all deployment formats.
 """
 
@@ -12,7 +12,7 @@ import numpy as np
 import keras
 from typing import Dict, Any, Optional, Callable
 
-from .utils import get_file_size_mb
+from .utils import get_file_size_mb, TIMING_BATCH_SIZE, TIMING_WARMUP, TIMING_RUNS
 from .runners import (
     create_keras_runner,
     create_tflite_runner,
@@ -28,10 +28,13 @@ def _benchmark_runner(
     name: str,
     runner: Callable[[np.ndarray], np.ndarray],
     test_data: np.ndarray,
-    num_warmup: int = 10,
-    num_runs: int = 100,
+    num_warmup: int = TIMING_WARMUP,
+    num_runs: int = TIMING_RUNS,
 ) -> Dict[str, Any]:
     """Run latency and reconstruction benchmarks using a generic runner callable.
+
+    Latency is always measured on a single-sample batch (n=1) under the uniform
+    protocol so every backend is directly comparable.
 
     Args:
         name: Display name for logging.
@@ -45,29 +48,18 @@ def _benchmark_runner(
     """
     logger.info(f"Benchmarking {name}...")
 
-    x_single = np.expand_dims(test_data[0], axis=0).astype(np.float32)
-    x_batch = test_data[:min(32, len(test_data))].astype(np.float32)
+    x_single = test_data[:TIMING_BATCH_SIZE].astype(np.float32)
 
     # Warmup
     for _ in range(num_warmup):
         _ = runner(x_single)
 
-    # Latency: Batch size 1
+    # Latency: single-sample batch (n=1)
     latencies_1 = []
     for _ in range(num_runs):
         t0 = time.perf_counter()
         _ = runner(x_single)
         latencies_1.append((time.perf_counter() - t0) * 1000.0)
-
-    # Latency: Batch size 32
-    latencies_32 = []
-    if len(test_data) >= 32:
-        # Warmup batch
-        _ = runner(x_batch)
-        for _ in range(num_runs):
-            t0 = time.perf_counter()
-            _ = runner(x_batch)
-            latencies_32.append((time.perf_counter() - t0) * 1000.0)
 
     # Compute reconstruction on the first 100 test samples
     eval_subset = test_data[:min(100, len(test_data))].astype(np.float32)
@@ -77,8 +69,6 @@ def _benchmark_runner(
     return {
         "latency_bs1_mean": float(np.mean(latencies_1)),
         "latency_bs1_std": float(np.std(latencies_1)),
-        "latency_bs32_mean": float(np.mean(latencies_32)) if latencies_32 else 0.0,
-        "latency_bs32_std": float(np.std(latencies_32)) if latencies_32 else 0.0,
         "mse": mse,
         "reconstructions": reconstruction,
     }
@@ -87,8 +77,8 @@ def _benchmark_runner(
 def benchmark_keras_model(
     model: keras.Model,
     test_data: np.ndarray,
-    num_warmup: int = 10,
-    num_runs: int = 100,
+    num_warmup: int = TIMING_WARMUP,
+    num_runs: int = TIMING_RUNS,
 ) -> Dict[str, Any]:
     """Benchmark baseline Keras model latency and reconstruction."""
     runner = create_keras_runner(model)
@@ -98,8 +88,8 @@ def benchmark_keras_model(
 def benchmark_tflite_model(
     tflite_path: str,
     test_data: np.ndarray,
-    num_warmup: int = 10,
-    num_runs: int = 100,
+    num_warmup: int = TIMING_WARMUP,
+    num_runs: int = TIMING_RUNS,
 ) -> Dict[str, Any]:
     """Benchmark TFLite model latency and reconstruction."""
     runner = create_tflite_runner(tflite_path)
@@ -109,8 +99,8 @@ def benchmark_tflite_model(
 def benchmark_onnx_model(
     onnx_path: str,
     test_data: np.ndarray,
-    num_warmup: int = 10,
-    num_runs: int = 100,
+    num_warmup: int = TIMING_WARMUP,
+    num_runs: int = TIMING_RUNS,
 ) -> Dict[str, Any]:
     """Benchmark ONNX model latency and reconstruction using ONNX Runtime."""
     runner = create_onnx_runner(onnx_path)
@@ -122,8 +112,8 @@ def benchmark_onnx_model(
 def benchmark_tensorrt_model(
     engine_path: str,
     test_data: np.ndarray,
-    num_warmup: int = 10,
-    num_runs: int = 100,
+    num_warmup: int = TIMING_WARMUP,
+    num_runs: int = TIMING_RUNS,
 ) -> Dict[str, Any]:
     """Benchmark TensorRT engine latency and reconstruction.
 
@@ -172,8 +162,6 @@ def run_deployment_benchmarks(
             "size_mb": get_file_size_mb(str(Path(model_dir) / "best_model.weights.h5")),
             "latency_bs1_mean": baseline_results["latency_bs1_mean"],
             "latency_bs1_std": baseline_results["latency_bs1_std"],
-            "latency_bs32_mean": baseline_results["latency_bs32_mean"],
-            "latency_bs32_std": baseline_results["latency_bs32_std"],
             "mse": baseline_results["mse"],
             "mse_diff_from_baseline": 0.0,
         }
@@ -192,8 +180,6 @@ def run_deployment_benchmarks(
                     "size_mb": get_file_size_mb(path),
                     "latency_bs1_mean": tf_res["latency_bs1_mean"],
                     "latency_bs1_std": tf_res["latency_bs1_std"],
-                    "latency_bs32_mean": tf_res["latency_bs32_mean"],
-                    "latency_bs32_std": tf_res["latency_bs32_std"],
                     "mse": tf_res["mse"],
                     "mse_diff_from_baseline": float(mse_diff),
                 }
@@ -212,8 +198,6 @@ def run_deployment_benchmarks(
                         "size_mb": get_file_size_mb(path),
                         "latency_bs1_mean": onnx_res["latency_bs1_mean"],
                         "latency_bs1_std": onnx_res["latency_bs1_std"],
-                        "latency_bs32_mean": onnx_res["latency_bs32_mean"],
-                        "latency_bs32_std": onnx_res["latency_bs32_std"],
                         "mse": onnx_res["mse"],
                         "mse_diff_from_baseline": float(mse_diff),
                     }
@@ -234,8 +218,6 @@ def run_deployment_benchmarks(
                         "size_mb": get_file_size_mb(path),
                         "latency_bs1_mean": trt_res["latency_bs1_mean"],
                         "latency_bs1_std": trt_res["latency_bs1_std"],
-                        "latency_bs32_mean": trt_res["latency_bs32_mean"],
-                        "latency_bs32_std": trt_res["latency_bs32_std"],
                         "mse": trt_res["mse"],
                         "mse_diff_from_baseline": float(mse_diff),
                     }
@@ -244,12 +226,12 @@ def run_deployment_benchmarks(
 
     # Log and print summary table
     logger.info("=================================== BENCHMARK RESULTS ===================================")
-    logger.info(f"{'Format':<25} | {'Size (MB)':<10} | {'BS1 Latency (ms)':<18} | {'BS32 Latency (ms)':<18} | {'Fidelity (MSE)':<15}")
-    logger.info("-" * 95)
+    logger.info(f"{'Format':<25} | {'Size (MB)':<10} | {'Latency n=1 (ms)':<18} | {'Fidelity (MSE)':<15}")
+    logger.info("-" * 75)
     for k, v in results.items():
         logger.info(
             f"{v['name']:<25} | {v['size_mb']:<10.3f} | {v['latency_bs1_mean']:<7.3f} ± {v['latency_bs1_std']:<6.3f} | "
-            f"{v['latency_bs32_mean']:<7.3f} ± {v['latency_bs32_std']:<6.3f} | {v['mse']:<15.6e}"
+            f"{v['mse']:<15.6e}"
         )
     logger.info("=========================================================================================")
 

@@ -28,8 +28,6 @@ from src.deployment.benchmark import (
 from src.deployment.timing_memory_benchmark import (
     run_full_performance_suite,
     save_performance_report,
-    run_batch_size_study,
-    save_batch_size_report,
 )
 from src.deployment.timing_evaluation import (
     run_deployment_evaluations,
@@ -369,37 +367,12 @@ def test_timing_evaluation_suite(mock_data, deployment_dir_with_tflite):
     assert len(res) >= 1
     # Check that baseline has results
     assert res[0]["model_name"] == "Keras FP32 (Baseline)"
-    assert "latency_per_sample_ms" in res[0]
+    assert "latency_per_sample_mean_ms" in res[0]
     assert "f1" in res[0]
 
     # Save results
     report_path = str(deployment_dir_with_tflite / "evaluation_benchmark_report")
     save_evaluation_report(res, report_path)
-
-    # Assert reports exist
-    assert Path(report_path + ".json").exists()
-
-
-# ---------------------------------------------------------------------------
-# Component 10: Batch Size Scaling Study
-# ---------------------------------------------------------------------------
-
-def test_batch_size_study(mock_data, deployment_dir_with_tflite):
-    res = run_batch_size_study(
-        model_dir=str(deployment_dir_with_tflite),
-        deployment_dir=str(deployment_dir_with_tflite),
-        test_data=mock_data,
-        batch_sizes=[1, 2],
-    )
-    assert len(res) >= 1
-    assert "Keras FP32 (Baseline)" in res
-    assert 1 in res["Keras FP32 (Baseline)"]
-    assert 2 in res["Keras FP32 (Baseline)"]
-    assert "latency_batch_ms" in res["Keras FP32 (Baseline)"][1]
-
-    # Save results
-    report_path = str(deployment_dir_with_tflite / "batch_size_study_report")
-    save_batch_size_report(res, report_path)
 
     # Assert reports exist
     assert Path(report_path + ".json").exists()

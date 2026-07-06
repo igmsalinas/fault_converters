@@ -123,12 +123,13 @@ bash scripts/evaluate_inference.sh
 ### Deployment Reports
 
 Evaluation produces a consolidated `unified_deployment_report.md` (plus per-stage
-JSON/Markdown reports) inside `<model-dir>/deployment/`, aggregating four dimensions:
+JSON/Markdown reports) inside `<model-dir>/deployment/`, aggregating three dimensions.
+Every latency is measured under a uniform protocol — single-sample batch (n=1),
+15 warm-up iterations, 150 timed runs — so all backends are directly comparable:
 
-1. **Inference Fidelity & Baseline Latency** — model size, batch-1/batch-32 latency, and reconstruction MSE shift per format.
+1. **Inference Fidelity & Baseline Latency** — model size, single-sample (n=1) latency, and reconstruction MSE shift per format.
 2. **Hardware Resource Profiling** — mean/min/max latency plus net and peak RAM/VRAM usage.
 3. **Classification Degradation** — accuracy, precision, recall, F1, and AUC-ROC to quantify quantization impact.
-4. **Batch Size Scaling Dynamics** — latency and memory scaling across batch sizes (1–128).
 
 ## Development Guide
 

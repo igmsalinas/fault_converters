@@ -12,8 +12,11 @@ from typing import List, Tuple, Optional, Union
 import warnings
 
 from ..utils.logger import get_logger
+from .deck_style import apply_deck_style, INK, ACCENT
 
 logger = get_logger(__name__)
+
+apply_deck_style()
 
 
 def load_transfer_function(
@@ -94,7 +97,7 @@ def plot_amplitude(
     ax.set_xlabel("Frequency (Hz)")
     ax.set_ylabel("Amplitude (dB)")
     ax.set_title("Transfer Function Amplitude")
-    ax.grid(True, alpha=0.3)
+    ax.grid(True, axis="both")
 
     if label:
         ax.legend()
@@ -136,7 +139,7 @@ def plot_phase(
     ax.set_xlabel("Frequency (Hz)")
     ax.set_ylabel("Phase (degrees)")
     ax.set_title("Transfer Function Phase")
-    ax.grid(True, alpha=0.3)
+    ax.grid(True, axis="both")
 
     if label:
         ax.legend()
@@ -211,8 +214,8 @@ def compare_transfer_functions(
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 10))
 
     # Colors
-    normal_color = "blue"
-    anomaly_color = "red"
+    normal_color = INK
+    anomaly_color = ACCENT
     normal_alpha = 0.3 if stack_normals and len(normal_files) > 1 else 1.0
     anomaly_alpha = 0.3 if stack_anomalies and len(anomaly_files) > 1 else 1.0
 

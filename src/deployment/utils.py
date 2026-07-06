@@ -16,6 +16,19 @@ from ..utils.logger import get_logger
 logger = get_logger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# Uniform latency-measurement protocol
+# ---------------------------------------------------------------------------
+# Every backend (Keras / TFLite / ONNX / TensorRT, CPU or GPU) is timed under
+# identical conditions so per-sample latencies are directly comparable:
+#   * single-sample batch (n = 1)
+#   * 15 discarded warm-up iterations
+#   * 150 timed runs (report mean / std / min / max)
+TIMING_BATCH_SIZE = 1
+TIMING_WARMUP = 15
+TIMING_RUNS = 150
+
+
 def get_file_size_mb(path: str) -> float:
     """Get size of a file or directory in megabytes (MB).
 

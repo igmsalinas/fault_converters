@@ -45,8 +45,6 @@ from .benchmark import (
 from .timing_memory_benchmark import (
     run_full_performance_suite,
     save_performance_report,
-    run_batch_size_study,
-    save_batch_size_report,
 )
 
 from .timing_evaluation import (

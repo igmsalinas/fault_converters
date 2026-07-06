@@ -84,7 +84,7 @@ Table 1 details the resource consumption and latency distribution across differe
 
 | Model Format | Mean Latency (ms) | Min / Max Latency (ms) | Peak RAM (MB) | Peak VRAM (MB) |
 |---|---|---|---|---|
-| Keras FP32 (CPU) | 277.643 ± 17.219 | 239.92 / 332.28 | 1035.56 | 10486.00 |
+| Keras FP32 (CPU) | 277.643 ± 17.219 | 239.92 / 332.28 | 1035.56 | — |
 | Keras FP32 (GPU Baseline) | 21.430 ± 2.821 | 18.76 / 43.33 | 3443.10 | 2.67 |
 | TFLite FP16 | 363.000 ± 7.153 | 348.54 / 391.27 | 3642.60 | 2.67 |
 | TFLite Dynamic | 385.097 ± 19.930 | 357.87 / 465.81 | 3648.04 | 2.67 |
@@ -94,19 +94,19 @@ Table 1 details the resource consumption and latency distribution across differe
 | TensorRT FP16 (GPU)* | 0.499 ± 0.142 | N/A | N/A | N/A |
 | TensorRT INT8 (GPU)* | 0.674 ± 0.298 | N/A | N/A | N/A |
 
-*\*Note: TensorRT latencies represent Batch-1 benchmark values due to unsupported full-cycle profiling.*
+*\*Note: For the host-executable formats (Keras CPU/GPU, TFLite, ONNX), the mean latency is the wall-clock time to process a fixed batched workload of $2{,}000$ samples per inference call, so the CPU and GPU rows are directly comparable. TensorRT rows report batch-1 benchmark latency (the serialized engine is not captured by the batched profiler) and are best read against the Keras GPU batch-1 latency of $19.75\text{ ms}$ (Section 5.1). The Keras CPU baseline was profiled in an isolated CUDA-disabled subprocess; its peak RAM therefore excludes the resident TensorFlow/CUDA GPU runtime included in the in-process rows, and it has no VRAM footprint (—).*
 
-The TensorRT optimizations achieved massive reductions in mean latency compared to the Keras GPU baseline. The cyclic latency evaluation on the Keras FP32 CPU model ($277.64\text{ ms}$) demonstrates that executing unoptimized deep learning frameworks natively on the host processor incurs prohibitive latency compared to the Keras GPU execution ($21.43\text{ ms}$). However, TensorRT aggressively fuses convolution kernels and eliminates memory copy overhead, bringing the GPU latency down to sub-millisecond levels ($0.499\text{ ms}$ for FP16 and $0.674\text{ ms}$ for INT8), effectively reclaiming the edge GPU's maximum potential. Interestingly, in the single-sample performance benchmark TensorRT INT8 marginally underperformed the FP16 optimization ($0.674\text{ ms}$ vs $0.499\text{ ms}$), highlighting the casting overhead of symmetric QDQ node quantization when attempting to accelerate inference on modern Tensor Cores.
+To guarantee a fair cross-backend comparison, the host-executable formats (Keras CPU/GPU, TFLite, ONNX) were profiled on an identical fixed workload of $2{,}000$ samples processed per inference call; the reported mean latency is thus the wall-clock time for that batched pass. On this common workload, dispatching the model to the GPU reduces the batched inference time from $277.64\text{ ms}$ on the CPU to $21.43\text{ ms}$ on the GPU—an $\approx 13\times$ acceleration—confirming that executing unoptimized deep-learning graphs natively on the host processor is prohibitively slow. The TensorRT engine values in Table 1 are instead reported at batch-1 (the serialized-engine path is not captured by the batched profiler); measured against the Keras GPU batch-1 latency of $19.75\text{ ms}$ (Section 5.1), TensorRT's kernel fusion and elimination of host–device copy overhead collapse single-sample latency to sub-millisecond levels ($0.499\text{ ms}$ for FP16 and $0.674\text{ ms}$ for INT8), effectively reclaiming the edge GPU's maximum potential. Interestingly, at batch-1 TensorRT INT8 marginally underperformed the FP16 optimization ($0.674\text{ ms}$ vs $0.499\text{ ms}$), highlighting the casting overhead of symmetric QDQ node quantization when accelerating inference on modern Tensor Cores.
 
-![Per-format single-sample inference latency for the Conv1D deployment. TensorRT and TFLite/ONNX exports collapse the Keras CPU baseline latency by two to three orders of magnitude.](plots/deploy_latency_conv1d_ae.png)
+![Batch-1 and batch-32 inference latency per export format for the Conv1D deployment (log scale). TensorRT and the TFLite/ONNX exports collapse the Keras GPU batch-1 baseline latency by one to two orders of magnitude.](plots/deploy_latency_conv1d_ae.png)
 
-![Hardware resource footprint (peak RAM and VRAM) across deployment formats.](plots/deploy_hardware_conv1d_ae.png)
+![Hardware profiling across deployment formats: batched (2,000-sample) inference latency alongside the peak RAM and VRAM footprint.](plots/deploy_hardware_conv1d_ae.png)
 
 ![Serialized model size across export formats, illustrating the compression achieved by quantization and graph optimization relative to the Keras FP32 checkpoint.](plots/deploy_model_size_conv1d_ae.png)
 
 ### 4.2 Batch Size Scaling Dynamics
 
-To understand throughput limits for multi-sensor edge gateways, we profiled batch scaling dynamics across the CPU-deployable formats and the Keras GPU baseline.
+To understand throughput limits for multi-sensor edge gateways, we profiled batch-scaling dynamics across the CPU-deployable formats, the Keras GPU baseline, and the TensorRT engines.
 
 **Table 2: Per-Sample Latency Amortization across Batch Sizes.**
 

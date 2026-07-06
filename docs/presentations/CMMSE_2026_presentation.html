@@ -1,0 +1,2328 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Self-Supervised Anomaly Detection in Power Electronic Converters — CMMSE 2026</title>
+    <style>
+      :root {
+        --stage-width: 1600;
+        --stage-height: 900;
+        --deck-scale: 1;
+        --bg-primary: #f7f4ef;
+        --bg-secondary: #fbf9f5;
+        --paper: rgba(255, 255, 255, 0.74);
+        --text-primary: #121212;
+        --text-secondary: #43413d;
+        --text-muted: #8a837b;
+        --accent: #191919;
+        --accent-soft: rgba(17, 17, 17, 0.045);
+        --line: rgba(17, 17, 17, 0.08);
+        --line-strong: rgba(17, 17, 17, 0.18);
+        --font-display: "ABC Monument Grotesk Thin", "ABC Monument Grotesk Light", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --font-body: "ABC Monument Grotesk Light", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+        --duration-normal: 0.72s;
+        --title-size: clamp(1.65rem, 5.4vw, 4.45rem);
+        --h2-size: clamp(1.72rem, 4.62vw, 3.52rem);
+        --h3-size: clamp(1.26rem, 3.18vw, 2.18rem);
+        --body-size: clamp(1.02rem, 1.62vw, 1.3rem);
+        --small-size: clamp(0.78rem, 1.12vw, 1.02rem);
+        --slide-padding: clamp(1rem, 3.6vw, 3.4rem);
+        --content-gap: clamp(0.58rem, 1.95vw, 1.95rem);
+        --element-gap: clamp(0.28rem, 1vw, 0.98rem);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html, body {
+        height: 100%;
+        overflow-x: hidden;
+      }
+
+      html {
+        scroll-snap-type: y mandatory;
+        scroll-behavior: smooth;
+      }
+
+      .slide {
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+        scroll-snap-align: start;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      .slide-stage {
+        width: calc(var(--stage-width) * 1px);
+        height: calc(var(--stage-height) * 1px);
+        transform: scale(var(--deck-scale));
+        transform-origin: center center;
+        overflow: hidden;
+        position: relative;
+        background: transparent;
+      }
+
+      .slide-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        max-height: 100%;
+        overflow: hidden;
+        padding: var(--slide-padding);
+      }
+
+      .card, .container, .content-box {
+        max-width: min(90vw, 1000px);
+        max-height: min(80vh, 700px);
+      }
+
+      .feature-list, .bullet-list {
+        gap: clamp(0.4rem, 1vh, 1rem);
+      }
+
+      .feature-list li, .bullet-list li {
+        font-size: var(--body-size);
+        line-height: 1.42;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+        gap: clamp(0.5rem, 1.5vw, 1rem);
+      }
+
+      img, .image-container {
+        max-width: 100%;
+        max-height: min(50vh, 400px);
+        object-fit: contain;
+      }
+
+      @media (max-height: 700px) {
+        :root {
+          --slide-padding: clamp(0.75rem, 3vw, 2rem);
+          --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+          --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+          --h2-size: clamp(1rem, 3vw, 1.75rem);
+        }
+      }
+
+      @media (max-height: 600px) {
+        :root {
+          --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+          --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+          --title-size: clamp(1.1rem, 4vw, 2rem);
+          --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+        }
+
+        .nav-dots, .keyboard-hint, .decorative {
+          display: none;
+        }
+      }
+
+      @media (max-height: 500px) {
+        :root {
+          --slide-padding: clamp(0.4rem, 2vw, 1rem);
+          --title-size: clamp(1rem, 3.5vw, 1.5rem);
+          --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+          --body-size: clamp(0.65rem, 1vw, 0.85rem);
+        }
+      }
+
+      @media (max-width: 600px) {
+        :root {
+          --title-size: clamp(1.25rem, 7vw, 2.5rem);
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.2s !important;
+        }
+
+        html {
+          scroll-behavior: auto;
+        }
+      }
+
+      body {
+        background: linear-gradient(180deg, #fbfaf7 0%, #f1ede7 100%);
+        color: var(--text-primary);
+        font-family: var(--font-body);
+        font-weight: 400;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: geometricPrecision;
+      }
+
+      body::after {
+        content: none;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(circle at 14% 16%, rgba(255,255,255,0.85) 0, rgba(255,255,255,0) 20%),
+          radial-gradient(circle at 82% 84%, rgba(255,255,255,0.42) 0, rgba(255,255,255,0) 24%);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .slide.image-lines h2 {
+        max-width: 14.2ch;
+        font-size: clamp(2.2rem, 4.45vw, 3.72rem);
+      }
+
+      .slide.image-lines .split-panel {
+        grid-template-columns: 0.86fr 1.14fr;
+        gap: clamp(1rem, 2vw, 1.6rem);
+        align-items: start;
+      }
+
+      .slide.image-lines .highlight-box {
+        max-width: 34rem;
+        min-height: clamp(27rem, 54vh, 33rem);
+        justify-content: flex-start;
+        gap: 1rem;
+        padding: clamp(1rem, 1.8vw, 1.3rem);
+      }
+
+      .slide.image-lines .highlight-box .lede {
+        max-width: 14.2ch !important;
+      }
+
+      .slide.image-lines .micro-grid {
+        grid-template-columns: 1fr;
+        gap: clamp(0.8rem, 1.2vw, 1rem);
+      }
+
+      .slide.image-lines .mini {
+        min-height: clamp(10rem, 20vh, 12.2rem);
+        padding: clamp(1rem, 1.35vw, 1.2rem);
+      }
+
+      .slide.image-lines .quote-strip {
+        margin-top: 0.7rem !important;
+        max-width: none;
+      }
+
+      .slide.video-training .slide-header {
+        margin-bottom: clamp(0.95rem, 1.55vw, 1.35rem);
+      }
+
+      .slide.video-training .two-col {
+        grid-template-columns: 0.92fr 1.08fr;
+        gap: clamp(1.4rem, 2.8vw, 2.35rem);
+        align-items: start;
+      }
+
+      .slide.video-training .process-line {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 0;
+        gap: clamp(0.95rem, 1.5vw, 1.2rem) clamp(1.25rem, 1.9vw, 1.65rem);
+        background: #171717;
+        color: #faf7f2;
+        padding: clamp(1rem, 1.65vw, 1.32rem);
+      }
+
+      .slide.video-training .process-step {
+        min-height: clamp(8rem, 16vh, 9.6rem);
+        border-top-color: rgba(250,247,242,0.3);
+      }
+
+      .slide.video-training .process-step h3 {
+        font-size: clamp(1.35rem, 2.15vw, 1.82rem);
+        color: #fffdf8;
+      }
+
+      .slide.video-training .process-step p {
+        font-size: clamp(0.94rem, 1.22vw, 1.08rem);
+        line-height: 1.34;
+        color: rgba(250,247,242,0.76);
+      }
+
+      .slide.video-training .process-step .step-no {
+        color: rgba(250,247,242,0.52);
+      }
+
+      .slide.video-training .training-decision {
+        border-top: 1px solid rgba(250,247,242,0.3);
+        padding-top: clamp(0.75rem, 1vw, 0.92rem);
+      }
+
+      .slide.video-training .training-decision strong {
+        display: block;
+        color: #fffdf8;
+        font-size: clamp(1rem, 1.28vw, 1.12rem);
+        margin-bottom: 0.28rem;
+      }
+
+      .slide.video-training .training-decision p {
+        font-size: clamp(0.9rem, 1.12vw, 1rem);
+        line-height: 1.3;
+        color: rgba(250,247,242,0.76);
+      }
+
+      .slide.video-training .quote-strip {
+        margin-top: clamp(1rem, 1.45vw, 1.25rem) !important;
+        min-height: auto;
+        display: flex;
+        align-items: center;
+        max-width: none;
+        font-size: clamp(1.12rem, 1.58vw, 1.36rem);
+        border-left-color: var(--text-primary);
+        padding-top: clamp(1rem, 1.6vw, 1.25rem);
+        padding-bottom: clamp(0.25rem, 0.5vw, 0.45rem);
+        border-top: 1px solid var(--line-strong);
+      }
+
+      .slide.video-training .quote-strip p {
+        color: var(--text-secondary);
+      }
+
+      .slide.video-training .quote-strip strong {
+        color: var(--text-primary);
+      }
+
+      .slide.video-serving .split-panel {
+        grid-template-columns: 0.9fr 1.1fr;
+        gap: clamp(1.35rem, 2.4vw, 2rem);
+        align-items: stretch;
+      }
+
+      .slide.video-serving .highlight-box {
+        min-height: clamp(25rem, 53vh, 31rem);
+        padding: clamp(1.15rem, 1.9vw, 1.45rem);
+      }
+
+      .slide.video-serving .serving-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: clamp(0.75rem, 1.2vw, 1rem);
+        margin-top: clamp(1.3rem, 2vw, 1.7rem);
+      }
+
+      .slide.video-serving .serving-item {
+        border-top: 1px solid rgba(250,247,242,0.28);
+        padding-top: 0.75rem;
+      }
+
+      .slide.video-serving .serving-item strong {
+        display: block;
+        margin-bottom: 0.4rem;
+        color: #fffdf8;
+      }
+
+      .slide.video-serving .serving-item p {
+        font-size: clamp(0.86rem, 1.1vw, 0.98rem);
+        line-height: 1.32;
+        color: rgba(250,247,242,0.74);
+      }
+
+      .slide.video-serving .backend-band {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: clamp(0.9rem, 1.8vw, 1.6rem);
+        margin: 0;
+      }
+
+      .slide.video-serving:has(.backend-band) .slide-content {
+        height: 100%;
+        justify-content: space-between;
+        gap: clamp(1.4rem, 3vh, 2.6rem);
+      }
+
+      .slide.video-serving .serving-body {
+        display: flex;
+        flex-direction: column;
+        gap: clamp(1.4rem, 3.4vh, 2.6rem);
+      }
+
+      .slide.video-serving .backend-band .card-block h3 {
+        margin: 0.1rem 0 0;
+        max-width: none;
+      }
+
+      .slide.video-serving .highlight-box.testbed-band {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 0.8fr 1.2fr;
+        gap: clamp(1.2rem, 2.6vw, 2.6rem);
+        align-items: center;
+      }
+
+      .slide.video-serving .testbed-band .serving-grid {
+        margin-top: 0;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .slide.video-serving .testbed-band .testbed-head .lede {
+        margin-top: 0.45rem;
+        max-width: 14ch;
+      }
+
+      .slide.video-validation .metric-band {
+        margin-top: 0;
+      }
+
+      .slide.video-validation .two-col {
+        grid-template-columns: 1.1fr 0.9fr;
+        align-items: stretch;
+      }
+
+      .slide.video-validation .highlight-box {
+        min-height: clamp(22rem, 43vh, 26rem);
+        padding: clamp(1rem, 1.7vw, 1.35rem);
+      }
+
+      .slide.long-context-fixes .metric-band {
+        margin-top: 0;
+      }
+
+      .slide.long-context-fixes .two-col {
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: clamp(1.25rem, 2vw, 1.7rem);
+        align-items: stretch;
+      }
+
+      .slide.long-context-fixes .bullet-list li {
+        font-size: clamp(0.98rem, 1.27vw, 1.1rem);
+        line-height: 1.34;
+      }
+
+      .slide.long-context-fixes .highlight-box {
+        min-height: clamp(21rem, 42vh, 25rem);
+        padding: clamp(1rem, 1.6vw, 1.25rem);
+        justify-content: flex-start;
+        gap: clamp(0.9rem, 1.25vw, 1.1rem);
+      }
+
+      .slide.takeaways .two-col {
+        grid-template-columns: 1fr 1fr;
+        gap: clamp(1.35rem, 2.5vw, 2.1rem);
+      }
+
+      .slide.takeaways .micro-grid {
+        gap: clamp(0.85rem, 1.25vw, 1.05rem);
+      }
+
+      .slide.takeaways .mini {
+        min-height: clamp(11.6rem, 23vh, 13.8rem);
+      }
+
+      .slide.takeaways .footer-note {
+        font-size: clamp(1rem, 1.3vw, 1.14rem);
+        padding-top: clamp(1rem, 1.7vw, 1.25rem);
+        color: var(--text-secondary);
+      }
+
+      .slide.current-map h2 {
+        max-width: 18ch;
+        font-size: clamp(2.25rem, 4.5vw, 3.75rem);
+      }
+
+      .slide.current-map .cards-quad {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: clamp(0.65rem, 1vw, 0.9rem);
+        gap: clamp(0.95rem, 1.45vw, 1.2rem) clamp(1.2rem, 2vw, 1.7rem);
+      }
+
+      .slide.current-map .footer-note {
+        margin-top: clamp(1.45rem, 2vw, 1.8rem);
+        font-size: clamp(0.92rem, 1.15vw, 1.02rem);
+      }
+
+      .slide.current-map .card-block {
+        min-height: clamp(12.6rem, 25vh, 15.4rem);
+        padding-top: clamp(0.98rem, 1.3vw, 1.15rem);
+        gap: clamp(0.55rem, 0.9vw, 0.78rem);
+      }
+
+      .slide.current-map .card-block h3 {
+        font-size: clamp(1.46rem, 2.28vw, 1.98rem);
+        max-width: 15ch;
+      }
+
+      .slide.current-map .card-block p {
+        font-size: clamp(1.06rem, 1.46vw, 1.24rem);
+        line-height: 1.34;
+      }
+
+      .slide.context-slide h2 {
+        max-width: 16ch;
+        font-size: clamp(2.2rem, 4.45vw, 3.7rem);
+        letter-spacing: -0.042em;
+      }
+
+      .slide.context-slide .context-layout {
+        display: grid;
+        grid-template-columns: 0.78fr 1.22fr;
+        gap: clamp(1rem, 1.8vw, 1.55rem);
+        align-items: stretch;
+        margin-top: clamp(0.6rem, 1.05vw, 0.95rem);
+        min-height: clamp(26rem, 52vh, 33rem);
+      }
+
+      .slide.context-slide .context-points {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0;
+        align-content: stretch;
+      }
+
+      .slide.context-slide .context-point {
+        border-top: 1px solid var(--line-strong);
+        padding: clamp(1rem, 1.35vw, 1.25rem) 0;
+      }
+
+      .slide.context-slide .context-point strong {
+        display: inline;
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+
+      .slide.context-slide .context-point p {
+        font-size: clamp(1.06rem, 1.38vw, 1.22rem);
+        line-height: 1.34;
+      }
+
+      .slide.context-slide .highlight-box {
+        min-height: 100%;
+        padding: clamp(1rem, 1.65vw, 1.25rem);
+        justify-content: flex-start;
+        gap: clamp(0.45rem, 0.7vw, 0.7rem);
+        max-width: none;
+        align-self: start;
+      }
+
+      .slide.context-slide .highlight-box .lede {
+        max-width: 20ch;
+        margin-bottom: clamp(0.08rem, 0.18vw, 0.16rem);
+        font-size: clamp(1.5rem, 2.28vw, 1.95rem) !important;
+        line-height: 1.1;
+      }
+
+      .slide.context-slide .highlight-box > p:last-child {
+        margin-top: clamp(0.1rem, 0.24vw, 0.2rem);
+        font-size: clamp(1rem, 1.26vw, 1.12rem);
+        line-height: 1.3;
+        color: rgba(250,247,242,0.76);
+      }
+
+      .slide.context-slide .box-footer {
+        border-top: 1px solid rgba(250,247,242,0.22);
+        padding-top: clamp(0.8rem, 1.1vw, 1rem);
+        margin-top: clamp(1.25rem, 1.75vw, 1.55rem);
+        font-size: clamp(1rem, 1.24vw, 1.1rem);
+        line-height: 1.3;
+        color: rgba(250,247,242,0.82);
+      }
+
+      .slide {
+        background: transparent;
+      }
+
+      .slide::before {
+        content: "";
+        position: absolute;
+        left: clamp(0.35rem, 0.9vw, 0.7rem);
+        top: clamp(0.35rem, 0.9vw, 0.7rem);
+        bottom: clamp(0.35rem, 0.9vw, 0.7rem);
+        width: 1px;
+        background: var(--line-strong);
+        z-index: 0;
+      }
+
+      .slide::after {
+        content: "";
+        position: absolute;
+        inset: clamp(0.35rem, 0.9vw, 0.7rem);
+        border: 1px solid var(--line);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .slide-stage,
+      .slide-content,
+      .progress-bar,
+      .nav-dots {
+        position: relative;
+        z-index: 2;
+      }
+
+      .slide-content {
+        padding-left: clamp(2.2rem, 5vw, 4.6rem);
+      }
+
+      .slide-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: var(--content-gap);
+        margin-bottom: clamp(1.2rem, 2.25vw, 1.85rem);
+      }
+
+      .eyebrow {
+        font-family: var(--font-body);
+        font-size: clamp(0.62rem, 0.82vw, 0.76rem);
+        text-transform: uppercase;
+        letter-spacing: 0.24em;
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+
+      .slide-header .eyebrow {
+        margin-bottom: clamp(0.5rem, 1vw, 0.85rem);
+      }
+
+      .slide-index {
+        font-family: var(--font-body);
+        font-size: clamp(0.7rem, 1vw, 0.88rem);
+        color: var(--text-muted);
+        letter-spacing: 0.12em;
+      }
+
+      h1, h2, h3 {
+        font-family: var(--font-display);
+        font-weight: 400;
+        line-height: 0.95;
+        letter-spacing: -0.045em;
+      }
+
+      h1 {
+        font-size: clamp(3.85rem, 9vw, 7.45rem);
+        max-width: min(10.8ch, 84vw);
+      }
+
+      h2 {
+        font-size: clamp(2.48rem, 5.25vw, 4.38rem);
+        max-width: 22ch;
+      }
+
+      h3 {
+        font-size: clamp(1.34rem, 2.2vw, 1.86rem);
+        max-width: 16ch;
+      }
+
+      p, li {
+        font-size: var(--body-size);
+        line-height: 1.42;
+        color: var(--text-secondary);
+      }
+
+      strong {
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+
+      .lede {
+        font-size: clamp(1.2rem, 1.94vw, 1.5rem);
+        max-width: min(44rem, 84vw);
+        color: var(--text-primary);
+      }
+
+      .muted {
+        color: var(--text-muted);
+      }
+
+      .red-rule {
+        width: clamp(3rem, 8vw, 6.2rem);
+        height: 1px;
+        background: var(--text-primary);
+        margin: clamp(0.95rem, 1.8vw, 1.2rem) 0;
+      }
+
+      .title-slide .slide-content {
+        justify-content: flex-start;
+        padding-top: clamp(1.3rem, 3.2vw, 2.4rem);
+        padding-bottom: clamp(1.3rem, 3.2vw, 2.4rem);
+      }
+
+      .title-grid {
+        display: grid;
+        grid-template-columns: 1.08fr 0.92fr;
+        gap: clamp(1.2rem, 2.6vw, 2.7rem);
+        align-items: end;
+        flex: 1;
+        min-height: 0;
+        margin-top: clamp(0.55rem, 1vw, 0.95rem);
+        padding-bottom: clamp(1.2rem, 2.1vh, 1.9rem);
+      }
+
+      .title-meta {
+        display: flex;
+        flex-direction: column;
+        gap: clamp(1.2rem, 1.6vw, 1.5rem);
+        justify-content: flex-end;
+        align-self: stretch;
+      }
+
+      .title-grid > div:first-child {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding-top: clamp(0.1rem, 0.25vw, 0.2rem);
+      }
+
+      .title-grid > div:first-child h1 {
+        margin-top: clamp(0.16rem, 0.24vw, 0.24rem);
+      }
+
+      .title-slide h1 {
+        font-size: clamp(4.9rem, 11vw, 9.2rem);
+        line-height: 0.89;
+        max-width: min(9.8ch, 86vw);
+      }
+
+      .title-slide .title-meta .lede {
+        font-size: clamp(1.48rem, 2.3vw, 1.9rem);
+        line-height: 1.24;
+        max-width: 31rem;
+        color: var(--text-primary);
+      }
+
+      .title-slide .title-meta {
+        padding-bottom: clamp(0.5rem, 0.8vw, 0.8rem);
+      }
+
+      .title-tagline {
+        max-width: 27rem;
+        padding-top: clamp(1rem, 1.5vw, 1.3rem);
+        border-top: 1px solid var(--line-strong);
+        font-size: clamp(0.92rem, 1.26vw, 1.08rem);
+        line-height: 1.36;
+        color: var(--text-secondary);
+      }
+
+      .title-slide .hero-ghost {
+        position: absolute;
+        left: clamp(1.7rem, 4vw, 3.4rem);
+        bottom: clamp(1.7rem, 4vw, 3rem);
+        font-family: var(--font-display);
+        font-size: clamp(4rem, 14vw, 11rem);
+        line-height: 0.8;
+        letter-spacing: -0.06em;
+        color: rgba(17,17,17,0.022);
+        pointer-events: none;
+        user-select: none;
+        z-index: 1;
+      }
+
+      .title-note { display: none; }
+
+      .section-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0;
+        border: none;
+        background: transparent;
+        font-size: var(--small-size);
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--text-primary);
+        font-weight: 500;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: clamp(1rem, 2.2vw, 2rem);
+        align-items: stretch;
+        min-height: 0;
+      }
+
+      .bullet-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: clamp(0.55rem, 1.1vh, 0.95rem);
+        max-width: 46rem;
+      }
+
+      .bullet-list li {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: clamp(0.55rem, 1vw, 0.9rem);
+        align-items: start;
+      }
+
+      .bullet-list li::before {
+        content: "—";
+        color: var(--text-primary);
+        font-size: clamp(0.85rem, 1vw, 1rem);
+        line-height: 1.2;
+        transform: translateY(0.02em);
+      }
+
+      .cards-quad {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: clamp(0.8rem, 1.6vw, 1.15rem);
+      }
+
+      .card-block {
+        background: transparent;
+        border: none;
+        border-top: 1px solid var(--line-strong);
+        padding: clamp(1.5rem, 2.6vw, 1.95rem) 0 0;
+        display: flex;
+        flex-direction: column;
+        gap: clamp(0.45rem, 0.9vw, 0.78rem);
+      }
+
+      .card-kicker {
+        font-size: clamp(0.64rem, 0.9vw, 0.8rem);
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+
+      .metric-band {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: clamp(0.7rem, 1.2vw, 1rem);
+        margin-top: clamp(1rem, 1.8vw, 1.2rem);
+      }
+
+      .metric {
+        background: transparent;
+        border-top: 1px solid var(--text-primary);
+        padding: clamp(1.35rem, 2.3vw, 1.7rem) 0 0;
+      }
+
+      .metric .value {
+        font-family: var(--font-display);
+        font-size: clamp(1.62rem, 2.9vw, 2.62rem);
+        line-height: 0.96;
+        color: var(--text-primary);
+        font-weight: 400;
+      }
+
+      .metric .label {
+        margin-top: 0.45rem;
+        font-size: var(--small-size);
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+      }
+
+      .process-line {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: clamp(0.6rem, 1vw, 0.9rem);
+        margin-top: clamp(1rem, 1.6vw, 1.2rem);
+      }
+
+      .process-step {
+        border-top: 1px solid var(--line-strong);
+        padding-top: clamp(1.15rem, 1.9vw, 1.35rem);
+      }
+
+      .process-step .step-no {
+        font-family: var(--font-body);
+        font-size: clamp(0.65rem, 0.9vw, 0.8rem);
+        color: var(--text-muted);
+        letter-spacing: 0.22em;
+      }
+
+      .split-panel {
+        display: grid;
+        grid-template-columns: 0.9fr 1.1fr;
+        gap: clamp(1rem, 2.4vw, 2rem);
+        align-items: stretch;
+      }
+
+      .highlight-box {
+        background: #171717;
+        color: #faf7f2;
+        padding: clamp(1.05rem, 2vw, 1.45rem);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .highlight-box .lede {
+        line-height: 1.12;
+      }
+
+      .highlight-box p,
+      .highlight-box li,
+      .highlight-box .muted {
+        color: rgba(250,247,242,0.8);
+      }
+
+      .highlight-box strong {
+        color: #fffdf8;
+      }
+
+      .highlight-box .eyebrow {
+        color: rgba(250,247,242,0.58);
+      }
+
+      .micro-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: clamp(0.65rem, 1.1vw, 0.9rem);
+      }
+
+      .mini {
+        border-top: 1px solid var(--line-strong);
+        background: rgba(255,255,255,0.52);
+        padding: clamp(1.3rem, 1.9vw, 1.55rem) clamp(0.75rem, 1.1vw, 0.95rem) clamp(0.75rem, 1.1vw, 0.95rem);
+      }
+
+      .mini > strong {
+        display: block;
+        font-family: var(--font-body);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: var(--small-size);
+        margin-bottom: 0.35rem;
+      }
+
+      .mini p strong {
+        display: inline;
+        text-transform: none;
+        letter-spacing: 0;
+        font-size: inherit;
+        margin-bottom: 0;
+      }
+
+      .quote-strip {
+        border-left: 1px solid var(--text-primary);
+        padding-left: clamp(0.9rem, 1.8vw, 1.25rem);
+        max-width: 45rem;
+      }
+
+      .footer-note {
+        margin-top: auto;
+        padding-top: clamp(1.35rem, 2.3vw, 1.75rem);
+        border-top: 1px solid var(--line-strong);
+        font-size: var(--small-size);
+        color: var(--text-muted);
+        letter-spacing: 0.04em;
+      }
+
+      .slide-content > .footer-note {
+        margin-top: clamp(1.6rem, 2.6vw, 2.2rem);
+      }
+
+      .funding-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: clamp(1rem, 2.4vw, 2.4rem);
+        flex-wrap: nowrap;
+        padding-top: clamp(0.85rem, 1.5vw, 1.25rem);
+        border-top: 1px solid var(--line-strong);
+        position: relative;
+        z-index: 2;
+      }
+
+      .funding-logos {
+        display: flex;
+        align-items: center;
+        gap: clamp(1.1rem, 2.8vw, 2.6rem);
+        flex-shrink: 0;
+      }
+
+      .funding-logos img {
+        width: auto;
+        object-fit: contain;
+      }
+
+      .funding-logos img.logo-uc3m {
+        height: clamp(3.6rem, 6.4vw, 5.6rem);
+      }
+
+      .funding-logos img.logo-ministerio {
+        height: clamp(4.4rem, 8vw, 7rem);
+      }
+
+      .funding-note {
+        font-size: var(--small-size);
+        color: var(--text-muted);
+        letter-spacing: 0.03em;
+        line-height: 1.35;
+        max-width: 34rem;
+        text-align: right;
+        margin-left: auto;
+      }
+
+      .title-slide .funding-bar {
+        margin-top: clamp(0.4rem, 0.9vw, 0.8rem);
+      }
+
+      .progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0%;
+        height: 2px;
+        background: var(--text-primary);
+        z-index: 50;
+        transition: width 0.2s ease;
+      }
+
+      .nav-dots {
+        position: fixed;
+        right: clamp(0.55rem, 1vw, 1rem);
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+        z-index: 40;
+      }
+
+      .nav-dot {
+        width: 0.34rem;
+        height: 0.34rem;
+        border-radius: 999px;
+        border: 1px solid var(--line-strong);
+        background: rgba(255,255,255,0.28);
+        cursor: pointer;
+        transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+      }
+
+      .nav-dot.active {
+        background: var(--text-primary);
+        border-color: var(--text-primary);
+        transform: scale(1.1);
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition:
+          opacity var(--duration-normal) var(--ease-out-expo),
+          transform var(--duration-normal) var(--ease-out-expo);
+      }
+
+      .slide.visible .reveal {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .reveal:nth-child(1) { transition-delay: 0.06s; }
+      .reveal:nth-child(2) { transition-delay: 0.12s; }
+      .reveal:nth-child(3) { transition-delay: 0.18s; }
+      .reveal:nth-child(4) { transition-delay: 0.24s; }
+      .reveal:nth-child(5) { transition-delay: 0.3s; }
+
+      /* ---- CMMSE additions: data tables, figures, equations (template idiom) ---- */
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: var(--font-body);
+        font-size: clamp(0.74rem, 1vw, 0.94rem);
+      }
+
+      .data-table th {
+        text-align: left;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: clamp(0.6rem, 0.82vw, 0.74rem);
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--text-primary);
+        padding: 0.5rem 0.55rem;
+      }
+
+      .data-table td {
+        padding: 0.4rem 0.55rem;
+        border-bottom: 1px solid var(--line);
+        color: var(--text-secondary);
+        line-height: 1.28;
+      }
+
+      .data-table td.num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .data-table tr.hl td {
+        background: var(--accent-soft);
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+
+      .figure {
+        display: flex;
+        flex-direction: column;
+        gap: clamp(0.4rem, 0.7vw, 0.6rem);
+        min-width: 0;
+      }
+
+      .figure img {
+        width: 100%;
+        height: auto;
+        max-height: min(52vh, 430px);
+        object-fit: contain;
+        border: 1px solid var(--line-strong);
+      }
+
+      .figure figcaption {
+        font-size: var(--small-size);
+        color: var(--text-muted);
+        line-height: 1.3;
+        letter-spacing: 0.01em;
+      }
+
+      .fig-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: clamp(0.6rem, 1.1vw, 1rem);
+        align-items: start;
+      }
+
+      .fig-grid .figure img {
+        max-height: min(26vh, 205px);
+      }
+
+      .fig-grid.fig-grid-split {
+        grid-template-columns: 1fr 1fr;
+        gap: clamp(1rem, 2vw, 2rem);
+        align-items: center;
+      }
+
+      .fig-col {
+        display: flex;
+        flex-direction: column;
+        gap: clamp(0.7rem, 1.3vw, 1.2rem);
+        min-width: 0;
+      }
+
+      .fig-grid.fig-grid-split .fig-col .figure img {
+        max-height: min(27vh, 215px);
+      }
+
+      .fig-grid.fig-grid-split > .figure {
+        align-items: center;
+        text-align: center;
+      }
+
+      .fig-grid.fig-grid-split > .figure img {
+        width: auto;
+        max-width: 100%;
+        max-height: min(52vh, 430px);
+      }
+
+      .eqn {
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        font-size: clamp(0.86rem, 1.2vw, 1.06rem);
+        letter-spacing: 0.01em;
+        line-height: 1.5;
+        color: var(--text-primary);
+      }
+
+      .highlight-box .eqn {
+        color: #fffdf8;
+      }
+
+      .params-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .params-table td {
+        border-bottom: 1px solid var(--line);
+        padding: 0.34rem 0;
+        font-size: clamp(0.82rem, 1.1vw, 1rem);
+      }
+
+      .params-table td.num {
+        text-align: right;
+        color: var(--text-primary);
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* ---- Inline CSS math (self-contained, no external library) ---- */
+      .math {
+        font-family: "Latin Modern Roman", "STIX Two Math", "Cambria Math", Georgia, "Times New Roman", serif;
+        font-style: italic;
+        font-size: clamp(0.98rem, 1.5vw, 1.4rem);
+        line-height: 1.55;
+        color: var(--text-primary);
+        white-space: nowrap;
+      }
+
+      .math.block {
+        display: block;
+        margin: 0.4rem 0;
+        overflow-x: auto;
+      }
+
+      .math .op,
+      .math .num-lit,
+      .math sub,
+      .math sup,
+      .math .sym {
+        font-style: normal;
+      }
+
+      .math sub, .math sup { font-size: 0.72em; }
+
+      .frac {
+        display: inline-flex;
+        flex-direction: column;
+        vertical-align: middle;
+        text-align: center;
+        margin: 0 0.32em;
+      }
+
+      .frac > span { padding: 0 0.6em; }
+      .frac > .num { border-bottom: 1px solid currentColor; padding-bottom: 0.16em; }
+      .frac > .den { padding-top: 0.16em; }
+
+      .math .sum {
+        font-style: normal;
+        font-size: 1.35em;
+        line-height: 0.7;
+        vertical-align: -0.22em;
+        margin: 0 0.14em;
+      }
+
+      .highlight-box .math { color: #fffdf8; }
+
+      @media (max-width: 980px) {
+        .title-grid,
+        .two-col,
+        .split-panel {
+          grid-template-columns: 1fr;
+        }
+
+        .cards-quad,
+        .metric-band,
+        .process-line,
+        .micro-grid,
+        .fig-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .cards-quad,
+        .metric-band,
+        .process-line,
+        .micro-grid,
+        .fig-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .nav-dots {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="progress-bar"></div>
+    <nav class="nav-dots"></nav>
+
+    <!-- ===========================================
+         SLIDE 1: TITLE
+         =========================================== -->
+    <section class="slide title-slide">
+      <div class="slide-content">
+        <div class="slide-header reveal">
+          <span class="section-tag">CMMSE 2026 · computational &amp; mathematical methods</span>
+          <span class="slide-index">01</span>
+        </div>
+        <div class="title-grid">
+          <div>
+            <h1 class="reveal">Anomaly detection in power converters.</h1>
+          </div>
+          <div class="title-meta">
+            <p class="lede reveal">
+              A self-supervised deep learning framework that reads frequency-response signatures to catch parametric degradation before failure.
+            </p>
+            <p class="title-tagline reveal" style="text-align: right;">
+              Ignacio Martin-Salinas<br />
+              Jose A. Belloch<br />
+              Cristina Fernandez
+            </p>
+          </div>
+        </div>
+        <div class="funding-bar reveal">
+          <div class="funding-logos">
+            <img class="logo-uc3m" src="uc3m.png" alt="Universidad Carlos III de Madrid — Departamento de Tecnología Electrónica" />
+            <img class="logo-ministerio" src="ministerio.png" alt="Ministerio de Ciencia, Innovación y Universidades · Agencia Estatal de Investigación · Cofinanciado por la Unión Europea" />
+          </div>
+          <p class="funding-note">Grant PID2024-162157OB-I00 funded by MICIU/AEI/10.13039/501100011033 and by ERDF/EU.</p>
+        </div>
+        <div class="hero-ghost">01</div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 2: MOTIVATION
+         =========================================== -->
+    <section class="slide context-slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Context</p>
+            <h2 class="reveal">Why not just use threshold alarms?</h2>
+          </div>
+          <span class="slide-index reveal">02</span>
+        </div>
+        <div class="context-layout">
+          <div class="highlight-box reveal">
+            <div>
+              <p class="eyebrow">The gap</p>
+              <p class="lede" style="font-size: clamp(1.15rem, 2.1vw, 1.8rem); max-width: 18ch; color: #fff; margin-top: 0.4rem;">
+                Parametric drift migrates poles and zeros — a scalar alarm cannot see it.
+              </p>
+              <div class="math block" style="font-size: clamp(0.82rem, 1.1vw, 1rem); margin-top: 0.9rem; text-align:center;">
+                H(s) = C(sI &minus; A)<sup>&minus;1</sup>B + D
+              </div>
+            </div>
+            <div>
+              <p class="muted">Near its operating point a switching converter is a closed-loop LTI system. Component aging perturbs the state matrices (A, B, C, D), reshaping the small-signal transfer function across decades of frequency.</p>
+              <p class="box-footer">Reading the full Bode response H(j&omega;) exposes capacitor aging, MOSFET on-resistance wear and ESR growth long before any single-point limit is crossed.</p>
+            </div>
+          </div>
+          <div class="context-points reveal">
+            <div class="context-point"><p><strong>Non-linear coupling.</strong> A &plusmn;10% ESR change reshapes magnitude and phase across decades — not a monotone offset a fixed limit can bound.</p></div>
+            <div class="context-point"><p><strong>High dimensionality.</strong> Each health state is a 202-D vector (101 magnitude + 101 phase points); hand-tuned per-point limits do not scale.</p></div>
+            <div class="context-point"><p><strong>Label scarcity.</strong> Field faults are rare and unlabeled, so the detector must be trained on healthy data only — self-supervised, one-class.</p></div>
+            <div class="context-point"><p><strong>Edge budget.</strong> Inference must run in real time beside the converter, within a few watts and sub-millisecond latency.</p></div>
+            <div class="context-point"><p><strong>Our answer.</strong> Contrastive representation learning (CARLA) for sensitivity, TensorRT kernel fusion for &mu;s-scale deployment.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 3: FRAMEWORK MAP
+         =========================================== -->
+    <section class="slide current-map">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Framework at a glance</p>
+            <h2 class="reveal">Three components, one diagnostic loop.</h2>
+          </div>
+          <span class="slide-index reveal">03</span>
+        </div>
+        <div class="cards-quad">
+          <article class="card-block reveal">
+            <span class="card-kicker">Physics-based dataset</span>
+            <h3>227,698 transfer functions.</h3>
+            <p>A PSIM digital twin extracts small-signal H(j&omega;) while sweeping six aging components across &plusmn;20% of nominal.</p>
+          </article>
+          <article class="card-block reveal">
+            <span class="card-kicker">Autoencoder suite</span>
+            <h3>Six inductive biases.</h3>
+            <p>Convolutional, recurrent, attentional and variational encoders under one BaseAutoencoder contract z = f<sub>enc</sub>(x), x&#x302; = f<sub>dec</sub>(z).</p>
+          </article>
+          <article class="card-block reveal">
+            <span class="card-kicker">CARLA contrastive engine</span>
+            <h3>Label-free separation.</h3>
+            <p>Physics-consistent synthetic anomalies as negatives; NT-Xent on a unit-sphere projection separates health from degradation.</p>
+          </article>
+          <article class="card-block reveal">
+            <span class="card-kicker">Edge deployment</span>
+            <h3>Sub-millisecond inference.</h3>
+            <p>TensorRT FP16 kernel fusion &rarr; 0.499 ms at batch-1 while preserving ROC-AUC = 0.985.</p>
+          </article>
+        </div>
+        <p class="footer-note reveal">Dataset split 70% train / 15% validation / 15% test — released alongside the PSIM configuration files on publication.</p>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 4: BUCK CONVERTER
+         =========================================== -->
+    <section class="slide image-lines">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Converter under study</p>
+            <h2 class="reveal">A Buck converter, probed by AC sweep.</h2>
+          </div>
+          <span class="slide-index reveal">04</span>
+        </div>
+        <div class="split-panel">
+          <div class="figure reveal">
+            <img src="../plots/buck_converter_schematic.png" alt="Buck converter PSIM schematic with AC sweep probe" />
+            <figcaption>Synchronous Buck converter in PSIM. An AC sweep source and output probe extract the small-signal transfer function H(s) = V_out(s) / V_in(s).</figcaption>
+          </div>
+          <div class="reveal">
+            <p class="eyebrow" style="margin-bottom:0.6rem;">Nominal operating point</p>
+            <table class="params-table">
+              <tbody>
+                <tr><td>Input voltage V<sub>in</sub></td><td class="num">50 V</td></tr>
+                <tr><td>Load R<sub>out</sub></td><td class="num">4 Ω</td></tr>
+                <tr><td>Inductor L<sub>out</sub></td><td class="num">0.2 mH</td></tr>
+                <tr><td>Output capacitor C<sub>out</sub></td><td class="num">100 µF</td></tr>
+                <tr><td>Switch on-resistance R<sub>ds,1</sub>, R<sub>ds,2</sub></td><td class="num">10 mΩ</td></tr>
+                <tr><td>Inductor ESR</td><td class="num">0.1 Ω</td></tr>
+                <tr><td>Capacitor ESR</td><td class="num">20 mΩ</td></tr>
+                <tr><td>Duty cycle D</td><td class="num">0.4</td></tr>
+                <tr><td>Switching frequency f<sub>sw</sub></td><td class="num">100 kHz</td></tr>
+                <tr><td>AC sweep range</td><td class="num">100 Hz – 50 kHz</td></tr>
+              </tbody>
+            </table>
+            <p class="muted" style="margin-top:0.8rem; font-size: var(--small-size);">Six critical components are perturbed to emulate parametric aging: C<sub>out</sub>, L, R<sub>ds,1</sub>, R<sub>ds,2</sub>, ESR<sub>C</sub>, ESR<sub>L</sub>.</p>
+            <div class="math block" style="margin-top:0.7rem; font-size: clamp(0.82rem,1.1vw,1rem);">
+              f<sub>0</sub> =
+              <span class="frac"><span class="num">1</span><span class="den">2&pi;&thinsp;&radic;(L&thinsp;C)</span></span>
+              &approx; 1.13 kHz &nbsp;&middot;&nbsp; Q = R&thinsp;&radic;(C / L)
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 5: BODE SIGNATURE
+         =========================================== -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Health as a fingerprint</p>
+            <h2 class="reveal">Every state is a Bode signature.</h2>
+          </div>
+          <span class="slide-index reveal">05</span>
+        </div>
+        <div class="two-col reveal" style="grid-template-columns: 1fr 1fr; margin-bottom: clamp(1.4rem, 2.6vw, 2.2rem);">
+          <div class="figure">
+            <img src="../plots/anomaly_deviation_Cout.png" alt="Bode deviation for output capacitor Cout" />
+            <figcaption><strong>C<sub>out</sub> drift</strong> — a pronounced resonance-peak shift near ~1 kHz. A strong, low-frequency signature.</figcaption>
+          </div>
+          <div class="figure">
+            <img src="../plots/anomaly_deviation_Esr_C.png" alt="Bode deviation for capacitor ESR" />
+            <figcaption><strong>ESR<sub>C</sub> drift</strong> — subtle high-frequency amplitude and phase change; the resonance stays fixed. A weak signature.</figcaption>
+          </div>
+        </div>
+        <p class="footer-note reveal">Each response is 101 log-spaced points of amplitude (dB) and phase (°). Black = nominal; blue → red span the [−20%, +20%] deviation range. Strong vs. subtle signatures motivate a learned detector over hand-tuned thresholds.</p>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 6: PSIM AUTOMATION
+         =========================================== -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Data generation</p>
+            <h2 class="reveal">Small-signal probing of a physical model.</h2>
+          </div>
+          <span class="slide-index reveal">06</span>
+        </div>
+        <p class="lede reveal" style="max-width: 52rem;">A low-amplitude AC source linearizes the switching converter around its duty-cycle operating point — each perturbed netlist yields one labeled transfer function, no destructive hardware testing.</p>
+        <div class="process-line reveal" style="margin-bottom: clamp(1.4rem, 2.6vw, 2.2rem);">
+          <div class="process-step">
+            <div class="step-no">01</div>
+            <h3 style="font-size: clamp(1.2rem,1.9vw,1.6rem); margin:0.3rem 0;">LTI linearization</h3>
+            <p>Each netlist defines a state-space system (A, B, C, D); AC analysis evaluates H(j&omega;) at the operating point D = 0.4, f<sub>sw</sub> = 100 kHz.</p>
+          </div>
+          <div class="process-step">
+            <div class="step-no">02</div>
+            <h3 style="font-size: clamp(1.2rem,1.9vw,1.6rem); margin:0.3rem 0;">Parametric fault map</h3>
+            <p>Six aging components (C<sub>out</sub>, L, R<sub>ds,1</sub>, R<sub>ds,2</sub>, ESR<sub>C</sub>, ESR<sub>L</sub>) swept over &plusmn;20% around nominal.</p>
+          </div>
+          <div class="process-step">
+            <div class="step-no">03</div>
+            <h3 style="font-size: clamp(1.2rem,1.9vw,1.6rem); margin:0.3rem 0;">Frequency sampling</h3>
+            <p>101 log-spaced points over 100 Hz – 50 kHz resolve the LC resonance and the ESR-dominated high-frequency tail.</p>
+          </div>
+          <div class="process-step">
+            <div class="step-no">04</div>
+            <h3 style="font-size: clamp(1.2rem,1.9vw,1.6rem); margin:0.3rem 0;">Labeled signatures</h3>
+            <p>Magnitude (dB) and phase (°) stacked into a (101&times;2) tensor, tagged normal or anomalous by deviation band.</p>
+          </div>
+        </div>
+        <p class="footer-note reveal">The digital twin turns one Buck schematic into a reproducible, physically-grounded fault library spanning 227,698 states.</p>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 7: DATASET
+         =========================================== -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Dataset &amp; labeling</p>
+            <h2 class="reveal">227,698 transfer functions.</h2>
+          </div>
+          <span class="slide-index reveal">07</span>
+        </div>
+        <div class="metric-band reveal">
+          <div class="metric">
+            <div class="value">227,698</div>
+            <div class="label">unique responses</div>
+          </div>
+          <div class="metric">
+            <div class="value">101 pts</div>
+            <div class="label">100 Hz – 50 kHz, log-spaced</div>
+          </div>
+          <div class="metric">
+            <div class="value">70 / 15 / 15</div>
+            <div class="label">train / val / test</div>
+          </div>
+        </div>
+        <div class="two-col reveal" style="margin-top: 1.4rem; grid-template-columns: 0.85fr 1.15fr;">
+          <div>
+            <p class="eyebrow" style="margin-bottom:0.6rem;">Labeling strategy</p>
+            <table class="data-table">
+              <thead>
+                <tr><th>State</th><th>Deviation range</th><th class="num">Step</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Normal</strong></td><td>[−5%, +5%]</td><td class="num">1%</td></tr>
+                <tr><td><strong>Anomalous</strong></td><td>[−20%, −5%) and (+5%, +20%]</td><td class="num">5%</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="padding-top: clamp(1.2rem, 2.4vw, 2rem); padding-left: clamp(1rem, 2.4vw, 2rem);">
+            <ul class="bullet-list">
+              <li><span>Each frequency point carries <strong>amplitude (dB)</strong> and <strong>phase (°)</strong>.</span></li>
+              <li><span>Per-feature <strong>z-score standardization</strong> (&mu;, &sigma; fit on train) removes scale disparity between magnitude and phase.</span></li>
+              <li><span>Fine 1% steps inside the normal band support precision studies; coarser 5% anomalous steps calibrate thresholds and test the models.</span></li>
+              <li><span>Dataset and PSIM configs to be open-sourced on publication for reproducibility.</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 8: MODEL SUITE
+         =========================================== -->
+    <section class="slide current-map">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Architectural inductive biases</p>
+            <h2 class="reveal">Six encoders, one contract.</h2>
+          </div>
+          <span class="slide-index reveal">08</span>
+        </div>
+        <div class="cards-quad">
+          <article class="card-block reveal">
+            <span class="card-kicker">MLP-AE &amp; Conv1D-AE</span>
+            <h3>Dense vs. translation-equivariant.</h3>
+            <p>Local Conv1D kernels (size 5) capture resonance structure at O(N) cost; the MLP is a fully-connected baseline.</p>
+          </article>
+          <article class="card-block reveal">
+            <span class="card-kicker">LSTM-AE &amp; GRU-AE</span>
+            <h3>Gated recurrence over frequency.</h3>
+            <p>Hidden state propagates along the frequency axis to model roll-off and gradual parametric drift.</p>
+          </article>
+          <article class="card-block reveal">
+            <span class="card-kicker">VAE &amp; Transformer-AE</span>
+            <h3>Variational and attentional.</h3>
+            <p>Latent z &sim; N(&mu;, &sigma;<sup>2</sup>I) with KL regularization; multi-head self-attention for O(N<sup>2</sup>) global spectral coupling.</p>
+          </article>
+          <article class="card-block reveal">
+            <span class="card-kicker">Bayesian tuning</span>
+            <h3>Objective = validation AUC.</h3>
+            <p>Keras Tuner searches latent dim, kernel size, activation (GELU/Swish/Mish) and optimizer (AdamW/Lion) under warmup-cosine decay and early stopping.</p>
+          </article>
+        </div>
+        <p class="footer-note reveal">All six share the encoder–decoder contract z = f<sub>enc</sub>(x), x&#x302; = f<sub>dec</sub>(z), trained by MSE reconstruction and ranked by held-out ROC-AUC. Built on Keras / TensorFlow.</p>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 9: RECONSTRUCTION-AE ANATOMY
+         =========================================== -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Inside the encoder–decoder contract</p>
+            <h2 class="reveal">Anatomy of the Conv1D autoencoder.</h2>
+          </div>
+          <span class="slide-index reveal">09</span>
+        </div>
+        <div class="figure reveal" style="align-items:center; text-align:center; margin:auto 0;">
+          <img src="../plots/arch_hero_conv1d_ae.png" alt="Isometric diagram of the Conv1D autoencoder: encoder, latent bottleneck and decoder annotated with tensor shapes" style="max-height:min(60vh, 520px); width:auto; max-width:100%; border:none;" />
+          <figcaption style="max-width:92ch; margin:0 auto;">The selected model. Two strided Conv1D&#8202;+&#8202;max-pool stages compress the 101&times;2 Bode response into a 32-D latent code z; a mirror of up-sampling and convolutions reconstructs x&#x302;. Each block is annotated with its true tensor shape &mdash; translation-equivariant kernels (size 5) internalise resonance structure at O(N) cost.</figcaption>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 10: VARIATIONAL & SEQUENCE VARIANTS
+         =========================================== -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">One contract, distinct inductive biases</p>
+            <h2 class="reveal">A variational bottleneck and sequence variants.</h2>
+          </div>
+          <span class="slide-index reveal">10</span>
+        </div>
+        <div class="fig-col reveal" style="justify-content:center; height:100%;">
+          <figure class="figure" style="align-items:center; text-align:center;">
+            <img src="../plots/arch_hero_vae.png" alt="VAE diagram with a probabilistic bottleneck: mu and log-variance heads feed a reparameterized sample z" style="max-height:min(40vh, 350px); width:auto; max-width:100%; border:none;" />
+            <figcaption style="max-width:98ch; margin:0 auto;">The <strong>VAE</strong> replaces the deterministic code with a probabilistic bottleneck: the encoder emits &mu; and log&thinsp;&sigma;<sup>2</sup>, then z &sim; N(&mu;, &sigma;<sup>2</sup>) is drawn by the reparameterization trick and regularized toward N(0, I) through the KL term of the ELBO.</figcaption>
+          </figure>
+          <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:clamp(0.8rem,1.6vw,1.6rem); align-items:start; margin-top:clamp(0.6rem,1.2vw,1.1rem);">
+            <figure class="figure" style="align-items:center; text-align:center;">
+              <img src="../plots/arch_hero_lstm_ae.png" alt="LSTM autoencoder diagram" style="max-height:min(19vh,145px); width:auto; max-width:100%; border:none;" />
+              <figcaption style="text-align:center;"><strong>LSTM-AE</strong> &mdash; gated recurrence over the frequency axis.</figcaption>
+            </figure>
+            <figure class="figure" style="align-items:center; text-align:center;">
+              <img src="../plots/arch_hero_gru_ae.png" alt="GRU autoencoder diagram" style="max-height:min(19vh,145px); width:auto; max-width:100%; border:none;" />
+              <figcaption style="text-align:center;"><strong>GRU-AE</strong> &mdash; a lighter gated recurrent variant.</figcaption>
+            </figure>
+            <figure class="figure" style="align-items:center; text-align:center;">
+              <img src="../plots/arch_hero_transformer_ae.png" alt="Transformer autoencoder diagram" style="max-height:min(19vh,145px); width:auto; max-width:100%; border:none;" />
+              <figcaption style="text-align:center;"><strong>Transformer-AE</strong> &mdash; self-attention for global spectral coupling.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 11: CARLA
+         =========================================== -->
+    <section class="slide video-serving">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Self-supervised contrastive learning</p>
+            <h2 class="reveal">CARLA separates health from degradation.</h2>
+          </div>
+          <span class="slide-index reveal">11</span>
+        </div>
+        <div class="split-panel">
+          <div>
+            <ul class="bullet-list reveal">
+              <li><span>Reconstruction-only autoencoders learn to rebuild normal data — limited discriminative power.</span></li>
+              <li><span><strong>Point:</strong> spikes, dropouts, band-limited noise.</span></li>
+              <li><span><strong>Contextual:</strong> amplitude/phase offsets, gain and roll-off slope changes.</span></li>
+              <li><span><strong>Collective:</strong> resonance shift/addition, bandwidth change, oscillation.</span></li>
+              <li><span><strong>Physics-based:</strong> ESR growth, inductor saturation, R<sub>ds</sub> increase — matched to real fault modes.</span></li>
+              <li><span>Projection head g(&middot;): a 2-layer MLP maps latents to a 64-D unit sphere where NT-Xent (&tau; = 0.1) operates.</span></li>
+              <li><span>Inference scores non-parametrically by <strong>k-NN distance</strong> (k = 5) over the projection space — threshold-independent ROC-AUC.</span></li>
+            </ul>
+          </div>
+          <div class="highlight-box reveal" style="justify-content: flex-start;">
+            <div>
+              <p class="eyebrow">NT-Xent objective</p>
+              <p class="lede" style="font-size: clamp(1.05rem, 1.8vw, 1.5rem); color:#fff; max-width: 18ch; margin-top: 0.5rem;">
+                Maximally separate healthy and degraded states in latent space.
+              </p>
+              <div class="math block" style="font-size: clamp(0.88rem, 1.2vw, 1.12rem); margin-top: 1rem; padding: clamp(1rem, 2vw, 1.6rem) 0; text-align: center;">
+                <span class="op">L</span><sub>NT-Xent</sub> = &minus; log
+                <span class="frac">
+                  <span class="num">exp( sim(z<sub>i</sub>, z<sub>j</sub>) / &tau; )</span>
+                  <span class="den"><span class="sum">&Sigma;</span><sub>k&ne;i</sub> exp( sim(z<sub>i</sub>, z<sub>k</sub>) / &tau; )</span>
+                </span>
+              </div>
+            </div>
+            <div class="muted" style="margin-top: clamp(1.4rem, 2.6vw, 2.2rem); display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 0.7rem; font-size: var(--small-size); line-height: 1.35;">
+              <span class="math" style="font-size: 1em;">z<sub>i</sub>, z<sub>j</sub></span><span>projections of a positive (same-state) pair</span>
+              <span class="math" style="font-size: 1em;">z<sub>k</sub></span><span>all other samples in the batch (negatives)</span>
+              <span class="math" style="font-size: 1em;">sim(&middot;,&middot;)</span><span>cosine similarity between projections</span>
+              <span class="math" style="font-size: 1em;">&tau;</span><span>temperature scaling the similarities</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 12: OBJECTIVES, SCORING & SEARCH
+         =========================================== -->
+    <section class="slide long-context-fixes">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Objectives, scoring &amp; search</p>
+            <h2 class="reveal">From reconstruction error to a decision.</h2>
+          </div>
+          <span class="slide-index reveal">12</span>
+        </div>
+        <div class="two-col" style="align-items: start; gap: 2.4rem;">
+          <div class="reveal">
+            <p class="eyebrow" style="margin-bottom: 0.35rem;">Reconstruction objective (MSE)</p>
+            <span class="math block">
+              <span class="op">L</span><sub>recon</sub> =
+              <span class="frac"><span class="num">1</span><span class="den">N</span></span>
+              <span class="sum">&Sigma;</span><sub>i=1</sub><sup>N</sup>
+              &Vert; x<sub>i</sub> &minus; x&#x302;<sub>i</sub> &Vert;<sup>2</sup>
+            </span>
+
+            <p class="eyebrow" style="margin: 1.1rem 0 0.35rem;">Per-sample anomaly score</p>
+            <span class="math block">
+              s(x) =
+              <span class="frac"><span class="num">1</span><span class="den">L&middot;F</span></span>
+              <span class="sum">&Sigma;</span><sub>t,f</sub>
+              ( x<sub>t,f</sub> &minus; x&#x302;<sub>t,f</sub> )<sup>2</sup>
+            </span>
+
+            <p class="eyebrow" style="margin: 1.1rem 0 0.35rem;">CARLA score — k-NN distance in latent space</p>
+            <span class="math block">
+              s<sub>CARLA</sub>(x) =
+              <span class="frac"><span class="num">1</span><span class="den">k</span></span>
+              <span class="sum">&Sigma;</span><sub>j &isin; N<sub>k</sub>(x)</sub>
+              &Vert; z(x) &minus; z<sub>j</sub> &Vert;
+            </span>
+
+            <p class="eyebrow" style="margin: 1.1rem 0 0.35rem;">VAE objective — negative ELBO</p>
+            <span class="math block">
+              <span class="op">L</span><sub>VAE</sub> = <span class="op">L</span><sub>recon</sub> + &beta;&thinsp;D<sub>KL</sub>( q(z|x) &Vert; N(0, I) )
+            </span>
+          </div>
+          <div class="reveal">
+            <p class="eyebrow" style="margin-bottom: 0.35rem;">Threshold calibration (normal errors only)</p>
+            <span class="math block">
+              &tau; = P<sub>95</sub>&thinsp;{ s(x) : y = normal }
+            </span>
+            <span class="math block">
+              &tau; = &mu;<sub>N</sub> + 3&thinsp;&sigma;<sub>N</sub>
+              <span style="font-style: normal; font-size: 0.62em; color: var(--text-tertiary);">&nbsp;&nbsp;(std method)</span>
+            </span>
+
+            <p class="eyebrow" style="margin: 1.1rem 0 0.35rem;">Decision rule</p>
+            <span class="math block">
+              y&#x302;(x) = <span class="sym">&#x1D7D9;</span>[ s(x) &gt; &tau; ]
+            </span>
+
+            <p class="eyebrow" style="margin: 1.1rem 0 0.35rem;">Bayesian hyperparameter search</p>
+            <span class="math block">
+              &theta;<sup>*</sup> = <span class="op">argmax</span><sub>&theta; &isin; &Theta;</sub> AUC(&theta;)
+            </span>
+            <span class="math block">
+              &alpha;<sub>EI</sub>(&theta;) = <span class="sym">&#x1D53C;</span>[ max( f(&theta;) &minus; f(&theta;<sup>+</sup>), 0 ) ]
+            </span>
+          </div>
+        </div>
+        <p class="footer-note reveal">Reconstruction models score by MSE; CARLA scores by k-NN distance in the projection space. Every threshold is calibrated on healthy data only — no anomaly labels required at deployment.</p>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 13: EVALUATION METRICS
+         =========================================== -->
+    <section class="slide long-context-fixes">
+      <div class="slide-content" style="display:flex; flex-direction:column; height:100%;">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Evaluation protocol</p>
+            <h2 class="reveal">Ranking first, then the operating point.</h2>
+          </div>
+          <span class="slide-index reveal">13</span>
+        </div>
+        <div class="two-col" style="align-items: stretch; gap: 2.4rem; margin-top: 0.6rem; flex: 1 1 auto;">
+          <div class="reveal" style="display:flex; flex-direction:column; justify-content:space-between; gap: 0.4rem;">
+            <p class="eyebrow" style="margin-bottom: 0.5rem;">Operating-point metrics</p>
+            <span class="math block">
+              Precision = <span class="frac"><span class="num">TP</span><span class="den">TP + FP</span></span>
+              <span style="margin-left: 1.6rem;">Recall = <span class="frac"><span class="num">TP</span><span class="den">TP + FN</span></span></span>
+            </span>
+            <span class="math block">
+              F<sub>1</sub> = <span class="frac"><span class="num">2 &middot; Precision &middot; Recall</span><span class="den">Precision + Recall</span></span>
+            </span>
+            <span class="math block">
+              Accuracy = <span class="frac"><span class="num">TP + TN</span><span class="den">TP + TN + FP + FN</span></span>
+            </span>
+            <span class="math block">
+              Separability = <span class="frac"><span class="num">&mu;<sub>anom</sub> &minus; &mu;<sub>norm</sub></span><span class="den">1 + &sigma;<sub>norm</sub></span></span>
+            </span>
+            <p class="muted" style="margin-top:0.9rem; font-size:var(--small-size);">TP / FP / TN / FN from the calibrated decision y&#x302;(x) = <span class="sym">&#x1D7D9;</span>[ s(x) &gt; &tau; ]. All computed with scikit-learn on the held-out test set.</p>
+          </div>
+          <div class="reveal" style="display:flex; flex-direction:column; justify-content:space-between; gap: 0.4rem;">
+            <p class="eyebrow" style="margin-bottom: 0.5rem;">Threshold-free ranking</p>
+            <span class="math block">
+              ROC-AUC = <span style="font-style:normal;">&#x222B;</span><sub>0</sub><sup>1</sup> TPR &thinsp;d(FPR)
+            </span>
+            <span class="math block">
+              PR-AUC = <span style="font-style:normal;">&#x222B;</span><sub>0</sub><sup>1</sup> Precision &thinsp;d(Recall)
+            </span>
+            <p class="eyebrow" style="margin: 1.4rem 0 0.35rem;">Threshold calibration &mdash; healthy data only</p>
+            <ul class="bullet-list">
+              <li><span><strong>Percentile</strong> &mdash; &tau; = P<sub>p</sub> of normal reconstruction error (p = 90&ndash;97).</span></li>
+              <li><span><strong>Std</strong> &mdash; &tau; = &mu;<sub>N</sub> + 3&sigma;<sub>N</sub>.</span></li>
+              <li><span><strong>F1-optimal</strong> &mdash; grid search maximizing validation F1.</span></li>
+              <li><span><strong>Youden J</strong> &mdash; maximize TPR &minus; FPR on the ROC curve.</span></li>
+            </ul>
+            <p class="muted" style="margin-top:0.9rem; font-size:var(--small-size);">AUCs are threshold-independent, so they expose true ranking even when a fixed operating point fails to transfer &mdash; the key diagnostic for the quantization results ahead.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 14: ARCHITECTURE RESULTS
+         =========================================== -->
+    <section class="slide long-context-fixes">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Model comparison</p>
+            <h2 class="reveal">Conv1D-AE leads on F1 and AUC.</h2>
+          </div>
+          <span class="slide-index reveal">14</span>
+        </div>
+        <div class="two-col" style="align-items: start;">
+          <div class="reveal">
+            <table class="data-table">
+              <thead>
+                <tr><th>Architecture</th><th class="num">Acc.</th><th class="num">Prec.</th><th class="num">Rec.</th><th class="num">F1</th><th class="num">AUC</th></tr>
+              </thead>
+              <tbody>
+                <tr class="hl"><td>Conv1D-AE (optimal)</td><td class="num">0.957</td><td class="num">0.976</td><td class="num">0.950</td><td class="num">0.963</td><td class="num">0.984</td></tr>
+                <tr><td>LSTM-AE</td><td class="num">0.907</td><td class="num">0.972</td><td class="num">0.866</td><td class="num">0.916</td><td class="num">0.955</td></tr>
+                <tr><td>Transformer-AE</td><td class="num">0.888</td><td class="num">0.995</td><td class="num">0.813</td><td class="num">0.895</td><td class="num">0.880</td></tr>
+                <tr><td>VAE</td><td class="num">0.853</td><td class="num">0.919</td><td class="num">0.824</td><td class="num">0.869</td><td class="num">0.923</td></tr>
+                <tr><td>CARLA (base)</td><td class="num">0.777</td><td class="num">0.769</td><td class="num">0.889</td><td class="num">0.825</td><td class="num">0.831</td></tr>
+                <tr><td>MLP-AE</td><td class="num">0.722</td><td class="num">0.956</td><td class="num">0.555</td><td class="num">0.702</td><td class="num">0.657</td></tr>
+                <tr><td>GRU-AE</td><td class="num">0.607</td><td class="num">0.845</td><td class="num">0.407</td><td class="num">0.550</td><td class="num">0.505</td></tr>
+              </tbody>
+            </table>
+            <p class="muted" style="margin-top:0.8rem; font-size:var(--small-size);">Conv1D-AE is selected for intensive edge-deployment benchmarking.</p>
+          </div>
+          <div class="figure reveal">
+            <img src="../plots/final_metrics_comparison.svg" alt="Final detection metrics across architectures" />
+            <figcaption>Final detection metrics across the evaluated model architectures.</figcaption>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 15: TRAINING DYNAMICS
+         =========================================== -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Training dynamics</p>
+            <h2 class="reveal">Convergence depth spans two orders of magnitude.</h2>
+          </div>
+          <span class="slide-index reveal">15</span>
+        </div>
+        <div class="fig-grid fig-grid-split reveal">
+          <figure class="figure">
+            <img src="../plots/arch_convergence.png" alt="Validation reconstruction loss versus epoch for the five reconstruction autoencoders" />
+            <figcaption>Validation MSE (log scale) per architecture. Conv1D-AE and Transformer-AE reach the ~4&times;10<sup>&minus;7</sup> floor; MLP-AE plateaus an order higher, LSTM-AE stalls near 10<sup>&minus;5</sup>, GRU-AE converges late to ~3&times;10<sup>&minus;4</sup>. A low reconstruction floor is necessary but not sufficient &mdash; Transformer-AE fits the nominal manifold tightly yet separates faults less than Conv1D-AE.</figcaption>
+          </figure>
+          <figure class="figure">
+            <img src="../plots/arch_loss_decomposition.png" alt="VAE and CARLA multi-objective loss decomposition" />
+            <figcaption>Composite objectives (train solid, validation dashed). The VAE balances reconstruction against the KL term of the ELBO; CARLA drives the NT-Xent contrastive loss below 10<sup>&minus;4</sup> while validation reconstruction rises &mdash; motivating label-free k-NN scoring in the learned projection space.</figcaption>
+          </figure>
+        </div>
+        <p class="footer-note reveal">Shared AdamW + warmup&ndash;cosine schedule with early stopping across all runs; only the architectural inductive bias differs.</p>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 16: PER-COMPONENT ATLAS
+         =========================================== -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Physical interpretability</p>
+            <h2 class="reveal">Severity is written in the error.</h2>
+          </div>
+          <span class="slide-index reveal">16</span>
+        </div>
+        <div class="fig-grid fig-grid-split reveal">
+          <div class="fig-col">
+            <div class="figure">
+              <img src="../plots/score_vs_deviation_conv1d_ae.svg" alt="Anomaly score versus component deviation magnitude for Conv1D-AE" />
+              <figcaption>Reconstruction error scales with the physical magnitude of drift — the network internalised the converter's dynamics. Every miss (FN) sits at near-nominal deviations; all severe faults clear the threshold.</figcaption>
+            </div>
+            <div class="figure">
+              <img src="../plots/error_by_component_conv1d_ae.svg" alt="Missed-anomaly rate per component for Conv1D-AE" />
+              <figcaption>Per-component miss rates: the MOSFET on-resistances (R<sub>ds,1</sub>, R<sub>ds,2</sub>) are the hardest signatures (~5%), while C<sub>out</sub> faults are almost always caught. False alarms stay at 3.3%.</figcaption>
+            </div>
+          </div>
+          <div class="figure">
+            <img src="../plots/confusion_matrix_conv1d_ae.svg" alt="Conv1D-AE confusion matrix on the test set" />
+            <figcaption>Conv1D-AE confusion matrix — 96.7% normal, 95.0% anomaly correct on the held-out test set.</figcaption>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 17: DEPLOYMENT OVERVIEW
+         =========================================== -->
+    <section class="slide video-serving">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">High-performance edge deployment</p>
+            <h2 class="reveal">Five backends, one testbed.</h2>
+          </div>
+          <span class="slide-index reveal">17</span>
+        </div>
+        <div class="serving-body reveal">
+          <p class="lede" style="max-width: 62rem;">Every export path is benchmarked on one machine — isolating compiler-level optimisation from raw hardware acceleration.</p>
+          <div class="backend-band">
+            <div class="card-block">
+              <span class="card-kicker">Baseline</span>
+              <h3>Keras FP32</h3>
+              <p>CPU and GPU reference runtimes.</p>
+            </div>
+            <div class="card-block">
+              <span class="card-kicker">On-device</span>
+              <h3>TensorFlow Lite</h3>
+              <p>FP16, Dynamic-range and INT8 quantisation.</p>
+            </div>
+            <div class="card-block">
+              <span class="card-kicker">Portable</span>
+              <h3>ONNX Runtime</h3>
+              <p>Cross-platform CPU execution.</p>
+            </div>
+            <div class="card-block">
+              <span class="card-kicker">Accelerated</span>
+              <h3>NVIDIA TensorRT</h3>
+              <p>FP32, FP16 and INT8 GPU engines.</p>
+            </div>
+          </div>
+        </div>
+        <div class="highlight-box testbed-band reveal">
+          <div class="testbed-head">
+            <p class="eyebrow">Unified testbed</p>
+            <p class="lede" style="font-size: clamp(1.1rem, 1.9vw, 1.6rem); color:#fff;">RTX 4070 + Ryzen 7 5800X.</p>
+          </div>
+          <div class="serving-grid">
+            <div class="serving-item">
+              <strong>GPU</strong>
+              <p>Ada Lovelace, 12 GB VRAM, 5888 CUDA cores, 4th-gen Tensor Cores.</p>
+            </div>
+            <div class="serving-item">
+              <strong>CPU</strong>
+              <p>AMD Ryzen 7 5800X, 8 physical / 16 logical cores at 3.8 GHz.</p>
+            </div>
+            <div class="serving-item">
+              <strong>Model</strong>
+              <p>Conv1D-AE — chosen for its fast O(N) inference complexity.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 18: TIMING EXPERIMENTAL SETUP
+         =========================================== -->
+    <section class="slide long-context-fixes">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Timing methodology</p>
+            <h2 class="reveal">How the latencies are measured.</h2>
+          </div>
+          <span class="slide-index reveal">18</span>
+        </div>
+        <div class="two-col" style="align-items: start; gap: 2.4rem;">
+          <div class="reveal">
+            <p class="eyebrow" style="margin-bottom: 0.5rem;">Measurement protocol</p>
+            <ul class="bullet-list">
+              <li><span><strong>Single-sample batch (n&nbsp;=&nbsp;1)</strong> for <em>every</em> backend &mdash; identical conditions, so no format is flattered by batch amortization.</span></li>
+              <li><span><strong>15 warm-up iterations</strong> discarded &mdash; steady-state cuDNN autotune, JIT and warm caches.</span></li>
+              <li><span><strong>150 timed runs</strong> with <code>time.perf_counter()</code> wall-clock; report mean &plusmn; std, min / max.</span></li>
+              <li><span><strong>Per-sample latency</strong> = the single-sample runtime &mdash; one metric comparable across every backend.</span></li>
+              <li><span><strong>Identical inputs, identical machine</strong> &mdash; the same held-out test tensors on RTX 4070 + Ryzen 7 5800X.</span></li>
+            </ul>
+          </div>
+          <div class="reveal">
+            <p class="eyebrow" style="margin-bottom: 0.5rem;">Uniform evaluation protocol</p>
+            <table class="data-table">
+              <thead>
+                <tr><th>Backend</th><th class="num">Batch</th><th>Device</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Keras FP32</td><td class="num">1</td><td>CPU / GPU</td></tr>
+                <tr><td>TFLite FP16 / Dyn / INT8</td><td class="num">1</td><td>CPU (edge)</td></tr>
+                <tr><td>ONNX Runtime</td><td class="num">1</td><td>CPU</td></tr>
+                <tr><td>TensorRT FP32 / FP16 / INT8</td><td class="num">1</td><td>GPU</td></tr>
+              </tbody>
+            </table>
+            <p class="muted" style="margin-top:0.8rem; font-size:var(--small-size);">Every backend &mdash; from edge TFLite to the batch-1 TensorRT engines &mdash; is timed single-sample (n=1) under the same warm-up and timed-run budget, so per-sample latencies are directly comparable. Classification metrics (accuracy, F1, ROC-AUC) are recomputed in the same pass, so speed and fidelity come from one measurement.</p>
+          </div>
+        </div>
+        <p class="footer-note reveal">One protocol on the unified testbed: single-sample (n=1) timing &mdash; 15 warm-up + 150 timed runs, mean &plusmn; std with peak RAM / VRAM &mdash; wall-clock throughout.</p>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 19: HARDWARE PROFILING
+         =========================================== -->
+    <section class="slide long-context-fixes">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Hardware resource profiling</p>
+            <h2 class="reveal">GPU dispatch, then kernel fusion.</h2>
+          </div>
+          <span class="slide-index reveal">19</span>
+        </div>
+        <div class="two-col" style="align-items: center; grid-template-columns: 0.82fr 1.18fr;">
+          <div class="reveal">
+            <table class="data-table">
+              <thead>
+                <tr><th>Format</th><th class="num">Latency / sample (ms)</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Keras FP32 (CPU)</td><td class="num">0.121</td></tr>
+                <tr><td>Keras FP32 (GPU baseline)</td><td class="num">0.0408</td></tr>
+                <tr><td>TFLite FP16</td><td class="num">0.155</td></tr>
+                <tr><td>TFLite Dynamic</td><td class="num">0.146</td></tr>
+                <tr><td>TFLite INT8</td><td class="num">0.119</td></tr>
+                <tr><td>ONNX (CPU)</td><td class="num">0.122</td></tr>
+                <tr class="hl"><td>TensorRT FP16 (GPU)</td><td class="num">0.00445</td></tr>
+                <tr><td>TensorRT FP32 (GPU)</td><td class="num">0.00476</td></tr>
+                <tr><td>TensorRT INT8 (GPU)</td><td class="num">0.00764</td></tr>
+              </tbody>
+            </table>
+            <p class="muted" style="margin-top:0.7rem; font-size:var(--small-size);">Per-sample inference latency, measured consistently across every export format — host runtimes and the batch-1 TensorRT engines alike. Same metric plotted at right (seconds, log scale).</p>
+          </div>
+          <div class="figure reveal">
+            <img src="../plots/deploy_hardware_conv1d_ae.svg" alt="Per-sample inference time per deployment format including TensorRT" style="max-height: min(66vh, 540px);" />
+            <figcaption>Per-sample inference time (seconds, log) per format. Kernel fusion lets the three TensorRT engines run an order of magnitude faster than the dispatch-bound host runtimes.</figcaption>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 20: FIDELITY & QUANTIZATION
+         =========================================== -->
+    <section class="slide long-context-fixes">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Fidelity vs. optimization</p>
+            <h2 class="reveal">Quantization exposes two failure modes.</h2>
+          </div>
+          <span class="slide-index reveal">20</span>
+        </div>
+        <div class="two-col" style="align-items: center; grid-template-columns: 0.9fr 1.1fr;">
+          <div class="reveal">
+            <table class="data-table">
+              <thead>
+                <tr><th>Format</th><th class="num">Size (MB)</th><th class="num">Lat./sample (ms)</th><th class="num">Acc.</th><th class="num">F1</th><th class="num">AUC</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Keras FP32 (baseline)</td><td class="num">3.42</td><td class="num">0.0408</td><td class="num">0.9555</td><td class="num">0.9649</td><td class="num">0.9851</td></tr>
+                <tr><td>ONNX (CPU)</td><td class="num">1.13</td><td class="num">0.1218</td><td class="num">0.9600</td><td class="num">0.9683</td><td class="num">0.9861</td></tr>
+                <tr><td>TensorRT FP32 (GPU)</td><td class="num">1.45</td><td class="num">0.0048</td><td class="num">0.9590</td><td class="num">0.9675</td><td class="num">0.9854</td></tr>
+                <tr class="hl"><td>TensorRT FP16 (GPU)</td><td class="num">1.44</td><td class="num">0.0044</td><td class="num">0.9588</td><td class="num">0.9673</td><td class="num">0.9852</td></tr>
+                <tr><td>TFLite FP16</td><td class="num">0.58</td><td class="num">0.1550</td><td class="num">0.9576</td><td class="num">0.9665</td><td class="num">0.9854</td></tr>
+                <tr><td>TFLite Dynamic</td><td class="num">0.35</td><td class="num">0.1464</td><td class="num">0.6371</td><td class="num">0.7783</td><td class="num">0.9446</td></tr>
+                <tr><td>TensorRT INT8 (GPU)</td><td class="num">0.69</td><td class="num">0.0076</td><td class="num">0.6371</td><td class="num">0.7783</td><td class="num">0.8946</td></tr>
+                <tr><td>TFLite INT8</td><td class="num">0.39</td><td class="num">0.1188</td><td class="num">0.6371</td><td class="num">0.7783</td><td class="num">0.3213</td></tr>
+              </tbody>
+            </table>
+            <p class="muted" style="margin-top:0.7rem; font-size:var(--small-size);">Symmetric INT8 maps q = round(x / s), s = max|x| / 127. (1) A fixed Keras threshold does not transfer — INT8/Dynamic collapse to 0.6371 accuracy. (2) AUC exposes true ranking: TFLite INT8 collapses (0.3213); TensorRT INT8 recovers to 0.8946.</p>
+          </div>
+          <div class="figure reveal">
+            <img src="../plots/deploy_tradeoff_conv1d_ae.svg" alt="Latency versus fidelity trade-off" style="max-height: min(66vh, 540px);" />
+            <figcaption>Latency vs. ROC-AUC — TensorRT FP16 sits at the Pareto-optimal corner.</figcaption>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 21: KEY RESULT
+         =========================================== -->
+    <section class="slide video-validation">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Headline outcome</p>
+            <h2 class="reveal">TensorRT FP16: real-time, full fidelity.</h2>
+          </div>
+          <span class="slide-index reveal">21</span>
+        </div>
+        <div class="metric-band reveal">
+          <div class="metric">
+            <div class="value">0.499 ms</div>
+            <div class="label">batch-1 latency</div>
+          </div>
+          <div class="metric">
+            <div class="value">39×</div>
+            <div class="label">vs. Keras GPU batch-1 (19.75 ms)</div>
+          </div>
+          <div class="metric">
+            <div class="value">0.9852</div>
+            <div class="label">ROC-AUC preserved</div>
+          </div>
+        </div>
+        <div class="two-col" style="margin-top: 1.4rem;">
+          <div>
+            <ul class="bullet-list reveal">
+              <li><span>TensorRT FP16 preserves full Keras FP32 fidelity (F1 <strong>0.9673</strong>, accuracy <strong>0.9588</strong>) while heavily optimizing compute.</span></li>
+              <li><span>Kernel fusion and elimination of host–device copy collapse single-sample latency to sub-millisecond.</span></li>
+              <li><span>Symmetric TensorRT INT8 recovers substantial ranking fidelity (AUC <strong>0.8946</strong>) for the most aggressive latency budgets — with threshold re-calibration.</span></li>
+            </ul>
+          </div>
+          <div class="highlight-box reveal">
+            <div>
+              <p class="eyebrow">Recommended target</p>
+              <p class="lede" style="font-size: clamp(1.1rem, 2vw, 1.65rem); color:#fff; max-width: 16ch; margin-top: 0.5rem;">
+                Bridging contrastive accuracy with strict real-time edge constraints.
+              </p>
+            </div>
+            <p class="muted">TensorRT FP16 is the deployment target: sub-millisecond inference at baseline-level detection quality.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 22: CONCLUSION & FUTURE WORK
+         =========================================== -->
+    <section class="slide takeaways">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Conclusion &amp; future work</p>
+            <h2 class="reveal">Sensitive, non-invasive, real-time.</h2>
+          </div>
+          <span class="slide-index reveal">22</span>
+        </div>
+        <div class="two-col">
+          <div>
+            <ul class="bullet-list reveal">
+              <li><span><strong>Modular self-supervised framework</strong> (CARLA) for non-invasive converter fault diagnosis.</span></li>
+              <li><span><strong>Frequency-response signatures</strong> are highly sensitive to subtle parametric degradation.</span></li>
+              <li><span><strong>TensorRT</strong> delivers sub-millisecond inference on constrained edge hardware without accuracy loss.</span></li>
+            </ul>
+          </div>
+          <div>
+            <div class="micro-grid">
+              <div class="mini reveal">
+                <strong>State space models</strong>
+                <p>Mamba-style linear-complexity sequences, targeting ~8× speedup over Transformers.</p>
+              </div>
+              <div class="mini reveal">
+                <strong>Physics-informed nets</strong>
+                <p>Embed Buck-converter ODEs into the contrastive loss to generalize with less synthetic data.</p>
+              </div>
+              <div class="mini reveal">
+                <strong>Power &amp; energy</strong>
+                <p>Extend benchmarks to Watts and Joules-per-inference for thermally constrained systems.</p>
+              </div>
+              <div class="mini reveal">
+                <strong>KANs</strong>
+                <p>Kolmogorov-Arnold Networks for symbolic extraction and interpretability.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="footer-note reveal">One reproducible loop — physics-based simulation, self-supervised representation learning and hardware-aware compilation — closes the gap between detection accuracy and real-time edge constraints.</p>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 23: REFERENCES
+         =========================================== -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Selected references</p>
+            <h2 class="reveal">References.</h2>
+          </div>
+          <span class="slide-index reveal">23</span>
+        </div>
+        <div class="two-col reveal" style="grid-template-columns: 1fr 1fr;">
+          <ul class="bullet-list">
+            <li><span>[1] Darban et al., "CARLA: Self-supervised Contrastive Representation Learning for Time Series Anomaly Detection," arXiv:2308.09296, 2023.</span></li>
+            <li><span>[2] Kingma &amp; Welling, "Auto-Encoding Variational Bayes," arXiv:1312.6114, 2013.</span></li>
+            <li><span>[3] Vaswani et al., "Attention Is All You Need," NeurIPS, 2017.</span></li>
+            <li><span>[4] Chen et al., "A Simple Framework for Contrastive Learning (SimCLR)," arXiv:2002.05709, 2020.</span></li>
+            <li><span>Kiranyaz et al., "1D CNNs and Applications: A Survey," arXiv:1905.03554, 2019.</span></li>
+            <li><span>Hochreiter &amp; Schmidhuber, "Long Short-Term Memory," Neural Computation, 1997.</span></li>
+          </ul>
+          <ul class="bullet-list">
+            <li><span>Cho et al., "RNN Encoder-Decoder (GRU)," arXiv:1406.1078, 2014.</span></li>
+            <li><span>Wu et al., "Transformer Autoencoder for K-means Efficient Clustering," Eng. Applications of AI, vol. 133, 2024.</span></li>
+            <li><span>Abdelli, Cho &amp; Tropschug, "ML-based Anomaly Detection in Optical Fiber Monitoring," arXiv:2202.11756, 2022.</span></li>
+            <li><span>Luo, Zhou, Bae &amp; Yun, "Combining Contrastive Learning with Auto-Encoder for OOD Detection," Applied Sciences 13(23):12930, 2023.</span></li>
+            <li><span>Gu &amp; Dao, "Mamba: Linear-Time Sequence Modeling," arXiv:2312.00752, 2023.</span></li>
+            <li><span>Raissi et al., "Physics-Informed Neural Networks," J. Computational Physics, vol. 378, 2019.</span></li>
+          </ul>
+        </div>
+        <p class="footer-note reveal">Ignacio Martin-Salinas · Jose A. Belloch · Cristina Fernandez — Universidad Carlos III de Madrid · CMMSE 2026.</p>
+        <div class="funding-bar reveal">
+          <div class="funding-logos">
+            <img class="logo-uc3m" src="uc3m.png" alt="Universidad Carlos III de Madrid — Departamento de Tecnología Electrónica" />
+            <img class="logo-ministerio" src="ministerio.png" alt="Ministerio de Ciencia, Innovación y Universidades · Agencia Estatal de Investigación · Cofinanciado por la Unión Europea" />
+          </div>
+          <p class="funding-note">Grant PID2024-162157OB-I00 funded by MICIU/AEI/10.13039/501100011033 and by ERDF/EU.</p>
+        </div>
+      </div>
+    </section>
+
+    <script>
+      /* ===========================================
+         SLIDE PRESENTATION CONTROLLER
+         =========================================== */
+      class SlidePresentation {
+        constructor() {
+          this.wrapSlides();
+          this.slides = Array.from(document.querySelectorAll('.slide'));
+          this.currentSlide = 0;
+          this.progressBar = document.querySelector('.progress-bar');
+          this.navDotsContainer = document.querySelector('.nav-dots');
+          this.isAnimating = false;
+          this.updateScale = this.updateScale.bind(this);
+          this.setupNavDots();
+          this.setupIntersectionObserver();
+          this.setupKeyboardNav();
+          this.setupTouchNav();
+          this.setupWheelNav();
+          this.updateScale();
+          window.addEventListener('resize', this.updateScale);
+          this.updateProgressBar();
+        }
+
+        wrapSlides() {
+          document.querySelectorAll('.slide').forEach((slide) => {
+            if (slide.querySelector(':scope > .slide-stage')) return;
+            const stage = document.createElement('div');
+            stage.className = 'slide-stage';
+            while (slide.firstChild) {
+              stage.appendChild(slide.firstChild);
+            }
+            slide.appendChild(stage);
+          });
+        }
+
+        updateScale() {
+          const scale = Math.min(window.innerWidth / 1600, window.innerHeight / 900);
+          document.documentElement.style.setProperty('--deck-scale', `${scale}`);
+        }
+
+        setupIntersectionObserver() {
+          const observer = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                  entry.target.classList.add('visible');
+                  this.currentSlide = this.slides.indexOf(entry.target);
+                  this.updateProgressBar();
+                  this.updateNavDots();
+                }
+              });
+            },
+            { threshold: 0.55 }
+          );
+
+          this.slides.forEach((slide) => observer.observe(slide));
+        }
+
+        setupKeyboardNav() {
+          document.addEventListener('keydown', (e) => {
+            if (["ArrowDown", "ArrowRight", "PageDown", " "].includes(e.key)) {
+              e.preventDefault();
+              this.goToSlide(this.currentSlide + 1);
+            }
+            if (["ArrowUp", "ArrowLeft", "PageUp"].includes(e.key)) {
+              e.preventDefault();
+              this.goToSlide(this.currentSlide - 1);
+            }
+            if (e.key === 'Home') {
+              e.preventDefault();
+              this.goToSlide(0);
+            }
+            if (e.key === 'End') {
+              e.preventDefault();
+              this.goToSlide(this.slides.length - 1);
+            }
+          });
+        }
+
+        setupTouchNav() {
+          let startY = 0;
+          let endY = 0;
+          document.addEventListener('touchstart', (e) => {
+            startY = e.changedTouches[0].clientY;
+          }, { passive: true });
+          document.addEventListener('touchend', (e) => {
+            endY = e.changedTouches[0].clientY;
+            const diff = startY - endY;
+            if (Math.abs(diff) < 60) return;
+            if (diff > 0) this.goToSlide(this.currentSlide + 1);
+            if (diff < 0) this.goToSlide(this.currentSlide - 1);
+          }, { passive: true });
+        }
+
+        setupWheelNav() {
+          let wheelTimeout = null;
+          document.addEventListener('wheel', (e) => {
+            if (this.isAnimating) return;
+            if (wheelTimeout) return;
+            wheelTimeout = setTimeout(() => { wheelTimeout = null; }, 350);
+            if (e.deltaY > 30) this.goToSlide(this.currentSlide + 1);
+            if (e.deltaY < -30) this.goToSlide(this.currentSlide - 1);
+          }, { passive: true });
+        }
+
+        setupNavDots() {
+          this.navDotsContainer.innerHTML = '';
+          this.slides.forEach((_, index) => {
+            const dot = document.createElement('button');
+            dot.className = 'nav-dot';
+            dot.setAttribute('aria-label', `Go to slide ${index + 1}`);
+            dot.addEventListener('click', () => this.goToSlide(index));
+            this.navDotsContainer.appendChild(dot);
+          });
+          this.updateNavDots();
+        }
+
+        updateNavDots() {
+          const dots = Array.from(this.navDotsContainer.children);
+          dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === this.currentSlide);
+          });
+        }
+
+        updateProgressBar() {
+          const progress = ((this.currentSlide + 1) / this.slides.length) * 100;
+          this.progressBar.style.width = `${progress}%`;
+        }
+
+        goToSlide(index) {
+          const safeIndex = Math.max(0, Math.min(index, this.slides.length - 1));
+          if (safeIndex === this.currentSlide) return;
+          this.isAnimating = true;
+          this.slides[safeIndex].scrollIntoView({ behavior: 'smooth', block: 'start' });
+          setTimeout(() => {
+            this.isAnimating = false;
+          }, 700);
+        }
+      }
+
+      new SlidePresentation();
+    </script>
+  </body>
+</html>

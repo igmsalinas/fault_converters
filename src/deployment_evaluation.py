@@ -17,7 +17,6 @@ from .deployment import (
     run_deployment_benchmarks,
     run_full_performance_suite,
     run_deployment_evaluations,
-    run_batch_size_study,
 )
 from .inference.predictor import AnomalyPredictor
 from .utils.logger import get_logger, setup_logger
@@ -33,7 +32,6 @@ def parse_args(argv=None) -> argparse.Namespace:
     parser.add_argument("--normal-threshold", type=float, default=5.0, help="Tolerance threshold.")
     parser.add_argument("--max-files", type=int, default=None, help="Maximum files to load.")
     parser.add_argument("--output-dir", type=str, default=None, help="Custom output directory for deployment files.")
-    parser.add_argument("--batch-sizes", type=str, default="1,2,4,8,16,32,64,128", help="Batch sizes.")
     return parser.parse_args(argv)
 
 def get_converted_models(output_dir: Path) -> Dict[str, str]:
@@ -66,17 +64,15 @@ def generate_unified_markdown_report(
     benchmark_results: Dict[str, Any],
     perf_results: List[Dict[str, Any]],
     eval_results: List[Dict[str, Any]],
-    study_results: Dict[str, Any],
     output_path: str
 ):
-    md = ["# Edge Compute Unified Deployment Report", "", "This report aggregates optimizations across size, latency, memory, and classification fidelity.", ""]
+    md = ["# Edge Compute Unified Deployment Report", "", "This report aggregates optimizations across size, latency, memory, and classification fidelity.", "", "All latencies are measured under a uniform protocol: single-sample batch (n=1), 15 warm-up iterations, 150 timed runs.", ""]
 
     # Section 1: Fidelity & Basic Latency
-    md.extend(["## 1. Inference Fidelity & Baseline Latency", "", "| Format | Size (MB) | Batch 1 Latency (ms) | Batch 32 Latency (ms) | Reconstruction MSE | MSE Shift from Baseline |", "| :--- | :---: | :---: | :---: | :---: | :---: |"])
+    md.extend(["## 1. Inference Fidelity & Baseline Latency", "", "| Format | Size (MB) | Latency n=1 (ms) | Reconstruction MSE | MSE Shift from Baseline |", "| :--- | :---: | :---: | :---: | :---: |"])
     for k, v in benchmark_results.items():
         if k == "baseline": continue
-        bs32_str = f"{v.get('latency_bs32_mean', 0):.3f} ± {v.get('latency_bs32_std', 0):.3f}" if v.get('latency_bs32_mean', 0) > 0 else "N/A"
-        md.append(f"| **{v['name']}** | {v['size_mb']:.3f} MB | {v['latency_bs1_mean']:.3f} ± {v['latency_bs1_std']:.3f} ms | {bs32_str} ms | {v['mse']:.6e} | {v['mse_diff_from_baseline']:.6e} |")
+        md.append(f"| **{v['name']}** | {v['size_mb']:.3f} MB | {v['latency_bs1_mean']:.3f} ± {v['latency_bs1_std']:.3f} ms | {v['mse']:.6e} | {v['mse_diff_from_baseline']:.6e} |")
     md.append("")
 
     # Section 2: Hardware Performance (Memory & VRAM)
@@ -97,18 +93,6 @@ def generate_unified_markdown_report(
         md.append(f"| **{r['model_name']}** | {r['size_mb']:.3f} MB | {latency_str} ms | {r['accuracy']:.4f} | {r['precision']:.4f} | {r['recall']:.4f} | {r['f1']:.4f} | {r['auc_roc']:.4f} |")
     md.append("")
 
-    # Section 4: Batch Size Scaling Study
-    md.extend(["## 4. Batch Size Scaling Dynamics", ""])
-    for format_name, bs_data in study_results.items():
-        md.append(f"### {format_name}")
-        md.append("| Batch Size | Batch Latency (ms) | Sample Latency (ms) | Net RAM (MB) | Net VRAM (MB) |")
-        md.append("| :---: | :---: | :---: | :---: | :---: |")
-        sorted_bs = sorted([int(k) for k in bs_data.keys()])
-        for bs in sorted_bs:
-            data = bs_data[bs] if bs in bs_data else bs_data[str(bs)]
-            md.append(f"| {bs} | {data['latency_batch_ms']:.2f} | {data['latency_sample_ms']:.3f} | {data['net_ram_mb']:.2f} | {data['net_vram_mb']:.2f} |")
-        md.append("")
-
     out_p = Path(output_path)
     with open(out_p, "w") as f:
         f.write("\n".join(md))
@@ -119,13 +103,12 @@ def build_unified_results(
     benchmark_results: Dict[str, Any],
     perf_results: List[Dict[str, Any]],
     eval_results: List[Dict[str, Any]],
-    study_results: Dict[str, Any],
 ) -> Dict[str, Any]:
     """Merge every deployment measurement into a single dict keyed by strategy.
 
     Each top-level key is a deployment strategy display name (e.g.
     ``"TensorRT FP16 (GPU)"``) mapping to a unified record with ``size_mb`` plus
-    ``benchmark``, ``performance``, ``evaluation`` and ``batch_scaling`` sections.
+    ``benchmark``, ``performance`` and ``evaluation`` sections.
     Any section is ``None`` if that strategy was not covered by the corresponding suite.
     """
     unified: Dict[str, Any] = {}
@@ -142,7 +125,6 @@ def build_unified_results(
             "benchmark": None,
             "performance": None,
             "evaluation": None,
-            "batch_scaling": None,
         })
 
     # 1. Inference fidelity & baseline latency (internal keys carry a display "name")
@@ -156,8 +138,6 @@ def build_unified_results(
         e["benchmark"] = {
             "latency_bs1_mean_ms": v.get("latency_bs1_mean"),
             "latency_bs1_std_ms": v.get("latency_bs1_std"),
-            "latency_bs32_mean_ms": v.get("latency_bs32_mean"),
-            "latency_bs32_std_ms": v.get("latency_bs32_std"),
             "mse": v.get("mse"),
             "mse_diff_from_baseline": v.get("mse_diff_from_baseline"),
         }
@@ -199,13 +179,6 @@ def build_unified_results(
             "recall": r.get("recall"),
             "f1": r.get("f1"),
             "auc_roc": r.get("auc_roc"),
-        }
-
-    # 4. Batch size scaling
-    for name, bs_data in study_results.items():
-        e = _entry(_canon(name))
-        e["batch_scaling"] = {
-            str(bs): bs_data[bs] for bs in sorted(bs_data, key=lambda k: int(k))
         }
 
     return unified
@@ -315,28 +288,14 @@ def main(argv=None):
         if cpu_res and "evaluation" in cpu_res:
             eval_results.insert(1, cpu_res["evaluation"])
 
-        # Run batch size scaling study
-        logger.info("--- Running Batch Size Scaling Study ---")
-        try:
-            bs_list = [int(x.strip()) for x in args.batch_sizes.split(",") if x.strip().isdigit()]
-        except Exception:
-            bs_list = [1, 2, 4, 8, 16, 32, 64, 128]
-
-        study_results = run_batch_size_study(
-            model_dir=str(model_dir),
-            deployment_dir=str(output_dir),
-            test_data=test_data,
-            batch_sizes=bs_list,
-        )
-
         # Merge everything into a single unified report keyed by deployment strategy
         logger.info("--- Generating Unified Deployment Report ---")
         unified = build_unified_results(
-            benchmark_results, perf_results, eval_results, study_results
+            benchmark_results, perf_results, eval_results
         )
         save_unified_json_report(unified, str(output_dir / "unified_deployment_report.json"))
         generate_unified_markdown_report(
-            benchmark_results, perf_results, eval_results, study_results,
+            benchmark_results, perf_results, eval_results,
             str(output_dir / "unified_deployment_report.md")
         )
 

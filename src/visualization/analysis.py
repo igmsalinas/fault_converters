@@ -15,9 +15,26 @@ import pandas as pd
 
 from ..data.loader import parse_filename
 from .plotter import load_transfer_function, plot_amplitude, plot_phase
+from .deck_style import (
+    apply_deck_style,
+    categorical_colors,
+    deviation_color,
+    style_axis,
+    text_on,
+    ACCENT,
+    INK,
+    INK_SOFT,
+    MUTED,
+    CATEGORICAL,
+    MONO_CMAP,
+    SEQUENTIAL_CMAP,
+    PAPER_SOFT,
+)
 from ..utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+apply_deck_style()
 
 
 def extract_single_component_anomalies(
@@ -105,8 +122,6 @@ def plot_component_anomalies(
     # Create figure
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
-    cmap = plt.get_cmap("coolwarm")
-
     # Use max magnitude to normalize colors properly (-20 to 20 goes from 0.0 to 1.0)
     max_val = max([abs(v) for v in sorted_variations] + [1.0])
 
@@ -121,15 +136,14 @@ def plot_component_anomalies(
         is_normal = abs(val) < 0.1
 
         if is_normal:
-            color = "black"
+            color = INK
             linewidth = 3.0
             zorder = 10
             label = f"{component_name} Normal (0%)"
         else:
-            # Shift value logic for coolwarm (blue=negative, red=positive)
-            normalized_val = (val / max_val + 1) / 2
-            color = cmap(normalized_val)
-            linewidth = 1.5
+            # Muted diverging ramp (slate = negative, terracotta = positive)
+            color = deviation_color(val, max_val)
+            linewidth = 1.6
             zorder = 5
             label = f"{val:+} %"
 
@@ -143,16 +157,18 @@ def plot_component_anomalies(
     # Post-process Ax1 (Amplitude)
     ax1.set_xlabel("Frequency (Hz)")
     ax1.set_ylabel("Amplitude (dB)")
-    ax1.set_title(f"Amplitude Deviation: {component_name}")
-    ax1.grid(True, alpha=0.3)
-    ax1.legend(loc="best", fontsize="small")
+    ax1.set_title(f"Amplitude Deviation · {component_name}")
+    ax1.grid(True, axis="both")
+    ax1.legend(loc="best", fontsize="small", ncol=2)
+    style_axis(ax1)
 
     # Post-process Ax2 (Phase)
     ax2.set_xlabel("Frequency (Hz)")
     ax2.set_ylabel("Phase (degrees)")
-    ax2.set_title(f"Phase Deviation: {component_name}")
-    ax2.grid(True, alpha=0.3)
-    ax2.legend(loc="best", fontsize="small")
+    ax2.set_title(f"Phase Deviation · {component_name}")
+    ax2.grid(True, axis="both")
+    ax2.legend(loc="best", fontsize="small", ncol=2)
+    style_axis(ax2)
 
     plt.tight_layout()
 
@@ -236,8 +252,8 @@ def plot_hyperparameter_comparison(
     fig, ax = plt.subplots(figsize=(10, 6))
     models = list(tuner_results.keys())
 
-    # Predefined colors for models
-    color_map = plt.get_cmap("tab10")
+    # Curated deck palette, one hue per architecture
+    colors = categorical_colors(len(models))
 
     for i, model in enumerate(models):
         trials = tuner_results[model]
@@ -247,28 +263,33 @@ def plot_hyperparameter_comparison(
         x_jittered = np.random.normal(i, 0.05, size=len(scores))
 
         # Plot all trials as dots
-        ax.scatter(x_jittered, scores, color=color_map(i), alpha=0.5, label=model)
+        ax.scatter(
+            x_jittered, scores, color=colors[i], alpha=0.55, label=model,
+            s=42, edgecolors="none",
+        )
 
-        # Target the best score as a star
+        # Mark the best score with a star
         best_score = min(scores)
         ax.scatter(
             [i],
             [best_score],
-            color="red",
+            color=ACCENT,
             marker="*",
-            s=150,
+            s=220,
             zorder=5,
-            edgecolors="black",
+            edgecolors=INK,
+            linewidths=0.7,
         )
 
     ax.set_xticks(range(len(models)))
     ax.set_xticklabels(models)
     ax.set_title("Model Validation Losses across Hyperparameter Searches")
-    ax.set_ylabel("Validation Loss (MSE) - Log Scale")
+    ax.set_ylabel("Validation Loss (MSE) \u00b7 Log Scale")
     ax.set_xlabel("Autoencoder Architecture")
     ax.set_yscale("log")
-    ax.grid(axis="y", alpha=0.3)
+    ax.grid(axis="y")
     ax.legend()
+    style_axis(ax)
 
     plt.tight_layout()
 
@@ -323,11 +344,11 @@ def plot_model_hp_search(
             x_num = [unique_vals.index(v) for v in hp_vals]
             x_jittered = np.random.normal(x_num, 0.05, size=len(x_num))
 
-            ax.scatter(x_jittered, scores, alpha=0.6, color="teal")
+            ax.scatter(x_jittered, scores, alpha=0.6, color=CATEGORICAL[2], edgecolors="none")
             ax.set_xticks(range(len(unique_vals)))
             ax.set_xticklabels([str(v) for v in unique_vals])
         else:
-            ax.scatter(hp_vals, scores, alpha=0.6, color="teal")
+            ax.scatter(hp_vals, scores, alpha=0.6, color=CATEGORICAL[2], edgecolors="none")
             # If values span a large range monotonically and are positive, graph on log scale
             if all(v is not None and v > 0 for v in hp_vals):
                 min_val = min(hp_vals)
@@ -337,13 +358,14 @@ def plot_model_hp_search(
         ax.set_xlabel(hp_key)
         ax.set_ylabel("Validation Loss")
         ax.set_yscale("log")
-        ax.grid(alpha=0.3)
+        ax.grid(True, axis="both")
+        style_axis(ax)
 
     # Hide unused extra grid spaces
     for j in range(len(hp_keys), len(axes)):
         axes[j].set_visible(False)
 
-    fig.suptitle(f"{model_name} Hyperparameter Search Surface", fontsize=16)
+    fig.suptitle(f"{model_name} Hyperparameter Search Surface")
     plt.tight_layout()
 
     if save_path:
@@ -412,24 +434,28 @@ def plot_metrics_comparison(
             )
 
     df = pd.DataFrame(rows)
+    n_models = df["Model"].nunique()
 
     # Create plot
-    plt.figure(figsize=(12, 7))
-    sns.set_style("whitegrid")
+    fig, ax = plt.subplots(figsize=(12, 7))
 
-    ax = sns.barplot(
+    sns.barplot(
         data=df,
         x="Metric",
         y="Value",
         hue="Model",
-        palette="viridis",
-        edgecolor="black",
+        palette=categorical_colors(n_models),
+        edgecolor=PAPER_SOFT,
+        linewidth=0.6,
+        ax=ax,
     )
 
-    ax.set_title("Performance Metrics Comparison (Best Test Threshold)", fontsize=16)
-    ax.set_ylabel("Value", fontsize=14)
-    ax.set_xlabel("Metric Type", fontsize=14)
-    ax.legend(title="Model Architectures", bbox_to_anchor=(1.05, 1), loc="upper left")
+    ax.set_title("Performance Metrics Comparison (Best Test Threshold)")
+    ax.set_ylabel("Value")
+    ax.set_xlabel("Metric Type")
+    ax.grid(True, axis="y")
+    ax.legend(title="Model Architectures", bbox_to_anchor=(1.02, 1), loc="upper left")
+    style_axis(ax)
 
     # Annotate bars
     for p in ax.patches:
@@ -442,7 +468,8 @@ def plot_metrics_comparison(
                 va="center",
                 xytext=(0, 9),
                 textcoords="offset points",
-                fontsize=9,
+                fontsize=8,
+                color=INK_SOFT,
             )
 
     plt.tight_layout()
@@ -488,21 +515,23 @@ def plot_threshold_comparison(
         return plt.figure()
 
     df = pd.DataFrame(rows)
+    n_methods = df["Method"].nunique()
 
-    plt.figure(figsize=(12, 6))
-    sns.set_style("whitegrid")
+    fig, ax = plt.subplots(figsize=(12, 6))
 
-    ax = sns.barplot(
-        data=df, x="Model", y="Value", hue="Method", palette="magma", edgecolor="black"
+    sns.barplot(
+        data=df, x="Model", y="Value", hue="Method",
+        palette=categorical_colors(n_methods), edgecolor=PAPER_SOFT, linewidth=0.6,
+        ax=ax,
     )
 
     title_metric = target_metric.replace("_", " ").title()
-    ax.set_title(
-        f"Threshold Method Comparison: {title_metric} Performance", fontsize=16
-    )
-    ax.set_ylabel(f"Test Set {title_metric}", fontsize=14)
-    ax.set_xlabel("Model Architecture", fontsize=14)
-    ax.legend(title="Threshold Method", bbox_to_anchor=(1.05, 1), loc="upper left")
+    ax.set_title(f"Threshold Method Comparison: {title_metric} Performance")
+    ax.set_ylabel(f"Test Set {title_metric}")
+    ax.set_xlabel("Model Architecture")
+    ax.grid(True, axis="y")
+    ax.legend(title="Threshold Method", bbox_to_anchor=(1.02, 1), loc="upper left")
+    style_axis(ax)
 
     # Annotate bars
     for p in ax.patches:
@@ -516,6 +545,7 @@ def plot_threshold_comparison(
                 xytext=(0, 7),
                 textcoords="offset points",
                 fontsize=8,
+                color=INK_SOFT,
             )
 
     plt.tight_layout()
@@ -570,19 +600,30 @@ def plot_confusion_matrix_from_counts(
         ]
     )
 
+    fig, ax = plt.subplots(figsize=(8, 6))
     ax = sns.heatmap(
         cm,
         annot=labels,
         fmt="",
-        cmap="Blues",
+        cmap=MONO_CMAP,
         cbar=False,
+        linewidths=1.4,
+        linecolor=PAPER_SOFT,
+        vmin=0,
         xticklabels=["Normal", "Anomaly"],
         yticklabels=["Normal", "Anomaly"],
+        ax=ax,
     )
 
-    ax.set_title(f"Confusion Matrix: {model_name}", fontsize=15)
-    ax.set_xlabel("Predicted Label", fontsize=13)
-    ax.set_ylabel("True Label", fontsize=13)
+    # Recolour annotations per cell for contrast on the mono ramp
+    vmax = cm.max() if cm.max() > 0 else 1
+    for txt, val in zip(ax.texts, cm.flatten()):
+        txt.set_color(text_on(MONO_CMAP(val / vmax)))
+
+    ax.set_title(f"Confusion Matrix \u00b7 {model_name}")
+    ax.set_xlabel("Predicted Label")
+    ax.set_ylabel("True Label")
+    ax.tick_params(length=0)
 
     plt.tight_layout()
 
@@ -671,14 +712,16 @@ def plot_component_error_analysis(
         x="Component",
         y="Rate",
         hue="Type",
-        palette=["#e74c3c", "#f39c12"],
+        palette=[ACCENT, "#b79155"],
+        edgecolor=PAPER_SOFT,
+        linewidth=0.6,
     )
 
-    ax.set_title(
-        f"Error Distribution by Component Influence: {model_name}", fontsize=16
-    )
-    ax.set_ylabel("Error Rate (%)", fontsize=13)
+    ax.set_title(f"Error Distribution by Component Influence \u00b7 {model_name}")
+    ax.set_ylabel("Error Rate (%)")
     ax.set_ylim(0, max(df_plot["Rate"].max() * 1.3, 10))
+    ax.grid(True, axis="y")
+    style_axis(ax)
 
     # Add count labels
     for p in ax.patches:
@@ -692,7 +735,7 @@ def plot_component_error_analysis(
                 xytext=(0, 9),
                 textcoords="offset points",
                 fontsize=9,
-                weight="bold",
+                color=INK_SOFT,
             )
 
     plt.tight_layout()
@@ -761,50 +804,50 @@ def plot_error_by_deviation_magnitude(
 
     # --- Left: FN Distribution (sums to 100%) ---
     sns.barplot(
-        data=grouped, x="dev_bin", y="fn_distribution", color="#e74c3c", alpha=0.8,
-        ax=ax1,
+        data=grouped, x="dev_bin", y="fn_distribution", color=ACCENT, alpha=0.9,
+        edgecolor=PAPER_SOFT, linewidth=0.6, ax=ax1,
     )
     ax1.set_title(
-        f"Distribution of Missed Anomalies (FN): {model_name}",
-        fontsize=14,
+        f"Distribution of Missed Anomalies (FN) \u00b7 {model_name}",
     )
-    ax1.set_xlabel("Max Deviation (%)", fontsize=12)
-    ax1.set_ylabel("Share of all FN (%)", fontsize=12)
+    ax1.set_xlabel("Max Deviation (%)")
+    ax1.set_ylabel("Share of all FN (%)")
     ax1.set_ylim(0, max(grouped["fn_distribution"].max() * 1.3, 10))
+    style_axis(ax1)
 
     for i, (p, row) in enumerate(zip(ax1.patches, grouped.itertuples())):
         height = p.get_height()
         ax1.annotate(
             f"{height:.1f}%\n({row.fn_count}/{row.total})",
             (p.get_x() + p.get_width() / 2.0, height),
-            ha="center", va="bottom", fontsize=9,
+            ha="center", va="bottom", fontsize=9, color=INK_SOFT,
         )
 
     ax1.text(
         0.98, 0.95, f"Total FN: {total_fn} / {grouped['total'].sum()} anomalous",
         transform=ax1.transAxes, ha="right", va="top", fontsize=10,
-        bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8),
+        bbox=dict(boxstyle="round,pad=0.3", facecolor=PAPER_SOFT, edgecolor="none", alpha=0.9),
     )
 
     # --- Right: Per-bin miss rate ---
     sns.barplot(
-        data=grouped, x="dev_bin", y="fn_rate", color="#c0392b", alpha=0.8,
-        ax=ax2,
+        data=grouped, x="dev_bin", y="fn_rate", color="#7a3f26", alpha=0.9,
+        edgecolor=PAPER_SOFT, linewidth=0.6, ax=ax2,
     )
     ax2.set_title(
-        f"Per-Bin Miss Rate: {model_name}",
-        fontsize=14,
+        f"Per-Bin Miss Rate \u00b7 {model_name}",
     )
-    ax2.set_xlabel("Max Deviation (%)", fontsize=12)
-    ax2.set_ylabel("Miss Rate within bin (%)", fontsize=12)
+    ax2.set_xlabel("Max Deviation (%)")
+    ax2.set_ylabel("Miss Rate within bin (%)")
     ax2.set_ylim(0, max(grouped["fn_rate"].max() * 1.3, 10))
+    style_axis(ax2)
 
     for i, (p, row) in enumerate(zip(ax2.patches, grouped.itertuples())):
         height = p.get_height()
         ax2.annotate(
             f"{height:.1f}%\n(n={row.total})",
             (p.get_x() + p.get_width() / 2.0, height),
-            ha="center", va="bottom", fontsize=9,
+            ha="center", va="bottom", fontsize=9, color=INK_SOFT,
         )
 
     plt.tight_layout()
@@ -852,49 +895,49 @@ def plot_error_by_variation_count(
     # --- Left: FN Distribution (sums to 100%) ---
     sns.barplot(
         data=grouped, x="num_variations", y="fn_distribution",
-        color="#9b59b6", alpha=0.8, ax=ax1,
+        color="#8c5361", alpha=0.9, edgecolor=PAPER_SOFT, linewidth=0.6, ax=ax1,
     )
     ax1.set_title(
-        f"Distribution of Missed Anomalies (FN): {model_name}",
-        fontsize=14,
+        f"Distribution of Missed Anomalies (FN) \u00b7 {model_name}",
     )
-    ax1.set_xlabel("Number of Simultaneous Component Variations", fontsize=12)
-    ax1.set_ylabel("Share of all FN (%)", fontsize=12)
+    ax1.set_xlabel("Number of Simultaneous Component Variations")
+    ax1.set_ylabel("Share of all FN (%)")
     ax1.set_ylim(0, max(grouped["fn_distribution"].max() * 1.3, 10))
+    style_axis(ax1)
 
     for i, (p, row) in enumerate(zip(ax1.patches, grouped.itertuples())):
         height = p.get_height()
         ax1.annotate(
             f"{height:.1f}%\n({row.fn_count}/{row.total})",
             (p.get_x() + p.get_width() / 2.0, height),
-            ha="center", va="bottom", fontsize=9,
+            ha="center", va="bottom", fontsize=9, color=INK_SOFT,
         )
 
     ax1.text(
         0.98, 0.95, f"Total FN: {total_fn} / {grouped['total'].sum()} anomalous",
         transform=ax1.transAxes, ha="right", va="top", fontsize=10,
-        bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8),
+        bbox=dict(boxstyle="round,pad=0.3", facecolor=PAPER_SOFT, edgecolor="none", alpha=0.9),
     )
 
     # --- Right: Per-group miss rate ---
     sns.barplot(
         data=grouped, x="num_variations", y="fn_rate",
-        color="#7d3c98", alpha=0.8, ax=ax2,
+        color="#5f3743", alpha=0.9, edgecolor=PAPER_SOFT, linewidth=0.6, ax=ax2,
     )
     ax2.set_title(
-        f"Per-Group Miss Rate: {model_name}",
-        fontsize=14,
+        f"Per-Group Miss Rate \u00b7 {model_name}",
     )
-    ax2.set_xlabel("Number of Simultaneous Component Variations", fontsize=12)
-    ax2.set_ylabel("Miss Rate within group (%)", fontsize=12)
+    ax2.set_xlabel("Number of Simultaneous Component Variations")
+    ax2.set_ylabel("Miss Rate within group (%)")
     ax2.set_ylim(0, max(grouped["fn_rate"].max() * 1.3, 10))
+    style_axis(ax2)
 
     for i, (p, row) in enumerate(zip(ax2.patches, grouped.itertuples())):
         height = p.get_height()
         ax2.annotate(
             f"{height:.1f}%\n(n={row.total})",
             (p.get_x() + p.get_width() / 2.0, height),
-            ha="center", va="bottom", fontsize=9,
+            ha="center", va="bottom", fontsize=9, color=INK_SOFT,
         )
 
     plt.tight_layout()
@@ -938,26 +981,38 @@ def plot_prediction_score_distribution(
     plt.figure(figsize=(10, 6))
 
     palette = {
-        "True Negative (TN)": "#3498db",  # Blue
-        "True Positive (TP)": "#2ecc71",  # Green
-        "False Positive (FP)": "#f1c40f",  # Yellow
-        "False Negative (FN)": "#e74c3c",  # Red
+        "True Negative (TN)": "#4a6670",   # slate teal
+        "True Positive (TP)": "#3f5a52",   # pine
+        "False Positive (FP)": "#b79155",  # ochre
+        "False Negative (FN)": ACCENT,     # terracotta
     }
 
+    order = [q for q in palette if (df["Quadrant"] == q).any()]
+
     ax = sns.boxplot(
-        data=df, x="Quadrant", y="score", palette=palette, showfliers=False
+        data=df, x="Quadrant", y="score", order=order,
+        hue="Quadrant", palette=palette, legend=False, showfliers=False,
     )
+    # Subsample per group so dense classes don't collapse into a solid block.
+    sample_idx = (
+        df.reset_index()
+        .groupby("Quadrant")["index"]
+        .apply(lambda s: s.sample(min(len(s), 800), random_state=0))
+    )
+    strip_df = df.loc[sample_idx.values]
     sns.stripplot(
-        data=df, x="Quadrant", y="score", color=".3", size=3, alpha=0.5, jitter=True
+        data=strip_df, x="Quadrant", y="score", order=order,
+        color=INK_SOFT, size=2, alpha=0.25, jitter=0.32,
     )
 
     ax.set_yscale("log")
     ax.set_title(
-        f"Reconstruction Loss Distribution by Prediction Type: {model_name}",
-        fontsize=16,
+        f"Reconstruction Loss Distribution by Prediction Type \u00b7 {model_name}",
     )
-    ax.set_xlabel("Prediction Outcome", fontsize=12)
-    ax.set_ylabel("Anomaly/Reconstruction Score (Log Scale)", fontsize=12)
+    ax.set_xlabel("Prediction Outcome")
+    ax.set_ylabel("Anomaly/Reconstruction Score (Log Scale)")
+    ax.grid(True, axis="y")
+    style_axis(ax)
 
     plt.tight_layout()
     if save_path:
@@ -1012,9 +1067,9 @@ def plot_error_scatter(
     plt.figure(figsize=(10, 6))
 
     palette = {
-        "Correct (TP/TN)": "#95a5a6",  # Gray
-        "False Alarm (FP)": "#f1c40f",  # Yellow
-        "Missed Anomaly (FN)": "#e74c3c",  # Red
+        "Correct (TP/TN)": "#9a938a",       # warm grey
+        "False Alarm (FP)": "#b79155",      # ochre
+        "Missed Anomaly (FN)": ACCENT,      # terracotta
     }
 
     ax = sns.scatterplot(
@@ -1037,19 +1092,21 @@ def plot_error_scatter(
         approx_threshold = (tn_scores.max() + tp_scores.min()) / 2
         ax.axhline(
             approx_threshold,
-            color="red",
+            color=INK,
             linestyle="--",
-            alpha=0.5,
+            alpha=0.55,
+            linewidth=1.2,
             label="Approx. Threshold",
         )
         handles, labels = ax.get_legend_handles_labels()
         ax.legend(handles, labels)
 
     ax.set_yscale("log")
-    ax.set_title(f"Anomaly Score vs Deviation Magnitude: {model_name}", fontsize=16)
-    ax.set_xlabel("Maximum Component Deviation (%)", fontsize=12)
-    ax.set_ylabel("Reconstruction Score (Log Scale)", fontsize=12)
-    ax.grid(True, alpha=0.3)
+    ax.set_title(f"Anomaly Score vs Deviation Magnitude \u00b7 {model_name}")
+    ax.set_xlabel("Maximum Component Deviation (%)")
+    ax.set_ylabel("Reconstruction Score (Log Scale)")
+    ax.grid(True, axis="both")
+    style_axis(ax)
 
     plt.tight_layout()
     if save_path:

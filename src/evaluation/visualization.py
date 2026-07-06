@@ -14,21 +14,26 @@ from sklearn.metrics import roc_curve, precision_recall_curve, confusion_matrix
 import seaborn as sns
 
 from ..utils.logger import get_logger
+from ..visualization.deck_style import (
+    apply_deck_style,
+    style_axis,
+    text_on,
+    INK,
+    ACCENT,
+    MUTED,
+    CATEGORICAL,
+    MONO_CMAP,
+)
 
 logger = get_logger(__name__)
 
+apply_deck_style()
+
 
 def set_style():
-    """Set consistent plotting style."""
-    plt.style.use("seaborn-v0_8-whitegrid")
-    plt.rcParams.update(
-        {
-            "figure.figsize": (10, 6),
-            "font.size": 12,
-            "axes.titlesize": 14,
-            "axes.labelsize": 12,
-        }
-    )
+    """Apply the deck's editorial plotting style."""
+    apply_deck_style()
+    plt.rcParams.update({"figure.figsize": (10, 6)})
 
 
 def plot_reconstruction_error_distribution(
@@ -56,17 +61,17 @@ def plot_reconstruction_error_distribution(
 
     # Plot histograms
     ax.hist(
-        normal_errors, bins=50, alpha=0.7, label="Normal", color="blue", density=True
+        normal_errors, bins=50, alpha=0.65, label="Normal", color=INK, density=True
     )
     ax.hist(
-        anomaly_errors, bins=50, alpha=0.7, label="Anomaly", color="red", density=True
+        anomaly_errors, bins=50, alpha=0.65, label="Anomaly", color=ACCENT, density=True
     )
 
     # Plot threshold
     if threshold is not None:
         ax.axvline(
             x=threshold,
-            color="green",
+            color="#3f5a52",
             linestyle="--",
             linewidth=2,
             label=f"Threshold: {threshold:.4f}",
@@ -112,8 +117,8 @@ def plot_roc_curve(
 
     roc_auc = auc(fpr, tpr)
 
-    ax.plot(fpr, tpr, color="blue", lw=2, label=f"ROC curve (AUC = {roc_auc:.4f})")
-    ax.plot([0, 1], [0, 1], color="gray", lw=1, linestyle="--")
+    ax.plot(fpr, tpr, color=ACCENT, lw=2, label=f"ROC curve (AUC = {roc_auc:.4f})")
+    ax.plot([0, 1], [0, 1], color=MUTED, lw=1, linestyle="--")
 
     ax.set_xlim([0.0, 1.0])
     ax.set_ylim([0.0, 1.05])
@@ -159,7 +164,7 @@ def plot_precision_recall_curve(
     ax.plot(
         recall,
         precision,
-        color="blue",
+        color=ACCENT,
         lw=2,
         label=f"PR curve (AP = {avg_precision:.4f})",
     )
@@ -206,15 +211,23 @@ def plot_confusion_matrix(
         cm,
         annot=True,
         fmt="d",
-        cmap="Blues",
+        cmap=MONO_CMAP,
+        cbar=False,
+        linewidths=1.4,
+        linecolor="#fbf9f5",
         xticklabels=["Normal", "Anomaly"],
         yticklabels=["Normal", "Anomaly"],
         ax=ax,
     )
 
+    vmax = cm.max() if cm.max() > 0 else 1
+    for txt, val in zip(ax.texts, cm.flatten()):
+        txt.set_color(text_on(MONO_CMAP(val / vmax)))
+
     ax.set_xlabel("Predicted")
     ax.set_ylabel("True")
     ax.set_title(title)
+    ax.tick_params(length=0)
 
     plt.tight_layout()
 
@@ -263,12 +276,12 @@ def plot_reconstructions(
     for i in range(num_samples):
         for j in range(n_features):
             ax = axes[i, j]
-            ax.plot(original[i, :, j], label="Original", color="blue", alpha=0.7)
+            ax.plot(original[i, :, j], label="Original", color=INK, alpha=0.8)
             ax.plot(
                 reconstructed[i, :, j],
                 label="Reconstructed",
-                color="red",
-                alpha=0.7,
+                color=ACCENT,
+                alpha=0.85,
                 linestyle="--",
             )
 
@@ -337,18 +350,20 @@ def plot_latent_space(
     ax.scatter(
         reduced[normal_mask, 0],
         reduced[normal_mask, 1],
-        c="blue",
-        alpha=0.5,
+        c="#4a6670",
+        alpha=0.55,
         label="Normal",
         s=20,
+        edgecolors="none",
     )
     ax.scatter(
         reduced[anomaly_mask, 0],
         reduced[anomaly_mask, 1],
-        c="red",
-        alpha=0.5,
+        c=ACCENT,
+        alpha=0.55,
         label="Anomaly",
         s=20,
+        edgecolors="none",
     )
 
     ax.set_xlabel(f"{method.upper()} Component 1")
@@ -399,12 +414,12 @@ def plot_training_history(
         ax = axes[plot_idx]
 
         # Training metric
-        ax.plot(history[metric], label=f"Train {metric}", color="blue")
+        ax.plot(history[metric], label=f"Train {metric}", color=INK)
 
         # Validation metric
         val_metric = f"val_{metric}"
         if val_metric in history:
-            ax.plot(history[val_metric], label=f"Val {metric}", color="red")
+            ax.plot(history[val_metric], label=f"Val {metric}", color=ACCENT)
 
         ax.set_xlabel("Epoch")
         ax.set_ylabel(metric.capitalize())

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 560" width="1040" height="560" role="img" font-family='"ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif' preserveAspectRatio="xMidYMid meet">
+  <style>
+    .bg { fill: none; }
+    .title { font: 600 22px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #121212; }
+    .subtitle { font: 400 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #8a837b; }
+    .axis-title { font: 500 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .tick { font: 400 13px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #8a837b; }
+    .tick-strong { font: 500 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .value { font: 500 12px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .legend { font: 400 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .grid { stroke: rgba(17,17,17,0.08); stroke-width: 1; }
+    .axis { stroke: rgba(17,17,17,0.18); stroke-width: 1.2; }</style>
+  <rect class="bg" x="0" y="0" width="1040" height="560"/>
+<text x="24.0" y="34.0" class="title" text-anchor="start">Error rate by component influence · Conv1D-AE</text>
+<text x="24.0" y="56.0" class="subtitle" text-anchor="start">Missed-anomaly rate per component (terracotta) · false alarms (ochre)</text>
+<line class="grid" x1="68" y1="494.0" x2="1000" y2="494.0"/>
+<text x="56.0" y="498.0" class="tick" text-anchor="end">0</text>
+<line class="grid" x1="68" y1="410.0" x2="1000" y2="410.0"/>
+<text x="56.0" y="414.0" class="tick" text-anchor="end">1</text>
+<line class="grid" x1="68" y1="326.0" x2="1000" y2="326.0"/>
+<text x="56.0" y="330.0" class="tick" text-anchor="end">3</text>
+<line class="grid" x1="68" y1="242.0" x2="1000" y2="242.0"/>
+<text x="56.0" y="246.0" class="tick" text-anchor="end">4</text>
+<line class="grid" x1="68" y1="158.0" x2="1000" y2="158.0"/>
+<text x="56.0" y="162.0" class="tick" text-anchor="end">5</text>
+<line class="grid" x1="68" y1="74.0" x2="1000" y2="74.0"/>
+<text x="56.0" y="78.0" class="tick" text-anchor="end">7</text>
+<line class="axis" x1="68" y1="494.0" x2="1000" y2="494.0"/>
+<rect x="102.2" y="273.9" width="87.0" height="220.1" fill="#a7623f" rx="2"/>
+<text x="145.7" y="264.9" class="value" text-anchor="middle">3.4%</text>
+<text x="145.7" y="522.0" class="tick-strong" text-anchor="middle">Cout</text>
+<rect x="257.5" y="204.3" width="87.0" height="289.7" fill="#a7623f" rx="2"/>
+<text x="301.0" y="195.3" class="value" text-anchor="middle">4.5%</text>
+<text x="301.0" y="522.0" class="tick-strong" text-anchor="middle">Esr_C</text>
+<rect x="412.8" y="280.2" width="87.0" height="213.8" fill="#a7623f" rx="2"/>
+<text x="456.3" y="271.2" class="value" text-anchor="middle">3.3%</text>
+<text x="456.3" y="522.0" class="tick-strong" text-anchor="middle">Esr_L</text>
+<rect x="568.2" y="170.9" width="87.0" height="323.1" fill="#a7623f" rx="2"/>
+<text x="611.7" y="161.9" class="value" text-anchor="middle">5.0%</text>
+<text x="611.7" y="522.0" class="tick-strong" text-anchor="middle">Rds_1</text>
+<rect x="723.5" y="175.2" width="87.0" height="318.8" fill="#a7623f" rx="2"/>
+<text x="767.0" y="166.2" class="value" text-anchor="middle">5.0%</text>
+<text x="767.0" y="522.0" class="tick-strong" text-anchor="middle">Rds_2</text>
+<rect x="878.8" y="280.6" width="87.0" height="213.4" fill="#b79155" rx="2"/>
+<text x="922.3" y="271.6" class="value" text-anchor="middle">3.3%</text>
+<text x="922.3" y="522.0" class="tick-strong" text-anchor="middle">All normal</text>
+<text x="24" y="284.0" text-anchor="middle" class="axis-title" transform="rotate(-90 24 284.0)">Error rate (%)</text>
+</svg>

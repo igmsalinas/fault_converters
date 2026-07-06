@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 620" width="1040" height="620" role="img" font-family='"ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif' preserveAspectRatio="xMidYMid meet">
+  <style>
+    .bg { fill: none; }
+    .title { font: 600 22px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #121212; }
+    .subtitle { font: 400 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #8a837b; }
+    .axis-title { font: 500 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .tick { font: 400 13px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #8a837b; }
+    .tick-strong { font: 500 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .value { font: 500 12px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .legend { font: 400 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .grid { stroke: rgba(17,17,17,0.08); stroke-width: 1; }
+    .axis { stroke: rgba(17,17,17,0.18); stroke-width: 1.2; }</style>
+  <rect class="bg" x="0" y="0" width="1040" height="620"/>
+<text x="64.0" y="34.0" class="title" text-anchor="start">Detection metrics across architectures</text>
+<text x="64.0" y="56.0" class="subtitle" text-anchor="start">Best test threshold · higher is better</text>
+<line class="grid" x1="64" y1="562.0" x2="804" y2="562.0"/>
+<text x="52.0" y="566.0" class="tick" text-anchor="end">0.00</text>
+<line class="grid" x1="64" y1="464.4" x2="804" y2="464.4"/>
+<text x="52.0" y="468.4" class="tick" text-anchor="end">0.20</text>
+<line class="grid" x1="64" y1="366.8" x2="804" y2="366.8"/>
+<text x="52.0" y="370.8" class="tick" text-anchor="end">0.40</text>
+<line class="grid" x1="64" y1="269.2" x2="804" y2="269.2"/>
+<text x="52.0" y="273.2" class="tick" text-anchor="end">0.60</text>
+<line class="grid" x1="64" y1="171.6" x2="804" y2="171.6"/>
+<text x="52.0" y="175.6" class="tick" text-anchor="end">0.80</text>
+<line class="grid" x1="64" y1="74.0" x2="804" y2="74.0"/>
+<text x="52.0" y="78.0" class="tick" text-anchor="end">1.00</text>
+<line class="axis" x1="64" y1="562.0" x2="804" y2="562.0"/>
+<rect x="80.7" y="85.6" width="20.2" height="476.4" fill="#a7623f" rx="1"/>
+<rect x="102.3" y="87.4" width="20.2" height="474.6" fill="#a7623f" rx="1"/>
+<rect x="124.0" y="76.5" width="20.2" height="485.5" fill="#4a6670" rx="1"/>
+<rect x="145.7" y="113.6" width="20.2" height="448.4" fill="#b79155" rx="1"/>
+<rect x="167.3" y="186.8" width="20.2" height="375.2" fill="#6d6f5a" rx="1"/>
+<rect x="189.0" y="95.7" width="20.2" height="466.3" fill="#8c5361" rx="1"/>
+<rect x="210.7" y="149.7" width="20.2" height="412.3" fill="#3f5a52" rx="1"/>
+<text x="156.5" y="592.0" class="tick-strong" text-anchor="middle">Precision</text>
+<rect x="265.6" y="98.4" width="20.2" height="463.6" fill="#a7623f" rx="1"/>
+<rect x="287.3" y="139.5" width="20.2" height="422.5" fill="#a7623f" rx="1"/>
+<rect x="309.0" y="165.1" width="20.2" height="396.9" fill="#4a6670" rx="1"/>
+<rect x="330.7" y="159.9" width="20.2" height="402.1" fill="#b79155" rx="1"/>
+<rect x="352.3" y="128.2" width="20.2" height="433.8" fill="#6d6f5a" rx="1"/>
+<rect x="374.0" y="291.4" width="20.2" height="270.6" fill="#8c5361" rx="1"/>
+<rect x="395.7" y="363.3" width="20.2" height="198.7" fill="#3f5a52" rx="1"/>
+<text x="341.5" y="592.0" class="tick-strong" text-anchor="middle">Recall</text>
+<rect x="450.6" y="92.1" width="20.2" height="469.9" fill="#a7623f" rx="1"/>
+<rect x="472.3" y="115.0" width="20.2" height="447.0" fill="#a7623f" rx="1"/>
+<rect x="494.0" y="125.3" width="20.2" height="436.7" fill="#4a6670" rx="1"/>
+<rect x="515.7" y="138.0" width="20.2" height="424.0" fill="#b79155" rx="1"/>
+<rect x="537.3" y="159.6" width="20.2" height="402.4" fill="#6d6f5a" rx="1"/>
+<rect x="559.0" y="219.5" width="20.2" height="342.5" fill="#8c5361" rx="1"/>
+<rect x="580.7" y="293.8" width="20.2" height="268.2" fill="#3f5a52" rx="1"/>
+<text x="526.5" y="592.0" class="tick-strong" text-anchor="middle">F1</text>
+<rect x="635.6" y="81.8" width="20.2" height="480.2" fill="#a7623f" rx="1"/>
+<rect x="657.3" y="95.8" width="20.2" height="466.2" fill="#a7623f" rx="1"/>
+<rect x="679.0" y="132.5" width="20.2" height="429.5" fill="#4a6670" rx="1"/>
+<rect x="700.7" y="111.6" width="20.2" height="450.4" fill="#b79155" rx="1"/>
+<rect x="722.3" y="156.5" width="20.2" height="405.5" fill="#6d6f5a" rx="1"/>
+<rect x="744.0" y="241.4" width="20.2" height="320.6" fill="#8c5361" rx="1"/>
+<rect x="765.7" y="315.8" width="20.2" height="246.2" fill="#3f5a52" rx="1"/>
+<text x="711.5" y="592.0" class="tick-strong" text-anchor="middle">AUC-ROC</text>
+<text x="838.0" y="80.0" class="axis-title" text-anchor="start">Architecture</text>
+<rect x="838" y="95.0" width="16" height="16" rx="3" fill="#a7623f"/>
+<text x="862.0" y="108.0" class="legend" text-anchor="start">Conv1D-AE</text>
+<rect x="838" y="121.0" width="16" height="16" rx="3" fill="#a7623f"/>
+<text x="862.0" y="134.0" class="legend" text-anchor="start">LSTM-AE</text>
+<rect x="838" y="147.0" width="16" height="16" rx="3" fill="#4a6670"/>
+<text x="862.0" y="160.0" class="legend" text-anchor="start">Transformer-AE</text>
+<rect x="838" y="173.0" width="16" height="16" rx="3" fill="#b79155"/>
+<text x="862.0" y="186.0" class="legend" text-anchor="start">VAE</text>
+<rect x="838" y="199.0" width="16" height="16" rx="3" fill="#6d6f5a"/>
+<text x="862.0" y="212.0" class="legend" text-anchor="start">CARLA</text>
+<rect x="838" y="225.0" width="16" height="16" rx="3" fill="#8c5361"/>
+<text x="862.0" y="238.0" class="legend" text-anchor="start">MLP-AE</text>
+<rect x="838" y="251.0" width="16" height="16" rx="3" fill="#3f5a52"/>
+<text x="862.0" y="264.0" class="legend" text-anchor="start">GRU-AE</text>
+</svg>

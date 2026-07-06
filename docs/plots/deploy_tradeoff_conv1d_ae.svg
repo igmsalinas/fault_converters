@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 620" width="1040" height="620" role="img" font-family='"ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif' preserveAspectRatio="xMidYMid meet">
+  <style>
+    .bg { fill: none; }
+    .title { font: 600 22px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #121212; }
+    .subtitle { font: 400 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #8a837b; }
+    .axis-title { font: 500 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .tick { font: 400 13px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #8a837b; }
+    .tick-strong { font: 500 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .value { font: 500 12px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .legend { font: 400 14px "ABC Monument Grotesk Light","Helvetica Neue",Helvetica,Arial,sans-serif; fill: #43413d; }
+    .grid { stroke: rgba(17,17,17,0.08); stroke-width: 1; }
+    .axis { stroke: rgba(17,17,17,0.18); stroke-width: 1.2; }</style>
+  <rect class="bg" x="0" y="0" width="1040" height="620"/>
+<text x="24.0" y="34.0" class="title" text-anchor="start">Latency vs. fidelity trade-off</text>
+<text x="24.0" y="56.0" class="subtitle" text-anchor="start">Pareto-optimal corner: fast and faithful (top-left)</text>
+<line class="grid" x1="78" y1="554.0" x2="1000" y2="554.0"/>
+<text x="66.0" y="558.0" class="tick" text-anchor="end">0.30</text>
+<line class="grid" x1="78" y1="458.0" x2="1000" y2="458.0"/>
+<text x="66.0" y="462.0" class="tick" text-anchor="end">0.44</text>
+<line class="grid" x1="78" y1="362.0" x2="1000" y2="362.0"/>
+<text x="66.0" y="366.0" class="tick" text-anchor="end">0.58</text>
+<line class="grid" x1="78" y1="266.0" x2="1000" y2="266.0"/>
+<text x="66.0" y="270.0" class="tick" text-anchor="end">0.72</text>
+<line class="grid" x1="78" y1="170.0" x2="1000" y2="170.0"/>
+<text x="66.0" y="174.0" class="tick" text-anchor="end">0.86</text>
+<line class="grid" x1="78" y1="74.0" x2="1000" y2="74.0"/>
+<text x="66.0" y="78.0" class="tick" text-anchor="end">1.00</text>
+<line class="grid" x1="78.0" y1="74" x2="78.0" y2="554"/>
+<text x="78.0" y="578.0" class="tick" text-anchor="middle">10⁻⁶</text>
+<line class="grid" x1="385.3" y1="74" x2="385.3" y2="554"/>
+<text x="385.3" y="578.0" class="tick" text-anchor="middle">10⁻⁵</text>
+<line class="grid" x1="692.7" y1="74" x2="692.7" y2="554"/>
+<text x="692.7" y="578.0" class="tick" text-anchor="middle">10⁻⁴</text>
+<line class="grid" x1="1000.0" y1="74" x2="1000.0" y2="554"/>
+<text x="1000.0" y="578.0" class="tick" text-anchor="middle">10⁻³</text>
+<line class="axis" x1="78" y1="554" x2="1000" y2="554"/>
+<line class="axis" x1="78" y1="74" x2="78" y2="554"/>
+<circle cx="573.0" cy="84.2" r="7.0" fill="#4a6670" opacity="0.9"/>
+<text x="561.0" y="74.2" class="value" text-anchor="end">Keras FP32 (Baseline)</text>
+<circle cx="743.6" cy="112.0" r="7.0" fill="#4a6670" opacity="0.9"/>
+<text x="731.6" y="116.0" class="value" text-anchor="end">TFLite Dynamic</text>
+<circle cx="751.2" cy="84.0" r="7.0" fill="#4a6670" opacity="0.9"/>
+<circle cx="715.6" cy="539.4" r="7.0" fill="#4a6670" opacity="0.9"/>
+<text x="728.6" y="543.4" class="value" text-anchor="start">TFLite INT8</text>
+<circle cx="719.0" cy="83.5" r="7.0" fill="#4a6670" opacity="0.9"/>
+<circle cx="286.3" cy="84.0" r="7.0" fill="#a7623f" opacity="0.9"/>
+<circle cx="349.5" cy="146.2" r="7.0" fill="#a7623f" opacity="0.9"/>
+<text x="362.5" y="150.2" class="value" text-anchor="start">TensorRT INT8 (GPU)</text>
+<circle cx="718.4" cy="83.5" r="7.0" fill="#4a6670" opacity="0.9"/>
+<circle cx="277.2" cy="84.1" r="12.0" fill="none" stroke="#a7623f" stroke-width="2"/>
+<circle cx="277.2" cy="84.1" r="7.0" fill="#a7623f" opacity="0.9"/>
+<text x="277.2" y="66.1" class="value" text-anchor="middle">TensorRT FP16 (GPU)</text>
+<text x="539.0" y="606.0" class="axis-title" text-anchor="middle">Seconds per sample (log scale)</text>
+<text x="24" y="314.0" text-anchor="middle" class="axis-title" transform="rotate(-90 24 314.0)">ROC-AUC</text>
+</svg>

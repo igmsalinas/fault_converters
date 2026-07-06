@@ -13,7 +13,7 @@ import numpy as np
 import keras
 from typing import Dict, Any, List
 
-from .utils import get_file_size_mb
+from .utils import get_file_size_mb, TIMING_BATCH_SIZE, TIMING_WARMUP, TIMING_RUNS
 from .runners import (
     create_keras_runner,
     create_tflite_runner,
@@ -34,9 +34,13 @@ def _evaluate_with_runner(
     test_data: np.ndarray,
     test_labels: np.ndarray,
     threshold: float,
-    batch_size: int = 1024,
 ) -> Dict[str, Any]:
     """Run full classification evaluation using a generic runner callable.
+
+    Latency is measured under the uniform protocol (single-sample batch n=1,
+    15 warm-up, 150 timed runs) so every backend is directly comparable.
+    Classification metrics are batch-invariant, so reconstructions are gathered
+    over the full test set for correctness.
 
     Args:
         name: Display name for logging.
@@ -44,32 +48,25 @@ def _evaluate_with_runner(
         test_data: Test dataset array.
         test_labels: Ground truth labels (0 = normal, 1 = anomaly).
         threshold: Anomaly decision threshold on per-sample MSE.
-        batch_size: Batch size for inference loop.
 
     Returns:
         Dictionary with latency and classification metrics.
     """
     logger.info(f"Evaluating {name}...")
 
-    # 1. Measure execution latency (Cyclic Measurement)
-    num_runs = 10
+    # 1. Measure per-sample latency: single sample (n=1), 15 warm-up, 150 runs
+    x_single = test_data[:TIMING_BATCH_SIZE].astype(np.float32)
+    for _ in range(TIMING_WARMUP):
+        _ = runner(x_single)
+
     latencies_per_sample = []
-    
-    # Run the first iteration to get the actual reconstructions for classification
-    t0 = time.perf_counter()
-    reconstruction = run_inference_loop(runner, test_data, batch_size=batch_size)
-    total_time = (time.perf_counter() - t0) * 1000.0  # ms
-    latencies_per_sample.append(float(total_time / len(test_data)))
-
-    # Run remaining cycles purely for latency metrics on a subset to save time
-    # (Especially critical for TFLite which runs batch_size=1 natively)
-    latency_subset = test_data[:2000]
-    for _ in range(num_runs - 1):
+    for _ in range(TIMING_RUNS):
         t0 = time.perf_counter()
-        _ = run_inference_loop(runner, latency_subset, batch_size=batch_size)
-        latencies_per_sample.append(float(((time.perf_counter() - t0) * 1000.0) / len(latency_subset)))
+        _ = runner(x_single)
+        latencies_per_sample.append((time.perf_counter() - t0) * 1000.0)  # ms
 
-    # 2. Compute anomaly scores (MSE)
+    # 2. Compute reconstructions over the full test set (batch-invariant metrics)
+    reconstruction = run_inference_loop(runner, test_data)
     errors = np.mean(np.square(test_data - reconstruction), axis=(1, 2))
     predictions = (errors > threshold).astype(int)
 
@@ -106,9 +103,8 @@ def evaluate_tflite_model(
 ) -> Dict[str, Any]:
     """Run full test evaluation on TFLite quantized models."""
     runner = create_tflite_runner(tflite_path)
-    # Use batch_size=1 for TFLite to simulate edge device single-sample inference
     return _evaluate_with_runner(
-        f"TFLite ({tflite_path})", runner, test_data, test_labels, threshold, batch_size=1,
+        f"TFLite ({tflite_path})", runner, test_data, test_labels, threshold,
     )
 
 
@@ -147,7 +143,7 @@ def evaluate_tensorrt_model(
     if runner is None:
         return {}
     return _evaluate_with_runner(
-        f"TensorRT ({engine_path})", runner, test_data, test_labels, threshold, batch_size=128,
+        f"TensorRT ({engine_path})", runner, test_data, test_labels, threshold,
     )
 
 

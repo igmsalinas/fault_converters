@@ -84,12 +84,6 @@ def parse_args(argv=None) -> argparse.Namespace:
         choices=["zcu102", "zcu104", "kv260", "ultra96", "pynq_z2"],
         help="Target hardware profile for Xilinx Vitis AI quantization.",
     )
-    parser.add_argument(
-        "--batch-sizes",
-        type=str,
-        default="1,2,4,8,16,32,64,128",
-        help="Comma-separated list of batch sizes for scaling study.",
-    )
     return parser.parse_args(argv)
 
 
