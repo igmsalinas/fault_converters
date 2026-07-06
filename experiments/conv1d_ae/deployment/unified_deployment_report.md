@@ -1,42 +1,33 @@
 # Edge Compute Unified Deployment Report
 
-This report aggregates optimizations across size, latency, memory, and classification fidelity.
+This report aggregates two deployment studies: timing & memory under single-sample inference, and classification metric fidelity.
 
 All latencies are measured under a uniform protocol: single-sample batch (n=1), 15 warm-up iterations, 150 timed runs.
 
-## 1. Inference Fidelity & Baseline Latency
-
-| Format | Size (MB) | Latency n=1 (ms) | Reconstruction MSE | MSE Shift from Baseline |
-| :--- | :---: | :---: | :---: | :---: |
-| **TFLite Dynamic** | 0.349 MB | 0.140 ± 0.013 ms | 1.311519e-01 | 3.732592e-04 |
-| **TFLite FP16** | 0.578 MB | 0.162 ± 0.049 ms | 1.315157e-01 | 9.432435e-06 |
-| **TFLite INT8** | 0.388 MB | 0.121 ± 0.042 ms | 6.766404e-01 | 5.451152e-01 |
-| **ONNX (CPU)** | 1.129 MB | 0.412 ± 0.082 ms | 1.315296e-01 | 4.455447e-06 |
-| **TensorRT FP32 (GPU)** | 1.454 MB | 0.428 ± 0.196 ms | 1.315319e-01 | 6.765127e-06 |
-| **TensorRT FP16 (GPU)** | 1.438 MB | 0.385 ± 0.093 ms | 1.315289e-01 | 3.755093e-06 |
-| **TensorRT INT8 (GPU)** | 0.691 MB | 0.532 ± 0.234 ms | 1.347818e-01 | 3.256604e-03 |
-
-## 2. Hardware Resource Profiling
+## 1. Timing & Memory Profiling (Single-Sample, n=1)
 
 | Model Format | Mean Latency | Min / Max Latency | Net RAM Used | Net VRAM Used | Peak RAM | Peak VRAM |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Keras FP32 (Baseline)** | 19.603 ± 1.378 ms | 17.24 / 25.95 ms | 0.000 MB | 0.000 MB | 3438.008 MB | 2.672 MB |
-| **Keras FP32 (CPU)** | 14.455 ± 1.928 ms | 12.78 / 35.58 ms | 0.500 MB | 0.000 MB | 810.273 MB | 10231.000 MB |
-| **TFLite FP16** | 0.172 ± 0.056 ms | 0.14 / 0.55 ms | 0.000 MB | 0.000 MB | 3438.508 MB | 2.672 MB |
-| **TFLite Dynamic** | 0.140 ± 0.017 ms | 0.13 / 0.25 ms | 0.000 MB | 0.000 MB | 3438.379 MB | 2.672 MB |
-| **TFLite INT8** | 0.112 ± 0.017 ms | 0.11 / 0.25 ms | 0.000 MB | 0.000 MB | 3438.418 MB | 2.672 MB |
-| **ONNX (CPU)** | 0.406 ± 0.111 ms | 0.36 / 1.41 ms | 0.000 MB | 0.000 MB | 3438.918 MB | 2.672 MB |
-| **TensorRT FP32 (GPU)** | 0.800 ± 0.437 ms | 0.52 / 2.77 ms | 0.000 MB | 0.000 MB | 3440.043 MB | 2.672 MB |
-| **TensorRT FP16 (GPU)** | 0.682 ± 0.221 ms | 0.44 / 1.59 ms | 0.000 MB | 0.000 MB | 3440.418 MB | 2.672 MB |
-| **TensorRT INT8 (GPU)** | 0.630 ± 0.263 ms | 0.48 / 2.40 ms | 0.000 MB | 0.000 MB | 3440.418 MB | 2.672 MB |
+| **Keras FP32 (Baseline)** | 19.040 ± 1.688 ms | 16.58 / 28.21 ms | 325.625 MB | 1.319 MB | 2986.562 MB | 2.661 MB |
+| **Keras FP32 (CPU)** | 13.457 ± 0.722 ms | 11.84 / 16.13 ms | 8.500 MB | 0.000 MB | 810.570 MB | 10289.000 MB |
+| **TFLite FP16** | 0.142 ± 0.017 ms | 0.13 / 0.27 ms | 5.750 MB | 0.000 MB | 2992.312 MB | 1.343 MB |
+| **TFLite Dynamic** | 0.137 ± 0.016 ms | 0.13 / 0.22 ms | 0.375 MB | 0.000 MB | 2992.207 MB | 1.343 MB |
+| **TFLite INT8** | 0.108 ± 0.006 ms | 0.11 / 0.14 ms | 0.375 MB | 0.000 MB | 2992.266 MB | 1.343 MB |
+| **ONNX (CPU)** | 0.379 ± 0.048 ms | 0.35 / 0.64 ms | 24.500 MB | 0.000 MB | 3016.453 MB | 1.343 MB |
+| **TensorRT FP32 (GPU)** | 0.786 ± 0.371 ms | 0.52 / 2.58 ms | 268.250 MB | 0.000 MB | 3284.703 MB | 1.343 MB |
+| **TensorRT FP16 (GPU)** | 0.630 ± 0.262 ms | 0.45 / 1.61 ms | 2.000 MB | 0.000 MB | 3286.703 MB | 1.343 MB |
+| **TensorRT INT8 (GPU)** | 0.645 ± 0.297 ms | 0.45 / 2.63 ms | 1.750 MB | 0.000 MB | 3288.453 MB | 1.343 MB |
 
-## 3. Classification Degradation Evaluation
+## 2. Classification Metrics Evaluation
 
 | Model Format | Size (MB) | Latency Per Sample (ms) | Accuracy | Precision | Recall | F1-Score | AUC-ROC |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Keras FP32 (Baseline)** | 3.420 MB | 19.9439 ± 1.6718 ms | 0.9555 | 0.9702 | 0.9597 | 0.9649 | 0.9851 |
-| **Keras FP32 (CPU)** | 3.420 MB | 14.1625 ± 0.7660 ms | 0.9600 | 0.9800 | 0.9567 | 0.9682 | 0.9861 |
-| **TFLite FP16** | 0.578 MB | 0.1646 ± 0.0489 ms | 0.9576 | 0.9731 | 0.9599 | 0.9665 | 0.9854 |
-| **TFLite Dynamic** | 0.349 MB | 0.1525 ± 0.0285 ms | 0.6371 | 0.6371 | 1.0000 | 0.7783 | 0.9446 |
-| **TFLite INT8** | 0.388 MB | 0.1125 ± 0.0133 ms | 0.6371 | 0.6371 | 1.0000 | 0.7783 | 0.3213 |
-| **ONNX (CPU)** | 1.129 MB | 0.4403 ± 0.2897 ms | 0.9600 | 0.9801 | 0.9568 | 0.9683 | 0.9861 |
+| **Keras FP32 (Baseline)** | 3.420 MB | 19.4007 ± 1.1938 ms | 0.9586 | 0.9774 | 0.9572 | 0.9672 | 0.9856 |
+| **Keras FP32 (CPU)** | 3.420 MB | 13.3143 ± 0.6372 ms | 0.9600 | 0.9800 | 0.9567 | 0.9682 | 0.9861 |
+| **TFLite FP16** | 0.576 MB | 0.1458 ± 0.0188 ms | 0.9576 | 0.9731 | 0.9599 | 0.9665 | 0.9854 |
+| **TFLite Dynamic** | 0.346 MB | 0.1343 ± 0.0143 ms | 0.6371 | 0.6371 | 1.0000 | 0.7783 | 0.9446 |
+| **TFLite INT8** | 0.385 MB | 0.1198 ± 0.0391 ms | 0.6371 | 0.6371 | 1.0000 | 0.7783 | 0.3213 |
+| **ONNX (CPU)** | 1.126 MB | 0.4277 ± 0.2313 ms | 0.9600 | 0.9801 | 0.9568 | 0.9683 | 0.9861 |
+| **TensorRT FP32 (GPU)** | 1.711 MB | 1.1837 ± 0.7735 ms | 0.9600 | 0.9801 | 0.9568 | 0.9683 | 0.9861 |
+| **TensorRT FP16 (GPU)** | 1.702 MB | 0.5802 ± 0.2619 ms | 0.9600 | 0.9801 | 0.9568 | 0.9683 | 0.9861 |
+| **TensorRT INT8 (GPU)** | 1.743 MB | 0.3767 ± 0.1758 ms | 0.9589 | 0.9776 | 0.9575 | 0.9674 | 0.9857 |
