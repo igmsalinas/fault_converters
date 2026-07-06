@@ -65,8 +65,9 @@ def _evaluate_with_runner(
         _ = runner(x_single)
         latencies_per_sample.append((time.perf_counter() - t0) * 1000.0)  # ms
 
-    # 2. Compute reconstructions over the full test set (batch-invariant metrics)
-    reconstruction = run_inference_loop(runner, test_data)
+    # 2. Compute reconstructions over the full test set (batch-invariant metrics).
+    #    Models are exported for single-sample inference, so feed one at a time.
+    reconstruction = run_inference_loop(runner, test_data, batch_size=1)
     errors = np.mean(np.square(test_data - reconstruction), axis=(1, 2))
     predictions = (errors > threshold).astype(int)
 

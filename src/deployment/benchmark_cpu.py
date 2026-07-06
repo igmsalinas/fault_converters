@@ -37,14 +37,14 @@ def main():
     test_data = np.load(args.data_file)
     test_labels = np.load(args.labels_file)
 
-    runner = create_keras_runner(keras_model)
-
     # 1. Timing Benchmark
     print("Running Timing Benchmark on CPU...")
     # Single-sample (n=1) latency under the uniform protocol so CPU and GPU
     # numbers stay directly comparable with run_full_performance_suite.
     x_perf = test_data[:1]
-    bench_res = benchmark_timing_memory("Keras FP32 (CPU)", runner, x_perf)
+    bench_res = benchmark_timing_memory(
+        "Keras FP32 (CPU)", lambda: create_keras_runner(keras_model), x_perf
+    )
     bench_res["size_mb"] = get_file_size_mb(str(Path(args.model_dir) / "best_model.weights.h5"))
 
     # 2. Evaluation Benchmark

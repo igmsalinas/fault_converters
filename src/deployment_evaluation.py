@@ -14,7 +14,6 @@ from typing import Dict, Any, List
 
 from .deployment import (
     load_deployment_datasets,
-    run_deployment_benchmarks,
     run_full_performance_suite,
     run_deployment_evaluations,
 )
@@ -61,30 +60,22 @@ def get_converted_models(output_dir: Path) -> Dict[str, str]:
     return models
 
 def generate_unified_markdown_report(
-    benchmark_results: Dict[str, Any],
     perf_results: List[Dict[str, Any]],
     eval_results: List[Dict[str, Any]],
     output_path: str
 ):
-    md = ["# Edge Compute Unified Deployment Report", "", "This report aggregates optimizations across size, latency, memory, and classification fidelity.", "", "All latencies are measured under a uniform protocol: single-sample batch (n=1), 15 warm-up iterations, 150 timed runs.", ""]
+    md = ["# Edge Compute Unified Deployment Report", "", "This report aggregates two deployment studies: timing & memory under single-sample inference, and classification metric fidelity.", "", "All latencies are measured under a uniform protocol: single-sample batch (n=1), 15 warm-up iterations, 150 timed runs.", ""]
 
-    # Section 1: Fidelity & Basic Latency
-    md.extend(["## 1. Inference Fidelity & Baseline Latency", "", "| Format | Size (MB) | Latency n=1 (ms) | Reconstruction MSE | MSE Shift from Baseline |", "| :--- | :---: | :---: | :---: | :---: |"])
-    for k, v in benchmark_results.items():
-        if k == "baseline": continue
-        md.append(f"| **{v['name']}** | {v['size_mb']:.3f} MB | {v['latency_bs1_mean']:.3f} ± {v['latency_bs1_std']:.3f} ms | {v['mse']:.6e} | {v['mse_diff_from_baseline']:.6e} |")
-    md.append("")
-
-    # Section 2: Hardware Performance (Memory & VRAM)
-    md.extend(["## 2. Hardware Resource Profiling", "", "| Model Format | Mean Latency | Min / Max Latency | Net RAM Used | Net VRAM Used | Peak RAM | Peak VRAM |", "| :--- | :---: | :---: | :---: | :---: | :---: | :---: |"])
+    # Section 1: Timing & Memory (single-sample, n=1)
+    md.extend(["## 1. Timing & Memory Profiling (Single-Sample, n=1)", "", "| Model Format | Mean Latency | Min / Max Latency | Net RAM Used | Net VRAM Used | Peak RAM | Peak VRAM |", "| :--- | :---: | :---: | :---: | :---: | :---: | :---: |"])
     for r in perf_results:
         latency_str = f"{r['latency_mean_ms']:.3f} ± {r['latency_std_ms']:.3f} ms"
         min_max_str = f"{r['latency_min_ms']:.2f} / {r['latency_max_ms']:.2f} ms"
         md.append(f"| **{r['model_name']}** | {latency_str} | {min_max_str} | {r['net_ram_mb']:.3f} MB | {r['net_vram_mb']:.3f} MB | {r['peak_ram_mb']:.3f} MB | {r['peak_vram_mb']:.3f} MB |")
     md.append("")
 
-    # Section 3: Classification Metrics
-    md.extend(["## 3. Classification Degradation Evaluation", "", "| Model Format | Size (MB) | Latency Per Sample (ms) | Accuracy | Precision | Recall | F1-Score | AUC-ROC |", "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |"])
+    # Section 2: Classification Metrics
+    md.extend(["## 2. Classification Metrics Evaluation", "", "| Model Format | Size (MB) | Latency Per Sample (ms) | Accuracy | Precision | Recall | F1-Score | AUC-ROC |", "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |"])
     for r in eval_results:
         # Support fallback to old scalar values for backward compatibility if old JSONs exist
         mean = r.get('latency_per_sample_mean_ms', r.get('latency_per_sample_ms', 0.0))
@@ -100,15 +91,14 @@ def generate_unified_markdown_report(
 
 
 def build_unified_results(
-    benchmark_results: Dict[str, Any],
     perf_results: List[Dict[str, Any]],
     eval_results: List[Dict[str, Any]],
 ) -> Dict[str, Any]:
-    """Merge every deployment measurement into a single dict keyed by strategy.
+    """Merge the two deployment studies into a single dict keyed by strategy.
 
     Each top-level key is a deployment strategy display name (e.g.
     ``"TensorRT FP16 (GPU)"``) mapping to a unified record with ``size_mb`` plus
-    ``benchmark``, ``performance`` and ``evaluation`` sections.
+    ``performance`` and ``evaluation`` sections.
     Any section is ``None`` if that strategy was not covered by the corresponding suite.
     """
     unified: Dict[str, Any] = {}
@@ -122,27 +112,11 @@ def build_unified_results(
     def _entry(name: str) -> Dict[str, Any]:
         return unified.setdefault(name, {
             "size_mb": None,
-            "benchmark": None,
             "performance": None,
             "evaluation": None,
         })
 
-    # 1. Inference fidelity & baseline latency (internal keys carry a display "name")
-    for v in benchmark_results.values():
-        name = _canon(v.get("name"))
-        if not name:
-            continue
-        e = _entry(name)
-        if v.get("size_mb") is not None:
-            e["size_mb"] = v["size_mb"]
-        e["benchmark"] = {
-            "latency_bs1_mean_ms": v.get("latency_bs1_mean"),
-            "latency_bs1_std_ms": v.get("latency_bs1_std"),
-            "mse": v.get("mse"),
-            "mse_diff_from_baseline": v.get("mse_diff_from_baseline"),
-        }
-
-    # 2. Hardware resource profiling
+    # 1. Hardware resource profiling (timing & memory)
     for r in perf_results:
         name = _canon(r.get("model_name"))
         if not name:
@@ -161,7 +135,7 @@ def build_unified_results(
             "peak_vram_mb": r.get("peak_vram_mb"),
         }
 
-    # 3. Classification degradation
+    # 2. Classification metrics
     for r in eval_results:
         name = _canon(r.get("model_name"))
         if not name:
@@ -232,15 +206,8 @@ def main(argv=None):
     if not converted_models:
         logger.warning("No converted models found in output directory.")
 
-    # ---- Benchmarking ----
-    logger.info("--- Starting Benchmarking Suite ---")
+    # ---- Deployment studies ----
     try:
-        benchmark_results = run_deployment_benchmarks(
-            model_dir=str(model_dir),
-            test_data=test_data,
-            converted_models=converted_models,
-        )
-
         # ---------------- CPU BENCHMARK RUNNER ----------------
         logger.info("--- Running CPU-only Benchmark via Subprocess ---")
         temp_data_file = str(output_dir / "temp_test_data.npy")
@@ -265,8 +232,8 @@ def main(argv=None):
             logger.error(f"Failed to run CPU benchmark: {e}")
         # ------------------------------------------------------
 
-        # Run timing and memory performance benchmark
-        logger.info("--- Running Timing and Memory Performance Benchmark ---")
+        # Study 1: single-sample timing and memory performance
+        logger.info("--- Study 1: Timing and Memory Performance (single input, n=1) ---")
         perf_results = run_full_performance_suite(
             model_dir=str(model_dir),
             deployment_dir=str(output_dir),
@@ -276,8 +243,8 @@ def main(argv=None):
         if cpu_res and "benchmark" in cpu_res:
             perf_results.insert(1, cpu_res["benchmark"])
 
-        # Run timing and classification evaluation
-        logger.info("--- Running Timing and Classification Evaluation Benchmark ---")
+        # Study 2: classification metrics evaluation
+        logger.info("--- Study 2: Classification Metrics Evaluation ---")
         eval_results = run_deployment_evaluations(
             model_dir=str(model_dir),
             deployment_dir=str(output_dir),
@@ -288,14 +255,12 @@ def main(argv=None):
         if cpu_res and "evaluation" in cpu_res:
             eval_results.insert(1, cpu_res["evaluation"])
 
-        # Merge everything into a single unified report keyed by deployment strategy
+        # Merge both studies into a single unified report keyed by deployment strategy
         logger.info("--- Generating Unified Deployment Report ---")
-        unified = build_unified_results(
-            benchmark_results, perf_results, eval_results
-        )
+        unified = build_unified_results(perf_results, eval_results)
         save_unified_json_report(unified, str(output_dir / "unified_deployment_report.json"))
         generate_unified_markdown_report(
-            benchmark_results, perf_results, eval_results,
+            perf_results, eval_results,
             str(output_dir / "unified_deployment_report.md")
         )
 
@@ -307,7 +272,7 @@ def main(argv=None):
                 pass
 
     except Exception as e:
-        logger.error(f"Benchmarking suite run failed: {e}")
+        logger.error(f"Deployment study run failed: {e}")
 
     logger.info(f"Deployment evaluation complete! All reports in: {output_dir}")
 

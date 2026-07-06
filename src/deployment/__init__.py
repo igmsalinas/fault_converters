@@ -37,11 +37,6 @@ from .runners import (
     run_inference_loop,
 )
 
-from .benchmark import (
-    run_deployment_benchmarks,
-    save_benchmark_report,
-)
-
 from .timing_memory_benchmark import (
     run_full_performance_suite,
     save_performance_report,

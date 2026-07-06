@@ -18,13 +18,6 @@ from src.deployment.runners import (
     create_tensorrt_runner,
     run_inference_loop,
 )
-from src.deployment.benchmark import (
-    benchmark_keras_model,
-    benchmark_tflite_model,
-    benchmark_onnx_model,
-    benchmark_tensorrt_model,
-    run_deployment_benchmarks,
-)
 from src.deployment.timing_memory_benchmark import (
     run_full_performance_suite,
     save_performance_report,
@@ -236,14 +229,10 @@ def test_tflite_runner(sample_model, mock_data, temp_dir):
     convert_to_tflite(sample_model.autoencoder, "dynamic", output_path=path)
 
     runner = create_tflite_runner(path)
-    # Test single sample
+    # Models are exported with a fixed batch dimension of 1.
     single = np.expand_dims(mock_data[0], axis=0)
     output = runner(single)
     assert output.shape == single.shape
-
-    # Test batch (dynamic resize)
-    output_batch = runner(mock_data)
-    assert output_batch.shape == mock_data.shape
 
 
 def test_onnx_runner(sample_model, mock_data, temp_dir):
@@ -254,8 +243,10 @@ def test_onnx_runner(sample_model, mock_data, temp_dir):
 
     runner = create_onnx_runner(path)
     assert runner is not None
-    output = runner(mock_data)
-    assert output.shape == mock_data.shape
+    # Models are exported with a fixed batch dimension of 1.
+    single = np.expand_dims(mock_data[0], axis=0)
+    output = runner(single)
+    assert output.shape == single.shape
 
 
 def test_tensorrt_runner(sample_model, temp_dir, mock_data):
@@ -285,9 +276,11 @@ def test_tensorrt_runner(sample_model, temp_dir, mock_data):
         # TRT compiled but CUDA memory packages not available — acceptable
         pytest.skip("TensorRT engine compiled but cuda-python/pycuda not installed for runtime")
     else:
-        # Full TRT stack available — verify runner produces correct output
-        output = runner(mock_data)
-        assert output.shape == mock_data.shape
+        # Full TRT stack available — verify runner produces correct output.
+        # Engines are built with a fixed batch dimension of 1.
+        single = np.expand_dims(mock_data[0], axis=0)
+        output = runner(single)
+        assert output.shape == single.shape
 
 
 def test_run_inference_loop(sample_model, mock_data):
@@ -297,39 +290,7 @@ def test_run_inference_loop(sample_model, mock_data):
 
 
 # ---------------------------------------------------------------------------
-# Component 7: Benchmarking Suite
-# ---------------------------------------------------------------------------
-
-def test_benchmarking_runners(sample_model, mock_data, temp_dir):
-    # Benchmark baseline
-    res_keras = benchmark_keras_model(sample_model.autoencoder, mock_data, num_warmup=2, num_runs=5)
-    assert "latency_bs1_mean" in res_keras
-    assert "mse" in res_keras
-    assert res_keras["mse"] >= 0.0
-
-    # Benchmark TFLite
-    path_dynamic = str(temp_dir / "model_dynamic.tflite")
-    convert_to_tflite(
-        sample_model.autoencoder,
-        optimization_mode="dynamic",
-        output_path=path_dynamic,
-    )
-
-    res_tflite = benchmark_tflite_model(path_dynamic, mock_data, num_warmup=2, num_runs=5)
-    assert "latency_bs1_mean" in res_tflite
-    assert "mse" in res_tflite
-    assert res_tflite["mse"] >= 0.0
-
-
-def test_tensorrt_benchmark_graceful(temp_dir):
-    """TRT benchmark returns empty dict when engine doesn't exist."""
-    fake_engine = str(temp_dir / "nonexistent.engine")
-    res = benchmark_tensorrt_model(fake_engine, np.zeros((4, 24, 5), dtype=np.float32))
-    assert res == {}
-
-
-# ---------------------------------------------------------------------------
-# Component 8: Performance Suite (Timing & Memory)
+# Component 7: Performance Suite (Timing & Memory)
 # ---------------------------------------------------------------------------
 
 def test_timing_memory_suite(mock_data, deployment_dir_with_tflite):

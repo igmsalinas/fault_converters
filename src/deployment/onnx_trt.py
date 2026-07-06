@@ -45,12 +45,13 @@ def convert_keras_to_onnx(
         return False
 
     try:
-        # Determine input shape and build input signature
+        # Fix the batch dimension to 1 so the exported model is optimised for
+        # single-sample edge inference (static input shape [1, seq_len, features]).
         input_shape = model.input_shape
-        # If batch size is None, set it to None or 1 for dynamic/static graph
-        input_signature = [tf.TensorSpec(input_shape, tf.float32, name="input_1")]
+        static_shape = (1,) + tuple(input_shape[1:])
+        input_signature = [tf.TensorSpec(static_shape, tf.float32, name="input_1")]
         
-        logger.info(f"Converting Keras model with input shape: {input_shape} and opset: {opset}...")
+        logger.info(f"Converting Keras model with fixed batch-1 input shape: {static_shape} and opset: {opset}...")
         
         # Convert model using tf2onnx from_keras
         onnx_model, _ = tf2onnx.convert.from_keras(
@@ -146,11 +147,11 @@ def compile_onnx_to_tensorrt(
                 shape = list(input_tensor.shape)
                 name = input_tensor.name
                 
-                # Replace dynamic dimensions with sensible ranges for min, opt, and max.
-                # Supporting up to batch size 128 to match the batch scaling study.
+                # Replace any dynamic dimensions with a fixed batch of 1, since
+                # the models are exported and optimised for single-sample inference.
                 min_shape = [1 if dim == -1 or dim is None else dim for dim in shape]
                 opt_shape = [1 if dim == -1 or dim is None else dim for dim in shape]
-                max_shape = [128 if dim == -1 or dim is None else dim for dim in shape]
+                max_shape = [1 if dim == -1 or dim is None else dim for dim in shape]
                 
                 logger.info(f"Setting profile shape for input '{name}': min={min_shape}, opt={opt_shape}, max={max_shape}")
                 profile.set_shape(name, min_shape, opt_shape, max_shape)

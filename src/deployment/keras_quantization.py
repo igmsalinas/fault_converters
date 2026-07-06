@@ -84,8 +84,14 @@ def convert_to_tflite(
     """
     logger.info(f"Converting model to TFLite format (optimization_mode: {optimization_mode})...")
     
-    # 1. Create converter
-    converter = tf.lite.TFLiteConverter.from_keras_model(model)
+    # 1. Create converter with a batch dimension fixed to 1 so the exported
+    #    model is optimised for single-sample edge inference
+    #    (static input shape [1, seq_len, features]). We rebuild the model on a
+    #    fixed batch-1 Input (sharing the original weights) so the standard
+    #    from_keras_model path is preserved (required for INT8 calibration).
+    fixed_input = keras.Input(batch_shape=(1,) + tuple(model.input_shape[1:]))
+    fixed_model = keras.Model(fixed_input, model(fixed_input))
+    converter = tf.lite.TFLiteConverter.from_keras_model(fixed_model)
     
     # 2. Apply optimizations
     if optimization_mode != "none":
