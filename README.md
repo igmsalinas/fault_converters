@@ -57,6 +57,88 @@ If you want to run the full training regimes across all architectures:
 bash scripts/train_all.sh
 ```
 
+## Data Pipeline
+
+The dataset is a set of small-signal **control-to-output Bode responses** (amplitude
++ phase over a frequency sweep) of a power converter, each labelled `normal`,
+`anomalous`, or `unknown` (gray zone). Everything is **converter-agnostic**: a new
+topology only needs its own data folder — no code changes.
+
+### Per-converter data folder
+
+```
+data/<converter>/
+├── <converter>.psimsch          # PSIM schematic (simulation template)
+├── parameters.txt               # nominal component values
+├── component_ranges.json        # healthy + faulty multiplier bands (+ sampling steps)
+└── <converter>_data/            # generated .txt Bode files + manifests
+    ├── manifest_grid.csv
+    ├── manifest_lhs.csv
+    └── lhs_000000.txt, ...
+```
+
+### Component ranges (`component_ranges.json`)
+
+Each component declares **multiplier bands** on its nominal value (`1.0` = nominal),
+grounded in `docs/REFERENCES.md`:
+
+- `normal`  — healthy envelope (manufacturing tolerance + temperature + ageing);
+- `anomalous` — degradation band (or `null` for an operating-point knob, not a fault);
+- `normal_step` / `anomalous_step` — optional additive sampling steps (fine for the
+  narrow tolerance band, coarse for the wide fault band).
+
+A sample is `anomalous` if **any** component is in/beyond its fault band, `normal`
+if **all** are within their healthy band, else `unknown` (excluded from training/test).
+The same bands drive the online synthetic fault injector used by CARLA.
+
+### Generating data (PSIM)
+
+```bash
+# Estimate the run (no PSIM needed) — prints the per-component sampling plan
+PYTHONPATH=. python data/generate_data.py --estimate
+
+# Generate (on the PSIM host)
+PYTHONPATH=. python data/generate_data.py --converter buck
+```
+
+- **Healthy set** (`--normal-mode lhs|random|grid`, default `lhs`) — Latin-hypercube
+  sampling over the joint tolerance box.
+- **Faulty set** (`--fault-mode lhs|grid`, default `lhs`) — each sample has a guaranteed
+  primary fault plus independent secondary faults (`--fault-prob`), so **multiple
+  simultaneous failures** occur; non-faulted components keep realistic tolerance spread.
+- Counts: `--n-normal` (default 1000), `--n-fault` (default 300).
+- **Real-time manifests**: each simulation is written as an opaque id (`lhs_000042.txt`)
+  and its metadata (component multipliers + label) is appended to `manifest_*.csv`
+  as it completes.
+- **Resume**: re-running skips grid combinations already present and tops up LHS to the
+  requested count.
+
+### Synthetic (no PSIM) debug dataset
+
+```bash
+PYTHONPATH=. python scripts/generate_synthetic_buck.py \
+    --out data/buck/buck_data_debug --n-normal 30 --n-anomaly 20
+```
+Fabricates a physically-consistent buck dataset from the analytic model so the full
+pipeline can run end-to-end without PSIM.
+
+### Loading, migration & multiple datasets
+
+- **Labels come from the manifest** when present; legacy percentage-encoded filenames
+  (`Cout_-20__Rds_1_-5.txt`) still load via a backward-compatible fallback.
+- **Migrate a legacy dataset** to the manifest format (non-destructive by default):
+  ```bash
+  python -m src.data.migrate --data-dir data/buck/buck_data          # add manifest
+  python -m src.data.migrate --data-dir data/buck/buck_data --rename # + opaque ids
+  ```
+- **Combine multiple dataset directories** (concatenated) anywhere `--data-dir` is used:
+  ```bash
+  python -m src.train --model carla --data-dir data/buck/run_lhs data/buck/run_grid
+  ```
+
+For the full data-model, sampling theory, manifest schema, and module APIs see
+[`docs/TECHNICAL_DOCUMENTATION.md`](docs/TECHNICAL_DOCUMENTATION.md).
+
 ## Evaluation
 
 Evaluate a single trained model and write metrics/thresholds to its experiment directory:
@@ -163,6 +245,7 @@ uv run pytest --cov=src tests/
 
 ## Documentation Reference
 
+- **[`docs/TECHNICAL_DOCUMENTATION.md`](docs/TECHNICAL_DOCUMENTATION.md)**: Full technical reference — architecture, data pipeline, model zoo, training/evaluation/deployment internals, CLI reference, and how to add a new converter.
 - **`docs/CONVERTER_PARAMETERS.md`**: Physical definitions of the Buck converter components and normal operating thresholds.
+- **`docs/REFERENCES.md`**: Reference library and papers (incl. component tolerance / degradation ranges).
 - **`docs/FUTURE_RESEARCH.md`**: Academic context and immediate next steps.
-- **`docs/REFERENCES.md`**: Reference library and papers.

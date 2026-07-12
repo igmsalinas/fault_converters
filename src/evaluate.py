@@ -17,7 +17,7 @@ Usage::
 
     # Predict on individual files (standard model only)
     python -m src.evaluate --model-dir experiments/conv1d_ae/saved_models/conv1d_ae \\
-                           --predict-files data/buck/buck_data/Cout_-20__Rds_1_-5.txt
+                           --predict-files data/buck/buck_data/lhs_000042.txt
 
     # Generate a visual report
     python -m src.evaluate --model-dir experiments/conv1d_ae/saved_models/conv1d_ae \\
@@ -81,8 +81,9 @@ def parse_args(argv=None) -> argparse.Namespace:
     parser.add_argument(
         "--data-dir",
         type=str,
-        default="data/buck/buck_data",
-        help="Directory containing simulation .txt files",
+        nargs="+",
+        default=["data/buck/buck_data"],
+        help="One or more directories with simulation .txt files (concatenated)",
     )
     parser.add_argument(
         "--cache-dir",

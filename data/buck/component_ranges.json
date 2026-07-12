@@ -1,0 +1,53 @@
+{
+  "converter": "buck",
+  "_comment": "Component healthy (normal) and faulty (anomalous) multiplier bands on the nominal value (1.0 = nominal). Grounded in docs/REFERENCES.md ('Component Tolerances & Degradation Ranges'). 'anomalous': null marks an operating-point knob (not a fault). 'normal_step'/'anomalous_step' are the additive multiplier steps the generator uses to sample each band (fine for the narrow tolerance band, coarse for the wide degradation band); omit a step to fall back to --normal-levels/--fault-levels. Edit / copy this file per converter (data/<converter>/component_ranges.json).",
+  "components": {
+    "Cout": {
+      "normal": [0.80, 1.20],
+      "normal_step": 0.05,
+      "anomalous": [0.30, 0.70],
+      "anomalous_step": 0.10,
+      "note": "±20% tol + DC-bias/ageing; fault = >30% capacitance loss (IEC 60384-4-1)"
+    },
+    "Esr_C": {
+      "normal": [0.50, 2.00],
+      "normal_step": 0.25,
+      "anomalous": [3.00, 8.00],
+      "anomalous_step": 1.25,
+      "note": "cold-temp ESR ~2-3x is reversible/healthy; fault = ESR >= 3x (IEC 60384-4-1 wear-out)"
+    },
+    "Lout": {
+      "normal": [0.80, 1.20],
+      "normal_step": 0.05,
+      "anomalous": [0.40, 0.70],
+      "anomalous_step": 0.075,
+      "note": "±20% tol + Isat roll-off; fault = saturation (L drop)"
+    },
+    "Esr_L": {
+      "normal": [0.85, 1.40],
+      "normal_step": 0.10,
+      "anomalous": [2.00, 6.00],
+      "anomalous_step": 1.00,
+      "note": "copper tempco normal; large rise = winding degradation"
+    },
+    "Rds_1": {
+      "normal": [1.00, 2.20],
+      "normal_step": 0.20,
+      "anomalous": [3.00, 15.00],
+      "anomalous_step": 3.00,
+      "note": "~2x from temperature normal; >3x = switch degradation"
+    },
+    "Rds_2": {
+      "normal": [1.00, 2.20],
+      "normal_step": 0.20,
+      "anomalous": [3.00, 15.00],
+      "anomalous_step": 3.00,
+      "note": "see Rds_1"
+    },
+    "Rout": {
+      "normal": [0.50, 2.00],
+      "anomalous": null,
+      "note": "operating point, not a fault; excluded from the tolerance sweep"
+    }
+  }
+}

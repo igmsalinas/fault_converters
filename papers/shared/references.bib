@@ -1,0 +1,401 @@
+%% ===========================================================================
+%% Shared bibliography for both journal drafts:
+%%   - papers/mmas_anomaly_detection/main.tex   (Math. Methods in the Applied Sciences)
+%%   - papers/jsc_edge_deployment/main.tex      (Journal of Supercomputing)
+%%
+%% Provenance:
+%%   [A] Entries copied verbatim from docs/REFERENCES.md (already vetted, in-repo).
+%%   [B] Entries transcribed from the numbered reference list [6]-[25] in
+%%       docs/JSC_PAPER_DRAFT.md (full author/title/year given there; BibTeX-ified
+%%       here for the first time, not otherwise altered).
+%%   [C] NEW entries added for edge-AI / quantization / Jetson / Xilinx coverage
+%%       needed by the JSC paper. These were NOT verified against a live source
+%%       in this session (web fetch was blocked by cookie/redirect walls) --
+%%       the Bibliography Agent (see papers/PLAN.md) MUST verify title/venue/year
+%%       before submission. Flagged inline with "VERIFY".
+%% ===========================================================================
+
+%% --------------------------- [A] Foundational --------------------------------
+
+@article{kingma2013autoencoding,
+  title={Auto-Encoding Variational Bayes},
+  author={Kingma, Diederik P. and Welling, Max},
+  journal={arXiv preprint arXiv:1312.6114},
+  year={2013},
+  url={https://arxiv.org/abs/1312.6114}
+}
+
+@article{vaswani2017attention,
+  title={Attention Is All You Need},
+  author={Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N. and Kaiser, Lukasz and Polosukhin, Illia},
+  journal={arXiv preprint arXiv:1706.03762},
+  year={2017},
+  url={https://arxiv.org/abs/1706.03762}
+}
+
+@article{sutskever2014sequence,
+  title={Sequence to Sequence Learning with Neural Networks},
+  author={Sutskever, Ilya and Vinyals, Oriol and Le, Quoc V.},
+  journal={arXiv preprint arXiv:1409.3215},
+  year={2014},
+  url={https://arxiv.org/abs/1409.3215}
+}
+
+%% --------------------------- [A] Contrastive learning -------------------------
+
+@article{darban2023carla,
+  title={CARLA: Self-supervised Contrastive Representation Learning for Time Series Anomaly Detection},
+  author={Darban, Zahra Zamanzadeh and Webb, Geoffrey I. and Pan, Shirui and Aggarwal, Charu C. and Salehi, Mahsa},
+  journal={arXiv preprint arXiv:2308.09296},
+  year={2023},
+  url={https://arxiv.org/abs/2308.09296}
+}
+
+@article{chen2020simclr,
+  title={A Simple Framework for Contrastive Learning of Visual Representations},
+  author={Chen, Ting and Kornblith, Simon and Norouzi, Mohammad and Hinton, Geoffrey},
+  journal={arXiv preprint arXiv:2002.05709},
+  year={2020},
+  url={https://arxiv.org/abs/2002.05709}
+}
+
+%% --------------------------- [A] Autoencoder-based anomaly detection ----------
+
+@article{zimmerer2018contextvae,
+  title={Context-encoding Variational Autoencoder for Unsupervised Anomaly Detection},
+  author={Zimmerer, David and Kohl, Simon A. A. and Petersen, Jens and Isensee, Fabian and Maier-Hein, Klaus H.},
+  journal={arXiv preprint arXiv:1812.05941},
+  year={2018},
+  url={https://arxiv.org/abs/1812.05941}
+}
+
+@article{zhang2025encodethendecompose,
+  title={An Encode-then-Decompose Approach to Unsupervised Time Series Anomaly Detection on Contaminated Training Data},
+  author={Zhang, Buang and Kieu, Tung and Qiu, Xiangfei and Guo, Chenjuan and Hu, Jilin and Zhou, Aoying and Jensen, Christian S. and Yang, Bin},
+  journal={arXiv preprint arXiv:2510.18998},
+  year={2025},
+  url={https://arxiv.org/abs/2510.18998}
+}
+
+@article{gao2020robusttad,
+  title={RobustTAD: Robust Time Series Anomaly Detection via Decomposition and Convolutional Neural Networks},
+  author={Gao, Jingkun and Song, Xiaomin and Wen, Qingsong and Wang, Pichao and Sun, Liang and Xu, Huan},
+  journal={arXiv preprint arXiv:2002.09545},
+  year={2020},
+  url={https://arxiv.org/abs/2002.09545}
+}
+
+@article{campos2021unsupervised,
+  title={Unsupervised Time Series Outlier Detection with Diversity-Driven Convolutional Ensembles},
+  author={Campos, David and Kieu, Tung and Guo, Chenjuan and Huang, Feiteng and Zheng, Kai and Yang, Bin and Jensen, Christian S.},
+  journal={arXiv preprint arXiv:2111.11108},
+  year={2021},
+  url={https://arxiv.org/abs/2111.11108}
+}
+
+@article{yuan2022trustworthy,
+  title={Trustworthy Anomaly Detection: A Survey},
+  author={Yuan, Shuhan and Wu, Xintao},
+  journal={arXiv preprint arXiv:2202.07787},
+  year={2022},
+  url={https://arxiv.org/abs/2202.07787}
+}
+
+%% --------------------------- [A] Power electronics & fault diagnosis ----------
+
+@article{liu2022review,
+  title={Review for AI-based Open-Circuit Faults Diagnosis Methods in Power Electronics Converters},
+  author={Liu, Chuang and Kou, Lei and Cai, Guowei and Zhao, Zihan and Zhang, Zhe},
+  journal={arXiv preprint arXiv:2209.14058},
+  year={2022},
+  url={https://arxiv.org/abs/2209.14058}
+}
+
+@article{kou2022faultdiagnosis,
+  title={Fault Diagnosis for Power Electronics Converters based on Deep Feedforward Network and Wavelet Compression},
+  author={Kou, Lei and Liu, Chuang and Cai, Guowei and Zhang, Zhe},
+  journal={arXiv preprint arXiv:2211.02632},
+  year={2022},
+  url={https://arxiv.org/abs/2211.02632}
+}
+
+%% --------------------------- [A] Component tolerances & degradation -----------
+
+@book{erickson2001fundamentals,
+  title={Fundamentals of Power Electronics},
+  author={Erickson, Robert W. and Maksimovi\'{c}, Dragan},
+  edition={2nd},
+  publisher={Springer},
+  year={2001}
+}
+
+@inproceedings{kulkarni2010electrolytic,
+  title={Experimental Studies of Ageing in Electrolytic Capacitors},
+  author={Kulkarni, Chetan and Biswas, Gautam},
+  booktitle={Annual Conference of the PHM Society},
+  volume={2},
+  year={2010}
+}
+
+@inproceedings{celaya2011mosfet,
+  title={Towards Prognostics of Power {MOSFETs}: Accelerated Aging and Precursors of Failure},
+  author={Celaya, Jose R. and Saxena, Abhinav and Vashchenko, Vladislav and Saha, Sankalita and Goebel, Kai},
+  booktitle={Annual Conference of the PHM Society},
+  year={2011}
+}
+
+@techreport{iec60384_1,
+  title={{IEC 60384-1}: Fixed capacitors for use in electronic equipment -- Part 1: Generic specification},
+  institution={International Electrotechnical Commission},
+  year={2016},
+  note={See also IEC 60063 (E-series preferred numbers), IEC 60384-4-1 (endurance/wear-out test) and EIA RS-198 (ceramic Class-2 codes, e.g. X7R $\pm$15\%)}
+}
+
+@misc{waugh_dcbias,
+  title={Design Solutions for {DC} Bias in Multilayer Ceramic Capacitors},
+  author={Waugh, Mark D.},
+  howpublished={Murata Manufacturing application note},
+  year={2012},
+  note={Class-2 MLCC capacitance derates 20--80\% under rated DC bias}
+}
+
+%% --------------------------- [B] Power electronics AD (from JSC_PAPER_DRAFT refs 6-10) ---
+
+@article{idrisov2025digitaltwin,
+  title={Leveraging Digital Twin and Machine Learning Techniques for Anomaly Detection in Power Electronics Dominated Grid},
+  author={Idrisov, Ildar N. and Okeke, David and Albaseer, Abdulmajeed and Abdallah, Mohamed and Ibanez, Fabio M.},
+  journal={arXiv preprint arXiv:2501.13474},
+  year={2025},
+  url={https://arxiv.org/abs/2501.13474}
+}
+
+@article{beattie2022robust,
+  title={A Robust and Explainable Data-Driven Anomaly Detection Approach For Power Electronics},
+  author={Beattie, Alexander and Mulinka, Pavol and Sahoo, Subham and Christou, Ioannis T. and Kalalas, Charalampos and Gutierrez-Rojas, Daniel and Nardelli, Pedro H. J.},
+  journal={arXiv preprint arXiv:2209.11427},
+  year={2022},
+  url={https://arxiv.org/abs/2209.11427}
+}
+
+@article{kiranyaz2019survey,
+  title={1D Convolutional Neural Networks and Applications: A Survey},
+  author={Kiranyaz, Serkan and Avci, Onur and Abdeljaber, Osama and Ince, Turker and Gabbouj, Moncef and Inman, Daniel J.},
+  journal={arXiv preprint arXiv:1905.03554},
+  year={2019},
+  url={https://arxiv.org/abs/1905.03554}
+}
+
+@article{chen2023harnessing,
+  title={Harnessing Contrastive Learning and Neural Transformation for Time Series Anomaly Detection},
+  author={Chen, Katrina and Feng, Mingbin and Wirjanto, Tony S.},
+  journal={arXiv preprint arXiv:2304.07898},
+  year={2023},
+  url={https://arxiv.org/abs/2304.07898}
+}
+
+@article{gomez2023selfcommissioning,
+  title={A Self-Commissioning Edge Computing Method for Data-Driven Anomaly Detection in Power Electronic Systems},
+  author={Gomez, Pere Izquierdo and Lopez Gajardo, Marc E. and Mijatovic, Nenad and Dragicevic, Tomislav},
+  journal={arXiv preprint arXiv:2312.02661},
+  year={2023},
+  url={https://arxiv.org/abs/2312.02661}
+}
+
+%% --------------------------- [B] Software / ML systems -------------------------
+
+@misc{chollet2015keras,
+  title={Keras},
+  author={Chollet, Fran\c{c}ois and others},
+  year={2015},
+  howpublished={\url{https://keras.io}}
+}
+
+@inproceedings{abadi2016tensorflow,
+  title={TensorFlow: A system for large-scale machine learning},
+  author={Abadi, Mart\'{i}n and others},
+  booktitle={12th USENIX Symposium on Operating Systems Design and Implementation (OSDI 16)},
+  pages={265--283},
+  year={2016}
+}
+
+@inproceedings{mckinney2010pandas,
+  title={Data structures for statistical computing in {P}ython},
+  author={McKinney, Wes},
+  booktitle={Proceedings of the 9th Python in Science Conference},
+  pages={51--56},
+  year={2010}
+}
+
+@article{pedregosa2011sklearn,
+  title={Scikit-learn: Machine learning in {P}ython},
+  author={Pedregosa, Fabian and others},
+  journal={Journal of Machine Learning Research},
+  volume={12},
+  pages={2825--2830},
+  year={2011}
+}
+
+@misc{bai2019onnx,
+  title={{ONNX}: Open Neural Network Exchange},
+  author={Bai, Junjie and Lu, Fang and Zhang, Ke and others},
+  year={2019},
+  howpublished={\url{https://onnx.ai}}
+}
+
+@misc{nvidia2020tensorrt,
+  title={{NVIDIA TensorRT}},
+  author={{NVIDIA Corporation}},
+  year={2020},
+  howpublished={\url{https://developer.nvidia.com/tensorrt}}
+}
+
+%% --------------------------- [B] Classic ML / evaluation -----------------------
+
+@article{rumelhart1986backprop,
+  title={Learning representations by back-propagating errors},
+  author={Rumelhart, David E. and Hinton, Geoffrey E. and Williams, Ronald J.},
+  journal={Nature},
+  volume={323},
+  number={6088},
+  pages={533--536},
+  year={1986}
+}
+
+@article{hochreiter1997lstm,
+  title={Long short-term memory},
+  author={Hochreiter, Sepp and Schmidhuber, J{\"u}rgen},
+  journal={Neural computation},
+  volume={9},
+  number={8},
+  pages={1735--1780},
+  year={1997}
+}
+
+@article{cho2014gru,
+  title={Learning phrase representations using {RNN} encoder-decoder for statistical machine translation},
+  author={Cho, Kyunghyun and Van Merri{\"e}nboer, Bart and Gulcehre, Caglar and Bahdanau, Dzmitry and Bougares, Fethi and Schwenk, Holger and Bengio, Yoshua},
+  journal={arXiv preprint arXiv:1406.1078},
+  year={2014}
+}
+
+@article{cover1967knn,
+  title={Nearest neighbor pattern classification},
+  author={Cover, Thomas and Hart, Peter},
+  journal={IEEE Transactions on Information Theory},
+  volume={13},
+  number={1},
+  pages={21--27},
+  year={1967}
+}
+
+@article{fawcett2006roc,
+  title={An introduction to {ROC} analysis},
+  author={Fawcett, Tom},
+  journal={Pattern Recognition Letters},
+  volume={27},
+  number={8},
+  pages={861--874},
+  year={2006}
+}
+
+%% --------------------------- [B] Future-work models -----------------------------
+
+@article{gu2023mamba,
+  title={Mamba: Linear-time sequence modeling with selective state spaces},
+  author={Gu, Albert and Dao, Tri},
+  journal={arXiv preprint arXiv:2312.00752},
+  year={2023},
+  url={https://arxiv.org/abs/2312.00752}
+}
+
+@article{raissi2019pinn,
+  title={Physics-informed neural networks: A deep learning framework for solving forward and inverse problems involving nonlinear partial differential equations},
+  author={Raissi, Maziar and Perdikaris, Paris and Karniadakis, George E.},
+  journal={Journal of Computational Physics},
+  volume={378},
+  pages={686--707},
+  year={2019}
+}
+
+@article{liu2024kan,
+  title={{KAN}: Kolmogorov-Arnold Networks},
+  author={Liu, Ziming and others},
+  journal={arXiv preprint arXiv:2404.19756},
+  year={2024},
+  url={https://arxiv.org/abs/2404.19756}
+}
+
+@misc{nvidia2022adalovelace,
+  title={{NVIDIA Ada Lovelace Architecture}},
+  author={{NVIDIA Corporation}},
+  howpublished={NVIDIA Whitepaper},
+  year={2022}
+}
+
+%% =============================================================================
+%% [C] NEW -- added for the JSC (edge deployment) paper. VERIFY before submission.
+%% =============================================================================
+
+@inproceedings{jacob2018quantization,
+  title={Quantization and training of neural networks for efficient integer-arithmetic-only inference},
+  author={Jacob, Benoit and Kligys, Skirmantas and Chen, Bo and Zhu, Menglong and Tang, Matthew and Howard, Andrew and Adam, Hartwig and Kalenichenko, Dmitry},
+  booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages={2704--2713},
+  year={2018},
+  note={VERIFY: arXiv:1712.05877}
+}
+
+@article{sze2017efficient,
+  title={Efficient processing of deep neural networks: A tutorial and survey},
+  author={Sze, Vivienne and Chen, Yu-Hsin and Yang, Tien-Ju and Emer, Joel S.},
+  journal={Proceedings of the IEEE},
+  volume={105},
+  number={12},
+  pages={2295--2329},
+  year={2017},
+  note={VERIFY: arXiv:1703.09039}
+}
+
+@article{gholami2021quantsurvey,
+  title={A survey of quantization methods for efficient neural network inference},
+  author={Gholami, Amir and Kim, Sehoon and Dong, Zhen and Yao, Zhewei and Mahoney, Michael W. and Keutzer, Kurt},
+  journal={arXiv preprint arXiv:2103.13630},
+  year={2021},
+  note={VERIFY: exact venue/year of record},
+  url={https://arxiv.org/abs/2103.13630}
+}
+
+@article{banbury2021mlperftiny,
+  title={{MLPerf} Tiny Benchmark},
+  author={Banbury, Colby and Reddi, Vijay Janapa and Torelli, Peter and Holleman, Jeremy and Jeffries, Nat and others},
+  journal={arXiv preprint arXiv:2106.07597},
+  year={2021},
+  note={VERIFY: exact author list/venue (NeurIPS Datasets \& Benchmarks Track)},
+  url={https://arxiv.org/abs/2106.07597}
+}
+
+@misc{nvidia2019jetsonnano,
+  title={{Jetson Nano Developer Kit}},
+  author={{NVIDIA Corporation}},
+  year={2019},
+  howpublished={NVIDIA Developer, \url{https://developer.nvidia.com/embedded/jetson-nano-developer-kit}},
+  note={VERIFY: spec sheet details (Maxwell 128-core GPU, quad-core ARM Cortex-A57, 4GB LPDDR4, 5/10W modes)}
+}
+
+@techreport{xilinx2023zcu102,
+  title={{Zynq UltraScale+ MPSoC ZCU102 Evaluation Kit User Guide}},
+  author={{AMD/Xilinx}},
+  institution={AMD/Xilinx},
+  year={2023},
+  number={UG1182},
+  note={VERIFY: document number and latest revision}
+}
+
+@techreport{xilinx2023vitisai,
+  title={{Vitis AI User Guide}},
+  author={{AMD/Xilinx}},
+  institution={AMD/Xilinx},
+  year={2023},
+  number={UG1414},
+  note={VERIFY: document number and latest revision; confirm DPUCZDX8G naming for target-specific arch.json files}
+}

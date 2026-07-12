@@ -422,7 +422,28 @@
       }
 
       .slide.takeaways .mini {
-        min-height: clamp(11.6rem, 23vh, 13.8rem);
+        min-height: clamp(7.4rem, 14vh, 9rem);
+        padding: clamp(0.85rem, 1.35vw, 1.1rem) clamp(0.7rem, 1vw, 0.9rem) clamp(0.65rem, 0.95vw, 0.85rem);
+      }
+
+      .slide.takeaways .mini > strong {
+        font-size: clamp(0.66rem, 0.9vw, 0.8rem);
+        margin-bottom: 0.28rem;
+      }
+
+      .slide.takeaways .mini p {
+        font-size: clamp(0.9rem, 1.15vw, 1.05rem);
+        line-height: 1.3;
+      }
+
+      .slide.references .bullet-list {
+        gap: clamp(0.42rem, 0.95vh, 0.8rem);
+        max-width: none;
+      }
+
+      .slide.references .bullet-list li {
+        font-size: clamp(1.02rem, 1.4vw, 1.24rem);
+        line-height: 1.42;
       }
 
       .slide.takeaways .footer-note {
@@ -443,7 +464,7 @@
       }
 
       .slide.current-map .footer-note {
-        margin-top: clamp(1.45rem, 2vw, 1.8rem);
+        margin-top: auto;
         font-size: clamp(0.92rem, 1.15vw, 1.02rem);
       }
 
@@ -921,7 +942,19 @@
       }
 
       .slide-content > .footer-note {
-        margin-top: clamp(1.6rem, 2.6vw, 2.2rem);
+        margin-top: auto;
+      }
+
+      /* Slides that carry a footer note or funding bar stretch to full height so
+         that bottom element (and its rule) is always pinned to the slide bottom. */
+      .slide-content:has(> .footer-note),
+      .slide-content:has(> .funding-bar) {
+        align-self: stretch;
+        height: 100%;
+      }
+
+      .slide-content > .funding-bar {
+        margin-top: auto;
       }
 
       .funding-bar {
@@ -954,6 +987,10 @@
 
       .funding-logos img.logo-ministerio {
         height: clamp(4.4rem, 8vw, 7rem);
+      }
+
+      .funding-logos img.logo-cm {
+        height: clamp(3.6rem, 6.4vw, 5.6rem);
       }
 
       .funding-note {
@@ -1125,6 +1162,85 @@
         max-height: min(52vh, 430px);
       }
 
+      /* ---- Image carousel (larger figures, click-through) ---- */
+      .carousel {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        margin-top: clamp(0.4rem, 1vw, 0.9rem);
+      }
+
+      .carousel-viewport {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+      }
+
+      .carousel-track {
+        display: flex;
+        width: 100%;
+        transition: transform 0.62s var(--ease-out-expo);
+      }
+
+      .carousel-item {
+        flex: 0 0 100%;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(0.55rem, 1.1vw, 0.95rem);
+        padding: 0 clamp(2.6rem, 5.5vw, 4.4rem);
+      }
+
+      .carousel-item img {
+        width: auto;
+        max-width: 100%;
+        max-height: min(66vh, 580px);
+        object-fit: contain;
+        border: none;
+      }
+
+      .carousel-compact .carousel-item img {
+        max-height: min(52vh, 440px);
+      }
+
+      .carousel-item figcaption {
+        font-size: var(--small-size);
+        color: var(--text-muted);
+        line-height: 1.35;
+        max-width: 88ch;
+        text-align: center;
+      }
+
+      .carousel-item figcaption strong {
+        color: var(--text-primary);
+      }
+
+      .carousel-dots {
+        display: flex;
+        justify-content: center;
+        gap: 0.55rem;
+        margin-top: clamp(0.75rem, 1.3vw, 1.05rem);
+      }
+
+      .carousel-dot {
+        width: 0.5rem;
+        height: 0.5rem;
+        padding: 0;
+        border-radius: 999px;
+        border: 1px solid var(--line-strong);
+        background: transparent;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.2s ease;
+      }
+
+      .carousel-dot.active {
+        background: var(--text-primary);
+        border-color: var(--text-primary);
+        transform: scale(1.15);
+      }
+
       .eqn {
         font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
         font-size: clamp(0.86rem, 1.2vw, 1.06rem);
@@ -1243,7 +1359,7 @@
     <section class="slide title-slide">
       <div class="slide-content">
         <div class="slide-header reveal">
-          <span class="section-tag">CMMSE 2026 · computational &amp; mathematical methods</span>
+          <span class="section-tag">CMMSE 2026 · computational &amp; mathematical methods in science and engineering</span>
           <span class="slide-index">01</span>
         </div>
         <div class="title-grid">
@@ -1265,8 +1381,9 @@
           <div class="funding-logos">
             <img class="logo-uc3m" src="uc3m.png" alt="Universidad Carlos III de Madrid — Departamento de Tecnología Electrónica" />
             <img class="logo-ministerio" src="ministerio.png" alt="Ministerio de Ciencia, Innovación y Universidades · Agencia Estatal de Investigación · Cofinanciado por la Unión Europea" />
+            <img class="logo-cm" src="cm.png" alt="Comunidad de Madrid" />
           </div>
-          <p class="funding-note">Grant PID2024-162157OB-I00 funded by MICIU/AEI/10.13039/501100011033 and by ERDF/EU.</p>
+          <p class="funding-note">Grant PID2024-162157OB-I00 funded by MICIU/AEI/10.13039/501100011033 and by ERDF/EU.<br />TEC2024/COM360 DISCO6G-CM funded by Comunidad de Madrid.</p>
         </div>
         <div class="hero-ghost">01</div>
       </div>
@@ -1291,7 +1408,7 @@
               <p class="lede" style="font-size: clamp(1.15rem, 2.1vw, 1.8rem); max-width: 18ch; color: #fff; margin-top: 0.4rem;">
                 Parametric drift migrates poles and zeros — a scalar alarm cannot see it.
               </p>
-              <div class="math block" style="font-size: clamp(0.82rem, 1.1vw, 1rem); margin-top: 0.9rem; text-align:center;">
+              <div class="math block" style="font-size: clamp(1.15rem, 1.9vw, 1.7rem); margin-top: 0.9rem; text-align:center;">
                 H(s) = C(sI &minus; A)<sup>&minus;1</sup>B + D
               </div>
             </div>
@@ -1301,56 +1418,18 @@
             </div>
           </div>
           <div class="context-points reveal">
-            <div class="context-point"><p><strong>Non-linear coupling.</strong> A &plusmn;10% ESR change reshapes magnitude and phase across decades — not a monotone offset a fixed limit can bound.</p></div>
-            <div class="context-point"><p><strong>High dimensionality.</strong> Each health state is a 202-D vector (101 magnitude + 101 phase points); hand-tuned per-point limits do not scale.</p></div>
-            <div class="context-point"><p><strong>Label scarcity.</strong> Field faults are rare and unlabeled, so the detector must be trained on healthy data only — self-supervised, one-class.</p></div>
-            <div class="context-point"><p><strong>Edge budget.</strong> Inference must run in real time beside the converter, within a few watts and sub-millisecond latency.</p></div>
-            <div class="context-point"><p><strong>Our answer.</strong> Contrastive representation learning (CARLA) for sensitivity, TensorRT kernel fusion for &mu;s-scale deployment.</p></div>
+            <div class="context-point"><p><strong>Non-linear coupling.</strong> A &plusmn;10% ESR change reshapes magnitude and phase across decades — no fixed limit can bound it.</p></div>
+            <div class="context-point"><p><strong>High dimensionality.</strong> Each state is a 202-D vector (101 magnitude + 101 phase); per-point limits do not scale.</p></div>
+            <div class="context-point"><p><strong>Label scarcity.</strong> Field faults are rare and unlabeled — train on healthy data only, self-supervised.</p></div>
+            <div class="context-point"><p><strong>Edge budget.</strong> Real-time inference beside the converter, within a few watts and sub-millisecond latency.</p></div>
+            <div class="context-point"><p><strong>Our answer.</strong> Contrastive learning (CARLA) for sensitivity; on-device compilation for edge deployment.</p></div>
           </div>
         </div>
       </div>
     </section>
 
     <!-- ===========================================
-         SLIDE 3: FRAMEWORK MAP
-         =========================================== -->
-    <section class="slide current-map">
-      <div class="slide-content">
-        <div class="slide-header">
-          <div>
-            <p class="eyebrow reveal">Framework at a glance</p>
-            <h2 class="reveal">Three components, one diagnostic loop.</h2>
-          </div>
-          <span class="slide-index reveal">03</span>
-        </div>
-        <div class="cards-quad">
-          <article class="card-block reveal">
-            <span class="card-kicker">Physics-based dataset</span>
-            <h3>227,698 transfer functions.</h3>
-            <p>A PSIM digital twin extracts small-signal H(j&omega;) while sweeping six aging components across &plusmn;20% of nominal.</p>
-          </article>
-          <article class="card-block reveal">
-            <span class="card-kicker">Autoencoder suite</span>
-            <h3>Six inductive biases.</h3>
-            <p>Convolutional, recurrent, attentional and variational encoders under one BaseAutoencoder contract z = f<sub>enc</sub>(x), x&#x302; = f<sub>dec</sub>(z).</p>
-          </article>
-          <article class="card-block reveal">
-            <span class="card-kicker">CARLA contrastive engine</span>
-            <h3>Label-free separation.</h3>
-            <p>Physics-consistent synthetic anomalies as negatives; NT-Xent on a unit-sphere projection separates health from degradation.</p>
-          </article>
-          <article class="card-block reveal">
-            <span class="card-kicker">Edge deployment</span>
-            <h3>Sub-millisecond inference.</h3>
-            <p>TensorRT FP16 kernel fusion &rarr; 0.499 ms at batch-1 while preserving ROC-AUC = 0.985.</p>
-          </article>
-        </div>
-        <p class="footer-note reveal">Dataset split 70% train / 15% validation / 15% test — released alongside the PSIM configuration files on publication.</p>
-      </div>
-    </section>
-
-    <!-- ===========================================
-         SLIDE 4: BUCK CONVERTER
+         SLIDE 3: BUCK CONVERTER
          =========================================== -->
     <section class="slide image-lines">
       <div class="slide-content">
@@ -1359,7 +1438,7 @@
             <p class="eyebrow reveal">Converter under study</p>
             <h2 class="reveal">A Buck converter, probed by AC sweep.</h2>
           </div>
-          <span class="slide-index reveal">04</span>
+          <span class="slide-index reveal">03</span>
         </div>
         <div class="split-panel">
           <div class="figure reveal">
@@ -1394,7 +1473,7 @@
     </section>
 
     <!-- ===========================================
-         SLIDE 5: BODE SIGNATURE
+         SLIDE 4: BODE SIGNATURE
          =========================================== -->
     <section class="slide">
       <div class="slide-content">
@@ -1403,72 +1482,38 @@
             <p class="eyebrow reveal">Health as a fingerprint</p>
             <h2 class="reveal">Every state is a Bode signature.</h2>
           </div>
+          <span class="slide-index reveal">04</span>
+        </div>
+        <div class="carousel reveal" data-carousel style="margin-bottom: clamp(1.4rem, 2.6vw, 2.2rem);">
+          <div class="carousel-viewport">
+            <div class="carousel-track">
+              <figure class="carousel-item">
+                <img src="../plots/anomaly_deviation_Cout.png" alt="Bode deviation for output capacitor Cout" />
+                <figcaption><strong>C<sub>out</sub> drift</strong> — a pronounced resonance-peak shift near ~1 kHz. A strong, low-frequency signature.</figcaption>
+              </figure>
+              <figure class="carousel-item">
+                <img src="../plots/anomaly_deviation_Esr_C.png" alt="Bode deviation for capacitor ESR" />
+                <figcaption><strong>ESR<sub>C</sub> drift</strong> — subtle high-frequency amplitude and phase change; the resonance stays fixed. A weak signature.</figcaption>
+              </figure>
+            </div>
+          </div>
+          <div class="carousel-dots"></div>
+        </div>
+        <p class="footer-note reveal">101 log-spaced points of amplitude (dB) and phase (°). Black = nominal; blue → red span [−20%, +20%]. Strong vs. subtle signatures motivate a learned detector over hand-tuned thresholds.</p>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 5: DATA GENERATION & DATASET
+         =========================================== -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">Data generation &amp; dataset</p>
+            <h2 class="reveal">227,698 labeled transfer functions.</h2>
+          </div>
           <span class="slide-index reveal">05</span>
-        </div>
-        <div class="two-col reveal" style="grid-template-columns: 1fr 1fr; margin-bottom: clamp(1.4rem, 2.6vw, 2.2rem);">
-          <div class="figure">
-            <img src="../plots/anomaly_deviation_Cout.png" alt="Bode deviation for output capacitor Cout" />
-            <figcaption><strong>C<sub>out</sub> drift</strong> — a pronounced resonance-peak shift near ~1 kHz. A strong, low-frequency signature.</figcaption>
-          </div>
-          <div class="figure">
-            <img src="../plots/anomaly_deviation_Esr_C.png" alt="Bode deviation for capacitor ESR" />
-            <figcaption><strong>ESR<sub>C</sub> drift</strong> — subtle high-frequency amplitude and phase change; the resonance stays fixed. A weak signature.</figcaption>
-          </div>
-        </div>
-        <p class="footer-note reveal">Each response is 101 log-spaced points of amplitude (dB) and phase (°). Black = nominal; blue → red span the [−20%, +20%] deviation range. Strong vs. subtle signatures motivate a learned detector over hand-tuned thresholds.</p>
-      </div>
-    </section>
-
-    <!-- ===========================================
-         SLIDE 6: PSIM AUTOMATION
-         =========================================== -->
-    <section class="slide">
-      <div class="slide-content">
-        <div class="slide-header">
-          <div>
-            <p class="eyebrow reveal">Data generation</p>
-            <h2 class="reveal">Small-signal probing of a physical model.</h2>
-          </div>
-          <span class="slide-index reveal">06</span>
-        </div>
-        <p class="lede reveal" style="max-width: 52rem;">A low-amplitude AC source linearizes the switching converter around its duty-cycle operating point — each perturbed netlist yields one labeled transfer function, no destructive hardware testing.</p>
-        <div class="process-line reveal" style="margin-bottom: clamp(1.4rem, 2.6vw, 2.2rem);">
-          <div class="process-step">
-            <div class="step-no">01</div>
-            <h3 style="font-size: clamp(1.2rem,1.9vw,1.6rem); margin:0.3rem 0;">LTI linearization</h3>
-            <p>Each netlist defines a state-space system (A, B, C, D); AC analysis evaluates H(j&omega;) at the operating point D = 0.4, f<sub>sw</sub> = 100 kHz.</p>
-          </div>
-          <div class="process-step">
-            <div class="step-no">02</div>
-            <h3 style="font-size: clamp(1.2rem,1.9vw,1.6rem); margin:0.3rem 0;">Parametric fault map</h3>
-            <p>Six aging components (C<sub>out</sub>, L, R<sub>ds,1</sub>, R<sub>ds,2</sub>, ESR<sub>C</sub>, ESR<sub>L</sub>) swept over &plusmn;20% around nominal.</p>
-          </div>
-          <div class="process-step">
-            <div class="step-no">03</div>
-            <h3 style="font-size: clamp(1.2rem,1.9vw,1.6rem); margin:0.3rem 0;">Frequency sampling</h3>
-            <p>101 log-spaced points over 100 Hz – 50 kHz resolve the LC resonance and the ESR-dominated high-frequency tail.</p>
-          </div>
-          <div class="process-step">
-            <div class="step-no">04</div>
-            <h3 style="font-size: clamp(1.2rem,1.9vw,1.6rem); margin:0.3rem 0;">Labeled signatures</h3>
-            <p>Magnitude (dB) and phase (°) stacked into a (101&times;2) tensor, tagged normal or anomalous by deviation band.</p>
-          </div>
-        </div>
-        <p class="footer-note reveal">The digital twin turns one Buck schematic into a reproducible, physically-grounded fault library spanning 227,698 states.</p>
-      </div>
-    </section>
-
-    <!-- ===========================================
-         SLIDE 7: DATASET
-         =========================================== -->
-    <section class="slide">
-      <div class="slide-content">
-        <div class="slide-header">
-          <div>
-            <p class="eyebrow reveal">Dataset &amp; labeling</p>
-            <h2 class="reveal">227,698 transfer functions.</h2>
-          </div>
-          <span class="slide-index reveal">07</span>
         </div>
         <div class="metric-band reveal">
           <div class="metric">
@@ -1484,71 +1529,34 @@
             <div class="label">train / val / test</div>
           </div>
         </div>
-        <div class="two-col reveal" style="margin-top: 1.4rem; grid-template-columns: 0.85fr 1.15fr;">
-          <div>
-            <p class="eyebrow" style="margin-bottom:0.6rem;">Labeling strategy</p>
-            <table class="data-table">
-              <thead>
-                <tr><th>State</th><th>Deviation range</th><th class="num">Step</th></tr>
-              </thead>
-              <tbody>
-                <tr><td><strong>Normal</strong></td><td>[−5%, +5%]</td><td class="num">1%</td></tr>
-                <tr><td><strong>Anomalous</strong></td><td>[−20%, −5%) and (+5%, +20%]</td><td class="num">5%</td></tr>
-              </tbody>
-            </table>
+        <div class="process-line reveal" style="margin-top: clamp(1.4rem, 2.6vw, 2.2rem);">
+          <div class="process-step">
+            <div class="step-no">01</div>
+            <h3 style="font-size: clamp(1.2rem,1.9vw,1.6rem); margin:0.3rem 0;">LTI linearization</h3>
+            <p>A low-amplitude AC source evaluates H(j&omega;) around the operating point D = 0.4, f<sub>sw</sub> = 100 kHz — no destructive hardware testing.</p>
           </div>
-          <div style="padding-top: clamp(1.2rem, 2.4vw, 2rem); padding-left: clamp(1rem, 2.4vw, 2rem);">
-            <ul class="bullet-list">
-              <li><span>Each frequency point carries <strong>amplitude (dB)</strong> and <strong>phase (°)</strong>.</span></li>
-              <li><span>Per-feature <strong>z-score standardization</strong> (&mu;, &sigma; fit on train) removes scale disparity between magnitude and phase.</span></li>
-              <li><span>Fine 1% steps inside the normal band support precision studies; coarser 5% anomalous steps calibrate thresholds and test the models.</span></li>
-              <li><span>Dataset and PSIM configs to be open-sourced on publication for reproducibility.</span></li>
-            </ul>
+          <div class="process-step">
+            <div class="step-no">02</div>
+            <h3 style="font-size: clamp(1.2rem,1.9vw,1.6rem); margin:0.3rem 0;">Parametric fault map</h3>
+            <p>Six aging components (C<sub>out</sub>, L, R<sub>ds,1</sub>, R<sub>ds,2</sub>, ESR<sub>C</sub>, ESR<sub>L</sub>) swept over &plusmn;20% around nominal.</p>
+          </div>
+          <div class="process-step">
+            <div class="step-no">03</div>
+            <h3 style="font-size: clamp(1.2rem,1.9vw,1.6rem); margin:0.3rem 0;">Frequency sampling</h3>
+            <p>101 log-spaced points over 100 Hz – 50 kHz resolve the LC resonance and the ESR-dominated high-frequency tail.</p>
+          </div>
+          <div class="process-step">
+            <div class="step-no">04</div>
+            <h3 style="font-size: clamp(1.2rem,1.9vw,1.6rem); margin:0.3rem 0;">Labeled signatures</h3>
+            <p>Magnitude (dB) and phase (°) stacked into a (101&times;2) tensor, z-score standardized (&mu;, &sigma; from train).</p>
           </div>
         </div>
+        <p class="footer-note reveal">Labels by deviation band: <strong>normal</strong> [−5%, +5%] (1% steps), <strong>anomalous</strong> [−20%, −5%) &cup; (+5%, +20%] (5% steps). Dataset and PSIM configs open-sourced on publication.</p>
       </div>
     </section>
 
     <!-- ===========================================
-         SLIDE 8: MODEL SUITE
-         =========================================== -->
-    <section class="slide current-map">
-      <div class="slide-content">
-        <div class="slide-header">
-          <div>
-            <p class="eyebrow reveal">Architectural inductive biases</p>
-            <h2 class="reveal">Six encoders, one contract.</h2>
-          </div>
-          <span class="slide-index reveal">08</span>
-        </div>
-        <div class="cards-quad">
-          <article class="card-block reveal">
-            <span class="card-kicker">MLP-AE &amp; Conv1D-AE</span>
-            <h3>Dense vs. translation-equivariant.</h3>
-            <p>Local Conv1D kernels (size 5) capture resonance structure at O(N) cost; the MLP is a fully-connected baseline.</p>
-          </article>
-          <article class="card-block reveal">
-            <span class="card-kicker">LSTM-AE &amp; GRU-AE</span>
-            <h3>Gated recurrence over frequency.</h3>
-            <p>Hidden state propagates along the frequency axis to model roll-off and gradual parametric drift.</p>
-          </article>
-          <article class="card-block reveal">
-            <span class="card-kicker">VAE &amp; Transformer-AE</span>
-            <h3>Variational and attentional.</h3>
-            <p>Latent z &sim; N(&mu;, &sigma;<sup>2</sup>I) with KL regularization; multi-head self-attention for O(N<sup>2</sup>) global spectral coupling.</p>
-          </article>
-          <article class="card-block reveal">
-            <span class="card-kicker">Bayesian tuning</span>
-            <h3>Objective = validation AUC.</h3>
-            <p>Keras Tuner searches latent dim, kernel size, activation (GELU/Swish/Mish) and optimizer (AdamW/Lion) under warmup-cosine decay and early stopping.</p>
-          </article>
-        </div>
-        <p class="footer-note reveal">All six share the encoder–decoder contract z = f<sub>enc</sub>(x), x&#x302; = f<sub>dec</sub>(z), trained by MSE reconstruction and ranked by held-out ROC-AUC. Built on Keras / TensorFlow.</p>
-      </div>
-    </section>
-
-    <!-- ===========================================
-         SLIDE 9: RECONSTRUCTION-AE ANATOMY
+         SLIDE 6: RECONSTRUCTION-AE ANATOMY
          =========================================== -->
     <section class="slide">
       <div class="slide-content">
@@ -1557,7 +1565,7 @@
             <p class="eyebrow reveal">Inside the encoder–decoder contract</p>
             <h2 class="reveal">Anatomy of the Conv1D autoencoder.</h2>
           </div>
-          <span class="slide-index reveal">09</span>
+          <span class="slide-index reveal">06</span>
         </div>
         <div class="figure reveal" style="align-items:center; text-align:center; margin:auto 0;">
           <img src="../plots/arch_hero_conv1d_ae.png" alt="Isometric diagram of the Conv1D autoencoder: encoder, latent bottleneck and decoder annotated with tensor shapes" style="max-height:min(60vh, 520px); width:auto; max-width:100%; border:none;" />
@@ -1567,42 +1575,60 @@
     </section>
 
     <!-- ===========================================
-         SLIDE 10: VARIATIONAL & SEQUENCE VARIANTS
+         SLIDE 7: VARIATIONAL BOTTLENECK
          =========================================== -->
     <section class="slide">
       <div class="slide-content">
         <div class="slide-header">
           <div>
             <p class="eyebrow reveal">One contract, distinct inductive biases</p>
-            <h2 class="reveal">A variational bottleneck and sequence variants.</h2>
+            <h2 class="reveal">A variational bottleneck.</h2>
           </div>
-          <span class="slide-index reveal">10</span>
+          <span class="slide-index reveal">07</span>
         </div>
-        <div class="fig-col reveal" style="justify-content:center; height:100%;">
-          <figure class="figure" style="align-items:center; text-align:center;">
-            <img src="../plots/arch_hero_vae.png" alt="VAE diagram with a probabilistic bottleneck: mu and log-variance heads feed a reparameterized sample z" style="max-height:min(40vh, 350px); width:auto; max-width:100%; border:none;" />
-            <figcaption style="max-width:98ch; margin:0 auto;">The <strong>VAE</strong> replaces the deterministic code with a probabilistic bottleneck: the encoder emits &mu; and log&thinsp;&sigma;<sup>2</sup>, then z &sim; N(&mu;, &sigma;<sup>2</sup>) is drawn by the reparameterization trick and regularized toward N(0, I) through the KL term of the ELBO.</figcaption>
-          </figure>
-          <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:clamp(0.8rem,1.6vw,1.6rem); align-items:start; margin-top:clamp(0.6rem,1.2vw,1.1rem);">
-            <figure class="figure" style="align-items:center; text-align:center;">
-              <img src="../plots/arch_hero_lstm_ae.png" alt="LSTM autoencoder diagram" style="max-height:min(19vh,145px); width:auto; max-width:100%; border:none;" />
-              <figcaption style="text-align:center;"><strong>LSTM-AE</strong> &mdash; gated recurrence over the frequency axis.</figcaption>
-            </figure>
-            <figure class="figure" style="align-items:center; text-align:center;">
-              <img src="../plots/arch_hero_gru_ae.png" alt="GRU autoencoder diagram" style="max-height:min(19vh,145px); width:auto; max-width:100%; border:none;" />
-              <figcaption style="text-align:center;"><strong>GRU-AE</strong> &mdash; a lighter gated recurrent variant.</figcaption>
-            </figure>
-            <figure class="figure" style="align-items:center; text-align:center;">
-              <img src="../plots/arch_hero_transformer_ae.png" alt="Transformer autoencoder diagram" style="max-height:min(19vh,145px); width:auto; max-width:100%; border:none;" />
-              <figcaption style="text-align:center;"><strong>Transformer-AE</strong> &mdash; self-attention for global spectral coupling.</figcaption>
-            </figure>
-          </div>
+        <div class="figure reveal" style="align-items:center; text-align:center; margin:auto 0;">
+          <img src="../plots/arch_hero_vae.png" alt="VAE diagram with a probabilistic bottleneck: mu and log-variance heads feed a reparameterized sample z" style="max-height:min(58vh, 500px); width:auto; max-width:100%; border:none;" />
+          <figcaption style="max-width:92ch; margin:0 auto;">The <strong>VAE</strong> replaces the deterministic code with a probabilistic bottleneck: the encoder emits &mu; and log&thinsp;&sigma;<sup>2</sup>, then z &sim; N(&mu;, &sigma;<sup>2</sup>) is drawn by the reparameterization trick and regularized toward N(0, I) through the KL term of the ELBO.</figcaption>
         </div>
       </div>
     </section>
 
     <!-- ===========================================
-         SLIDE 11: CARLA
+         SLIDE 8: SEQUENCE & ATTENTION VARIANTS
+         =========================================== -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <p class="eyebrow reveal">One contract, distinct inductive biases</p>
+            <h2 class="reveal">Sequence and attention variants.</h2>
+          </div>
+          <span class="slide-index reveal">08</span>
+        </div>
+        <div class="carousel carousel-compact reveal" data-carousel style="margin:auto 0;">
+          <div class="carousel-viewport">
+            <div class="carousel-track">
+              <figure class="carousel-item">
+                <img src="../plots/arch_hero_lstm_ae.png" alt="LSTM autoencoder diagram" />
+                <figcaption><strong>LSTM-AE</strong> &mdash; gated recurrence propagates a hidden state along the frequency axis to model roll-off and gradual parametric drift.</figcaption>
+              </figure>
+              <figure class="carousel-item">
+                <img src="../plots/arch_hero_gru_ae.png" alt="GRU autoencoder diagram" />
+                <figcaption><strong>GRU-AE</strong> &mdash; a lighter gated recurrent variant with fewer parameters and comparable spectral memory.</figcaption>
+              </figure>
+              <figure class="carousel-item">
+                <img src="../plots/arch_hero_transformer_ae.png" alt="Transformer autoencoder diagram" />
+                <figcaption><strong>Transformer-AE</strong> &mdash; multi-head self-attention couples all frequencies globally at O(N<sup>2</sup>) cost.</figcaption>
+              </figure>
+            </div>
+          </div>
+          <div class="carousel-dots"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 9: CARLA
          =========================================== -->
     <section class="slide video-serving">
       <div class="slide-content">
@@ -1611,17 +1637,17 @@
             <p class="eyebrow reveal">Self-supervised contrastive learning</p>
             <h2 class="reveal">CARLA separates health from degradation.</h2>
           </div>
-          <span class="slide-index reveal">11</span>
+          <span class="slide-index reveal">09</span>
         </div>
         <div class="split-panel">
           <div>
             <ul class="bullet-list reveal">
-              <li><span>Reconstruction-only autoencoders learn to rebuild normal data — limited discriminative power.</span></li>
+              <li><span>Reconstruction-only autoencoders learn to rebuild normal data — limited discriminative power<sup>[9, 10]</sup>.</span></li>
               <li><span><strong>Point:</strong> spikes, dropouts, band-limited noise.</span></li>
               <li><span><strong>Contextual:</strong> amplitude/phase offsets, gain and roll-off slope changes.</span></li>
               <li><span><strong>Collective:</strong> resonance shift/addition, bandwidth change, oscillation.</span></li>
               <li><span><strong>Physics-based:</strong> ESR growth, inductor saturation, R<sub>ds</sub> increase — matched to real fault modes.</span></li>
-              <li><span>Projection head g(&middot;): a 2-layer MLP maps latents to a 64-D unit sphere where NT-Xent (&tau; = 0.1) operates.</span></li>
+              <li><span>Projection head g(&middot;): a 2-layer MLP maps latents to a 64-D unit sphere where NT-Xent (&tau; = 0.1) operates<sup>[1, 4]</sup>.</span></li>
               <li><span>Inference scores non-parametrically by <strong>k-NN distance</strong> (k = 5) over the projection space — threshold-independent ROC-AUC.</span></li>
             </ul>
           </div>
@@ -1631,7 +1657,7 @@
               <p class="lede" style="font-size: clamp(1.05rem, 1.8vw, 1.5rem); color:#fff; max-width: 18ch; margin-top: 0.5rem;">
                 Maximally separate healthy and degraded states in latent space.
               </p>
-              <div class="math block" style="font-size: clamp(0.88rem, 1.2vw, 1.12rem); margin-top: 1rem; padding: clamp(1rem, 2vw, 1.6rem) 0; text-align: center;">
+              <div class="math block" style="font-size: clamp(1.15rem, 1.75vw, 1.6rem); margin-top: 1rem; padding: clamp(1rem, 2vw, 1.6rem) 0; text-align: center;">
                 <span class="op">L</span><sub>NT-Xent</sub> = &minus; log
                 <span class="frac">
                   <span class="num">exp( sim(z<sub>i</sub>, z<sub>j</sub>) / &tau; )</span>
@@ -1651,7 +1677,7 @@
     </section>
 
     <!-- ===========================================
-         SLIDE 12: OBJECTIVES, SCORING & SEARCH
+         SLIDE 10: OBJECTIVES, SCORING & SEARCH
          =========================================== -->
     <section class="slide long-context-fixes">
       <div class="slide-content">
@@ -1660,7 +1686,7 @@
             <p class="eyebrow reveal">Objectives, scoring &amp; search</p>
             <h2 class="reveal">From reconstruction error to a decision.</h2>
           </div>
-          <span class="slide-index reveal">12</span>
+          <span class="slide-index reveal">10</span>
         </div>
         <div class="two-col" style="align-items: start; gap: 2.4rem;">
           <div class="reveal">
@@ -1722,7 +1748,7 @@
     </section>
 
     <!-- ===========================================
-         SLIDE 13: EVALUATION METRICS
+         SLIDE 11: EVALUATION METRICS
          =========================================== -->
     <section class="slide long-context-fixes">
       <div class="slide-content" style="display:flex; flex-direction:column; height:100%;">
@@ -1731,7 +1757,7 @@
             <p class="eyebrow reveal">Evaluation protocol</p>
             <h2 class="reveal">Ranking first, then the operating point.</h2>
           </div>
-          <span class="slide-index reveal">13</span>
+          <span class="slide-index reveal">11</span>
         </div>
         <div class="two-col" style="align-items: stretch; gap: 2.4rem; margin-top: 0.6rem; flex: 1 1 auto;">
           <div class="reveal" style="display:flex; flex-direction:column; justify-content:space-between; gap: 0.4rem;">
@@ -1773,7 +1799,7 @@
     </section>
 
     <!-- ===========================================
-         SLIDE 14: ARCHITECTURE RESULTS
+         SLIDE 12: ARCHITECTURE RESULTS
          =========================================== -->
     <section class="slide long-context-fixes">
       <div class="slide-content">
@@ -1782,7 +1808,7 @@
             <p class="eyebrow reveal">Model comparison</p>
             <h2 class="reveal">Conv1D-AE leads on F1 and AUC.</h2>
           </div>
-          <span class="slide-index reveal">14</span>
+          <span class="slide-index reveal">12</span>
         </div>
         <div class="two-col" style="align-items: start;">
           <div class="reveal">
@@ -1811,33 +1837,7 @@
     </section>
 
     <!-- ===========================================
-         SLIDE 15: TRAINING DYNAMICS
-         =========================================== -->
-    <section class="slide">
-      <div class="slide-content">
-        <div class="slide-header">
-          <div>
-            <p class="eyebrow reveal">Training dynamics</p>
-            <h2 class="reveal">Convergence depth spans two orders of magnitude.</h2>
-          </div>
-          <span class="slide-index reveal">15</span>
-        </div>
-        <div class="fig-grid fig-grid-split reveal">
-          <figure class="figure">
-            <img src="../plots/arch_convergence.png" alt="Validation reconstruction loss versus epoch for the five reconstruction autoencoders" />
-            <figcaption>Validation MSE (log scale) per architecture. Conv1D-AE and Transformer-AE reach the ~4&times;10<sup>&minus;7</sup> floor; MLP-AE plateaus an order higher, LSTM-AE stalls near 10<sup>&minus;5</sup>, GRU-AE converges late to ~3&times;10<sup>&minus;4</sup>. A low reconstruction floor is necessary but not sufficient &mdash; Transformer-AE fits the nominal manifold tightly yet separates faults less than Conv1D-AE.</figcaption>
-          </figure>
-          <figure class="figure">
-            <img src="../plots/arch_loss_decomposition.png" alt="VAE and CARLA multi-objective loss decomposition" />
-            <figcaption>Composite objectives (train solid, validation dashed). The VAE balances reconstruction against the KL term of the ELBO; CARLA drives the NT-Xent contrastive loss below 10<sup>&minus;4</sup> while validation reconstruction rises &mdash; motivating label-free k-NN scoring in the learned projection space.</figcaption>
-          </figure>
-        </div>
-        <p class="footer-note reveal">Shared AdamW + warmup&ndash;cosine schedule with early stopping across all runs; only the architectural inductive bias differs.</p>
-      </div>
-    </section>
-
-    <!-- ===========================================
-         SLIDE 16: PER-COMPONENT ATLAS
+         SLIDE 13: PER-COMPONENT ATLAS
          =========================================== -->
     <section class="slide">
       <div class="slide-content">
@@ -1846,38 +1846,41 @@
             <p class="eyebrow reveal">Physical interpretability</p>
             <h2 class="reveal">Severity is written in the error.</h2>
           </div>
-          <span class="slide-index reveal">16</span>
+          <span class="slide-index reveal">13</span>
         </div>
-        <div class="fig-grid fig-grid-split reveal">
-          <div class="fig-col">
-            <div class="figure">
-              <img src="../plots/score_vs_deviation_conv1d_ae.svg" alt="Anomaly score versus component deviation magnitude for Conv1D-AE" />
-              <figcaption>Reconstruction error scales with the physical magnitude of drift — the network internalised the converter's dynamics. Every miss (FN) sits at near-nominal deviations; all severe faults clear the threshold.</figcaption>
-            </div>
-            <div class="figure">
-              <img src="../plots/error_by_component_conv1d_ae.svg" alt="Missed-anomaly rate per component for Conv1D-AE" />
-              <figcaption>Per-component miss rates: the MOSFET on-resistances (R<sub>ds,1</sub>, R<sub>ds,2</sub>) are the hardest signatures (~5%), while C<sub>out</sub> faults are almost always caught. False alarms stay at 3.3%.</figcaption>
+        <div class="carousel reveal" data-carousel style="margin:auto 0;">
+          <div class="carousel-viewport">
+            <div class="carousel-track">
+              <figure class="carousel-item">
+                <img src="../plots/confusion_matrix_conv1d_ae.svg" alt="Conv1D-AE confusion matrix on the test set" />
+                <figcaption>Conv1D-AE confusion matrix — 96.7% normal, 95.0% anomaly correct on the held-out test set.</figcaption>
+              </figure>
+              <figure class="carousel-item">
+                <img src="../plots/score_vs_deviation_conv1d_ae.svg" alt="Anomaly score versus component deviation magnitude for Conv1D-AE" />
+                <figcaption>Reconstruction error scales with the physical magnitude of drift — the network internalised the converter's dynamics. Every miss (FN) sits at near-nominal deviations; all severe faults clear the threshold.</figcaption>
+              </figure>
+              <figure class="carousel-item">
+                <img src="../plots/error_by_component_conv1d_ae.svg" alt="Missed-anomaly rate per component for Conv1D-AE" />
+                <figcaption>Per-component miss rates: the MOSFET on-resistances (R<sub>ds,1</sub>, R<sub>ds,2</sub>) are the hardest signatures (~5%), while C<sub>out</sub> faults are almost always caught. False alarms stay at 3.3%.</figcaption>
+              </figure>
             </div>
           </div>
-          <div class="figure">
-            <img src="../plots/confusion_matrix_conv1d_ae.svg" alt="Conv1D-AE confusion matrix on the test set" />
-            <figcaption>Conv1D-AE confusion matrix — 96.7% normal, 95.0% anomaly correct on the held-out test set.</figcaption>
-          </div>
+          <div class="carousel-dots"></div>
         </div>
       </div>
     </section>
 
     <!-- ===========================================
-         SLIDE 17: DEPLOYMENT OVERVIEW
+         SLIDE 14: DEPLOYMENT SETUP
          =========================================== -->
     <section class="slide video-serving">
       <div class="slide-content">
         <div class="slide-header">
           <div>
             <p class="eyebrow reveal">High-performance edge deployment</p>
-            <h2 class="reveal">Five backends, one testbed.</h2>
+            <h2 class="reveal">Five backends, one testbed, one protocol.</h2>
           </div>
-          <span class="slide-index reveal">17</span>
+          <span class="slide-index reveal">14</span>
         </div>
         <div class="serving-body reveal">
           <p class="lede" style="max-width: 62rem;">Every export path is benchmarked on one machine — isolating compiler-level optimisation from raw hardware acceleration.</p>
@@ -1912,75 +1915,33 @@
           <div class="serving-grid">
             <div class="serving-item">
               <strong>GPU</strong>
-              <p>Ada Lovelace, 12 GB VRAM, 5888 CUDA cores, 4th-gen Tensor Cores.</p>
+              <p>Ada Lovelace, 12 GB VRAM, 5888 CUDA cores.</p>
             </div>
             <div class="serving-item">
               <strong>CPU</strong>
-              <p>AMD Ryzen 7 5800X, 8 physical / 16 logical cores at 3.8 GHz.</p>
+              <p>Ryzen 7 5800X, 8 / 16 cores at 3.8 GHz.</p>
             </div>
             <div class="serving-item">
-              <strong>Model</strong>
-              <p>Conv1D-AE — chosen for its fast O(N) inference complexity.</p>
+              <strong>Protocol</strong>
+              <p>Batch-1 (n=1) every backend; 15 warm-up + 150 timed runs; wall-clock mean &plusmn; std.</p>
             </div>
           </div>
         </div>
+        <p class="footer-note reveal">Single-sample timing isolates compiler optimisation from batch amortization; classification metrics (accuracy, F1, ROC-AUC) are recomputed in the same pass — speed and fidelity from one measurement.</p>
       </div>
     </section>
 
     <!-- ===========================================
-         SLIDE 18: TIMING EXPERIMENTAL SETUP
-         =========================================== -->
-    <section class="slide long-context-fixes">
-      <div class="slide-content">
-        <div class="slide-header">
-          <div>
-            <p class="eyebrow reveal">Timing methodology</p>
-            <h2 class="reveal">How the latencies are measured.</h2>
-          </div>
-          <span class="slide-index reveal">18</span>
-        </div>
-        <div class="two-col" style="align-items: start; gap: 2.4rem;">
-          <div class="reveal">
-            <p class="eyebrow" style="margin-bottom: 0.5rem;">Measurement protocol</p>
-            <ul class="bullet-list">
-              <li><span><strong>Single-sample batch (n&nbsp;=&nbsp;1)</strong> for <em>every</em> backend &mdash; identical conditions, so no format is flattered by batch amortization.</span></li>
-              <li><span><strong>15 warm-up iterations</strong> discarded &mdash; steady-state cuDNN autotune, JIT and warm caches.</span></li>
-              <li><span><strong>150 timed runs</strong> with <code>time.perf_counter()</code> wall-clock; report mean &plusmn; std, min / max.</span></li>
-              <li><span><strong>Per-sample latency</strong> = the single-sample runtime &mdash; one metric comparable across every backend.</span></li>
-              <li><span><strong>Identical inputs, identical machine</strong> &mdash; the same held-out test tensors on RTX 4070 + Ryzen 7 5800X.</span></li>
-            </ul>
-          </div>
-          <div class="reveal">
-            <p class="eyebrow" style="margin-bottom: 0.5rem;">Uniform evaluation protocol</p>
-            <table class="data-table">
-              <thead>
-                <tr><th>Backend</th><th class="num">Batch</th><th>Device</th></tr>
-              </thead>
-              <tbody>
-                <tr><td>Keras FP32</td><td class="num">1</td><td>CPU / GPU</td></tr>
-                <tr><td>TFLite FP16 / Dyn / INT8</td><td class="num">1</td><td>CPU (edge)</td></tr>
-                <tr><td>ONNX Runtime</td><td class="num">1</td><td>CPU</td></tr>
-                <tr><td>TensorRT FP32 / FP16 / INT8</td><td class="num">1</td><td>GPU</td></tr>
-              </tbody>
-            </table>
-            <p class="muted" style="margin-top:0.8rem; font-size:var(--small-size);">Every backend &mdash; from edge TFLite to the batch-1 TensorRT engines &mdash; is timed single-sample (n=1) under the same warm-up and timed-run budget, so per-sample latencies are directly comparable. Classification metrics (accuracy, F1, ROC-AUC) are recomputed in the same pass, so speed and fidelity come from one measurement.</p>
-          </div>
-        </div>
-        <p class="footer-note reveal">One protocol on the unified testbed: single-sample (n=1) timing &mdash; 15 warm-up + 150 timed runs, mean &plusmn; std with peak RAM / VRAM &mdash; wall-clock throughout.</p>
-      </div>
-    </section>
-
-    <!-- ===========================================
-         SLIDE 19: HARDWARE PROFILING
+         SLIDE 15: HARDWARE PROFILING
          =========================================== -->
     <section class="slide long-context-fixes">
       <div class="slide-content">
         <div class="slide-header">
           <div>
             <p class="eyebrow reveal">Hardware resource profiling</p>
-            <h2 class="reveal">GPU dispatch, then kernel fusion.</h2>
+            <h2 class="reveal">Batch-1: dispatch overhead, not compute.</h2>
           </div>
-          <span class="slide-index reveal">19</span>
+          <span class="slide-index reveal">15</span>
         </div>
         <div class="two-col" style="align-items: center; grid-template-columns: 0.82fr 1.18fr;">
           <div class="reveal">
@@ -1989,29 +1950,29 @@
                 <tr><th>Format</th><th class="num">Latency / sample (ms)</th></tr>
               </thead>
               <tbody>
-                <tr><td>Keras FP32 (CPU)</td><td class="num">0.121</td></tr>
-                <tr><td>Keras FP32 (GPU baseline)</td><td class="num">0.0408</td></tr>
-                <tr><td>TFLite FP16</td><td class="num">0.155</td></tr>
-                <tr><td>TFLite Dynamic</td><td class="num">0.146</td></tr>
-                <tr><td>TFLite INT8</td><td class="num">0.119</td></tr>
-                <tr><td>ONNX (CPU)</td><td class="num">0.122</td></tr>
-                <tr class="hl"><td>TensorRT FP16 (GPU)</td><td class="num">0.00445</td></tr>
-                <tr><td>TensorRT FP32 (GPU)</td><td class="num">0.00476</td></tr>
-                <tr><td>TensorRT INT8 (GPU)</td><td class="num">0.00764</td></tr>
+                <tr><td>TFLite INT8</td><td class="num">0.120</td></tr>
+                <tr><td>TFLite Dynamic</td><td class="num">0.134</td></tr>
+                <tr class="hl"><td>TFLite FP16</td><td class="num">0.146</td></tr>
+                <tr><td>TensorRT INT8 (GPU)</td><td class="num">0.377</td></tr>
+                <tr><td>ONNX (CPU)</td><td class="num">0.428</td></tr>
+                <tr><td>TensorRT FP16 (GPU)</td><td class="num">0.580</td></tr>
+                <tr><td>TensorRT FP32 (GPU)</td><td class="num">1.184</td></tr>
+                <tr><td>Keras FP32 (CPU)</td><td class="num">13.31</td></tr>
+                <tr><td>Keras FP32 (GPU baseline)</td><td class="num">19.40</td></tr>
               </tbody>
             </table>
-            <p class="muted" style="margin-top:0.7rem; font-size:var(--small-size);">Per-sample inference latency, measured consistently across every export format — host runtimes and the batch-1 TensorRT engines alike. Same metric plotted at right (seconds, log scale).</p>
+            <p class="muted" style="margin-top:0.7rem; font-size:var(--small-size);">Per-sample inference latency across every export format under the uniform n=1 protocol. Same metric plotted at right (seconds, log scale).</p>
           </div>
           <div class="figure reveal">
             <img src="../plots/deploy_hardware_conv1d_ae.svg" alt="Per-sample inference time per deployment format including TensorRT" style="max-height: min(66vh, 540px);" />
-            <figcaption>Per-sample inference time (seconds, log) per format. Kernel fusion lets the three TensorRT engines run an order of magnitude faster than the dispatch-bound host runtimes.</figcaption>
+            <figcaption>Per-sample inference time (seconds, log) per format. For a 3.42 MB model at batch-1, GPU kernel-launch and host&ndash;device transfer overhead dominate: the lightweight CPU runtimes (TFLite) lead, while the TensorRT engines stay dispatch-bound &mdash; GPU utilisation grows with batch size and FLOPs<sup>[13, 14]</sup>.</figcaption>
           </div>
         </div>
       </div>
     </section>
 
     <!-- ===========================================
-         SLIDE 20: FIDELITY & QUANTIZATION
+         SLIDE 16: FIDELITY & QUANTIZATION
          =========================================== -->
     <section class="slide long-context-fixes">
       <div class="slide-content">
@@ -2020,7 +1981,7 @@
             <p class="eyebrow reveal">Fidelity vs. optimization</p>
             <h2 class="reveal">Quantization exposes two failure modes.</h2>
           </div>
-          <span class="slide-index reveal">20</span>
+          <span class="slide-index reveal">16</span>
         </div>
         <div class="two-col" style="align-items: center; grid-template-columns: 0.9fr 1.1fr;">
           <div class="reveal">
@@ -2029,75 +1990,28 @@
                 <tr><th>Format</th><th class="num">Size (MB)</th><th class="num">Lat./sample (ms)</th><th class="num">Acc.</th><th class="num">F1</th><th class="num">AUC</th></tr>
               </thead>
               <tbody>
-                <tr><td>Keras FP32 (baseline)</td><td class="num">3.42</td><td class="num">0.0408</td><td class="num">0.9555</td><td class="num">0.9649</td><td class="num">0.9851</td></tr>
-                <tr><td>ONNX (CPU)</td><td class="num">1.13</td><td class="num">0.1218</td><td class="num">0.9600</td><td class="num">0.9683</td><td class="num">0.9861</td></tr>
-                <tr><td>TensorRT FP32 (GPU)</td><td class="num">1.45</td><td class="num">0.0048</td><td class="num">0.9590</td><td class="num">0.9675</td><td class="num">0.9854</td></tr>
-                <tr class="hl"><td>TensorRT FP16 (GPU)</td><td class="num">1.44</td><td class="num">0.0044</td><td class="num">0.9588</td><td class="num">0.9673</td><td class="num">0.9852</td></tr>
-                <tr><td>TFLite FP16</td><td class="num">0.58</td><td class="num">0.1550</td><td class="num">0.9576</td><td class="num">0.9665</td><td class="num">0.9854</td></tr>
-                <tr><td>TFLite Dynamic</td><td class="num">0.35</td><td class="num">0.1464</td><td class="num">0.6371</td><td class="num">0.7783</td><td class="num">0.9446</td></tr>
-                <tr><td>TensorRT INT8 (GPU)</td><td class="num">0.69</td><td class="num">0.0076</td><td class="num">0.6371</td><td class="num">0.7783</td><td class="num">0.8946</td></tr>
-                <tr><td>TFLite INT8</td><td class="num">0.39</td><td class="num">0.1188</td><td class="num">0.6371</td><td class="num">0.7783</td><td class="num">0.3213</td></tr>
+                <tr><td>Keras FP32 (baseline)</td><td class="num">3.42</td><td class="num">19.40</td><td class="num">0.9586</td><td class="num">0.9672</td><td class="num">0.9856</td></tr>
+                <tr class="hl"><td>TFLite FP16</td><td class="num">0.58</td><td class="num">0.146</td><td class="num">0.9576</td><td class="num">0.9665</td><td class="num">0.9854</td></tr>
+                <tr><td>TensorRT INT8 (GPU)</td><td class="num">1.74</td><td class="num">0.377</td><td class="num">0.9589</td><td class="num">0.9674</td><td class="num">0.9857</td></tr>
+                <tr><td>ONNX (CPU)</td><td class="num">1.13</td><td class="num">0.428</td><td class="num">0.9600</td><td class="num">0.9683</td><td class="num">0.9861</td></tr>
+                <tr><td>TensorRT FP16 (GPU)</td><td class="num">1.70</td><td class="num">0.580</td><td class="num">0.9600</td><td class="num">0.9683</td><td class="num">0.9861</td></tr>
+                <tr><td>TensorRT FP32 (GPU)</td><td class="num">1.71</td><td class="num">1.184</td><td class="num">0.9600</td><td class="num">0.9683</td><td class="num">0.9861</td></tr>
+                <tr><td>TFLite Dynamic</td><td class="num">0.35</td><td class="num">0.134</td><td class="num">0.6371</td><td class="num">0.7783</td><td class="num">0.9446</td></tr>
+                <tr><td>TFLite INT8</td><td class="num">0.39</td><td class="num">0.120</td><td class="num">0.6371</td><td class="num">0.7783</td><td class="num">0.3213</td></tr>
               </tbody>
             </table>
-            <p class="muted" style="margin-top:0.7rem; font-size:var(--small-size);">Symmetric INT8 maps q = round(x / s), s = max|x| / 127. (1) A fixed Keras threshold does not transfer — INT8/Dynamic collapse to 0.6371 accuracy. (2) AUC exposes true ranking: TFLite INT8 collapses (0.3213); TensorRT INT8 recovers to 0.8946.</p>
+            <p class="muted" style="margin-top:0.7rem; font-size:var(--small-size);">Symmetric INT8 maps q = round(x / s), s = max|x| / 127. (1) A fixed Keras threshold does not transfer &mdash; TFLite Dynamic/INT8 collapse to 0.637 accuracy. (2) AUC exposes true ranking: TFLite INT8 ranking collapses (0.3213), while TensorRT INT8 stays faithful (0.9857)<sup>[17]</sup>. <strong>TFLite FP16 is the recommended on-device target</strong> &mdash; 0.146 ms and full fidelity, no accelerator needed.</p>
           </div>
           <div class="figure reveal">
             <img src="../plots/deploy_tradeoff_conv1d_ae.svg" alt="Latency versus fidelity trade-off" style="max-height: min(66vh, 540px);" />
-            <figcaption>Latency vs. ROC-AUC — TensorRT FP16 sits at the Pareto-optimal corner.</figcaption>
+            <figcaption>Latency vs. ROC-AUC &mdash; TFLite FP16 sits at the Pareto-optimal corner (fast and faithful).</figcaption>
           </div>
         </div>
       </div>
     </section>
 
     <!-- ===========================================
-         SLIDE 21: KEY RESULT
-         =========================================== -->
-    <section class="slide video-validation">
-      <div class="slide-content">
-        <div class="slide-header">
-          <div>
-            <p class="eyebrow reveal">Headline outcome</p>
-            <h2 class="reveal">TensorRT FP16: real-time, full fidelity.</h2>
-          </div>
-          <span class="slide-index reveal">21</span>
-        </div>
-        <div class="metric-band reveal">
-          <div class="metric">
-            <div class="value">0.499 ms</div>
-            <div class="label">batch-1 latency</div>
-          </div>
-          <div class="metric">
-            <div class="value">39×</div>
-            <div class="label">vs. Keras GPU batch-1 (19.75 ms)</div>
-          </div>
-          <div class="metric">
-            <div class="value">0.9852</div>
-            <div class="label">ROC-AUC preserved</div>
-          </div>
-        </div>
-        <div class="two-col" style="margin-top: 1.4rem;">
-          <div>
-            <ul class="bullet-list reveal">
-              <li><span>TensorRT FP16 preserves full Keras FP32 fidelity (F1 <strong>0.9673</strong>, accuracy <strong>0.9588</strong>) while heavily optimizing compute.</span></li>
-              <li><span>Kernel fusion and elimination of host–device copy collapse single-sample latency to sub-millisecond.</span></li>
-              <li><span>Symmetric TensorRT INT8 recovers substantial ranking fidelity (AUC <strong>0.8946</strong>) for the most aggressive latency budgets — with threshold re-calibration.</span></li>
-            </ul>
-          </div>
-          <div class="highlight-box reveal">
-            <div>
-              <p class="eyebrow">Recommended target</p>
-              <p class="lede" style="font-size: clamp(1.1rem, 2vw, 1.65rem); color:#fff; max-width: 16ch; margin-top: 0.5rem;">
-                Bridging contrastive accuracy with strict real-time edge constraints.
-              </p>
-            </div>
-            <p class="muted">TensorRT FP16 is the deployment target: sub-millisecond inference at baseline-level detection quality.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===========================================
-         SLIDE 22: CONCLUSION & FUTURE WORK
+         SLIDE 17: CONCLUSION & FUTURE WORK
          =========================================== -->
     <section class="slide takeaways">
       <div class="slide-content">
@@ -2106,25 +2020,33 @@
             <p class="eyebrow reveal">Conclusion &amp; future work</p>
             <h2 class="reveal">Sensitive, non-invasive, real-time.</h2>
           </div>
-          <span class="slide-index reveal">22</span>
+          <span class="slide-index reveal">17</span>
         </div>
         <div class="two-col">
           <div>
             <ul class="bullet-list reveal">
               <li><span><strong>Modular self-supervised framework</strong> (CARLA) for non-invasive converter fault diagnosis.</span></li>
               <li><span><strong>Frequency-response signatures</strong> are highly sensitive to subtle parametric degradation.</span></li>
-              <li><span><strong>TensorRT</strong> delivers sub-millisecond inference on constrained edge hardware without accuracy loss.</span></li>
+              <li><span><strong>On-device compilation</strong> runs the 3.42 MB detector in 0.146 ms at batch-1 &mdash; 133&times; faster than eager execution, with no accuracy loss.</span></li>
             </ul>
           </div>
           <div>
             <div class="micro-grid">
               <div class="mini reveal">
+                <strong>Embedded edge-AI GPU</strong>
+                <p>Port to NVIDIA Jetson Orin (Ampere GPU + DLA): on-device TensorRT with no PCIe host copy, at 5&ndash;60 W<sup>[15]</sup>.</p>
+              </div>
+              <div class="mini reveal">
+                <strong>FPGA dataflow</strong>
+                <p>hls4ml-style pipelined inference for deterministic sub-microsecond (~100 ns) latency inside the control loop<sup>[16]</sup>.</p>
+              </div>
+              <div class="mini reveal">
                 <strong>State space models</strong>
-                <p>Mamba-style linear-complexity sequences, targeting ~8× speedup over Transformers.</p>
+                <p>Mamba-style linear-complexity sequences, targeting ~8&times; speedup over Transformers<sup>[11]</sup>.</p>
               </div>
               <div class="mini reveal">
                 <strong>Physics-informed nets</strong>
-                <p>Embed Buck-converter ODEs into the contrastive loss to generalize with less synthetic data.</p>
+                <p>Embed Buck-converter ODEs into the contrastive loss to generalize with less synthetic data<sup>[12]</sup>.</p>
               </div>
               <div class="mini reveal">
                 <strong>Power &amp; energy</strong>
@@ -2142,16 +2064,16 @@
     </section>
 
     <!-- ===========================================
-         SLIDE 23: REFERENCES
+         SLIDE 18: REFERENCES
          =========================================== -->
-    <section class="slide">
+    <section class="slide references">
       <div class="slide-content">
         <div class="slide-header">
           <div>
             <p class="eyebrow reveal">Selected references</p>
             <h2 class="reveal">References.</h2>
           </div>
-          <span class="slide-index reveal">23</span>
+          <span class="slide-index reveal">18</span>
         </div>
         <div class="two-col reveal" style="grid-template-columns: 1fr 1fr;">
           <ul class="bullet-list">
@@ -2159,25 +2081,30 @@
             <li><span>[2] Kingma &amp; Welling, "Auto-Encoding Variational Bayes," arXiv:1312.6114, 2013.</span></li>
             <li><span>[3] Vaswani et al., "Attention Is All You Need," NeurIPS, 2017.</span></li>
             <li><span>[4] Chen et al., "A Simple Framework for Contrastive Learning (SimCLR)," arXiv:2002.05709, 2020.</span></li>
-            <li><span>Kiranyaz et al., "1D CNNs and Applications: A Survey," arXiv:1905.03554, 2019.</span></li>
-            <li><span>Hochreiter &amp; Schmidhuber, "Long Short-Term Memory," Neural Computation, 1997.</span></li>
+            <li><span>[5] Kiranyaz et al., "1D CNNs and Applications: A Survey," arXiv:1905.03554, 2019.</span></li>
+            <li><span>[6] Hochreiter &amp; Schmidhuber, "Long Short-Term Memory," Neural Computation, 1997.</span></li>
+            <li><span>[7] Cho et al., "RNN Encoder-Decoder (GRU)," arXiv:1406.1078, 2014.</span></li>
+            <li><span>[8] Wu et al., "Transformer Autoencoder for K-means Efficient Clustering," Eng. Applications of AI, vol. 133, 2024.</span></li>
+            <li><span>[9] Abdelli, Cho &amp; Tropschug, "ML-based Anomaly Detection in Optical Fiber Monitoring," arXiv:2202.11756, 2022.</span></li>
           </ul>
           <ul class="bullet-list">
-            <li><span>Cho et al., "RNN Encoder-Decoder (GRU)," arXiv:1406.1078, 2014.</span></li>
-            <li><span>Wu et al., "Transformer Autoencoder for K-means Efficient Clustering," Eng. Applications of AI, vol. 133, 2024.</span></li>
-            <li><span>Abdelli, Cho &amp; Tropschug, "ML-based Anomaly Detection in Optical Fiber Monitoring," arXiv:2202.11756, 2022.</span></li>
-            <li><span>Luo, Zhou, Bae &amp; Yun, "Combining Contrastive Learning with Auto-Encoder for OOD Detection," Applied Sciences 13(23):12930, 2023.</span></li>
-            <li><span>Gu &amp; Dao, "Mamba: Linear-Time Sequence Modeling," arXiv:2312.00752, 2023.</span></li>
-            <li><span>Raissi et al., "Physics-Informed Neural Networks," J. Computational Physics, vol. 378, 2019.</span></li>
+            <li><span>[10] Luo, Zhou, Bae &amp; Yun, "Combining Contrastive Learning with Auto-Encoder for OOD Detection," Applied Sciences 13(23):12930, 2023.</span></li>
+            <li><span>[11] Gu &amp; Dao, "Mamba: Linear-Time Sequence Modeling," arXiv:2312.00752, 2023.</span></li>
+            <li><span>[12] Raissi et al., "Physics-Informed Neural Networks," J. Computational Physics, vol. 378, 2019.</span></li>
+            <li><span>[13] Wang, Wei &amp; Brooks, "Benchmarking TPU, GPU, and CPU Platforms for Deep Learning," arXiv:1907.10701, 2019.</span></li>
+            <li><span>[14] Reddi et al., "MLPerf Inference Benchmark," ISCA, arXiv:1911.02549, 2020.</span></li>
+            <li><span>[15] Banbury et al., "MLPerf Tiny Benchmark," arXiv:2106.07597, 2021.</span></li>
+            <li><span>[16] Duarte et al., "Fast Inference of DNNs in FPGAs (hls4ml)," JINST 13 P07027, arXiv:1804.06913, 2018.</span></li>
+            <li><span>[17] Gholami et al., "A Survey of Quantization Methods for Efficient Neural Network Inference," arXiv:2103.13630, 2021.</span></li>
           </ul>
         </div>
-        <p class="footer-note reveal">Ignacio Martin-Salinas · Jose A. Belloch · Cristina Fernandez — Universidad Carlos III de Madrid · CMMSE 2026.</p>
         <div class="funding-bar reveal">
           <div class="funding-logos">
             <img class="logo-uc3m" src="uc3m.png" alt="Universidad Carlos III de Madrid — Departamento de Tecnología Electrónica" />
             <img class="logo-ministerio" src="ministerio.png" alt="Ministerio de Ciencia, Innovación y Universidades · Agencia Estatal de Investigación · Cofinanciado por la Unión Europea" />
+            <img class="logo-cm" src="cm.png" alt="Comunidad de Madrid" />
           </div>
-          <p class="funding-note">Grant PID2024-162157OB-I00 funded by MICIU/AEI/10.13039/501100011033 and by ERDF/EU.</p>
+          <p class="funding-note">Grant PID2024-162157OB-I00 funded by MICIU/AEI/10.13039/501100011033 and by ERDF/EU.<br />TEC2024/COM360 DISCO6G-CM funded by Comunidad de Madrid.</p>
         </div>
       </div>
     </section>
@@ -2322,7 +2249,79 @@
         }
       }
 
-      new SlidePresentation();
+      const deck = new SlidePresentation();
+
+      /* ===========================================
+         IMAGE CAROUSELS
+         =========================================== */
+      class Carousel {
+        constructor(root) {
+          this.root = root;
+          this.track = root.querySelector('.carousel-track');
+          this.items = Array.from(root.querySelectorAll('.carousel-item'));
+          this.dotsContainer = root.querySelector('.carousel-dots');
+          this.index = 0;
+          this.buildDots();
+          this.update();
+        }
+
+        buildDots() {
+          if (!this.dotsContainer) return;
+          this.dotsContainer.innerHTML = '';
+          this.items.forEach((_, i) => {
+            const dot = document.createElement('button');
+            dot.className = 'carousel-dot';
+            dot.setAttribute('aria-label', `Show figure ${i + 1}`);
+            dot.addEventListener('click', () => this.go(i));
+            this.dotsContainer.appendChild(dot);
+          });
+        }
+
+        go(i) {
+          const n = this.items.length;
+          this.index = ((i % n) + n) % n;
+          this.update();
+        }
+
+        update() {
+          this.track.style.transform = `translateX(-${this.index * 100}%)`;
+          if (this.dotsContainer) {
+            Array.from(this.dotsContainer.children).forEach((dot, i) =>
+              dot.classList.toggle('active', i === this.index)
+            );
+          }
+        }
+      }
+
+      const carouselMap = new Map();
+      document.querySelectorAll('[data-carousel]').forEach((el) => {
+        carouselMap.set(el, new Carousel(el));
+      });
+
+      /* Left / Right arrows drive the carousel on the current slide.
+         At the first image, Left falls through to the previous slide;
+         at the last image, Right falls through to the next slide.
+         Up / Down / Space always navigate between slides. */
+      document.addEventListener(
+        'keydown',
+        (e) => {
+          if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+          const slide = deck.slides[deck.currentSlide];
+          const carouselEl = slide && slide.querySelector('[data-carousel]');
+          if (!carouselEl) return;
+          const carousel = carouselMap.get(carouselEl);
+          if (!carousel) return;
+          const atStart = carousel.index === 0;
+          const atEnd = carousel.index === carousel.items.length - 1;
+          if ((e.key === 'ArrowLeft' && atStart) || (e.key === 'ArrowRight' && atEnd)) {
+            return; // let the deck change slides
+          }
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          carousel.go(carousel.index + (e.key === 'ArrowRight' ? 1 : -1));
+        },
+        true
+      );
     </script>
   </body>
 </html>

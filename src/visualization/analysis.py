@@ -14,6 +14,8 @@ import seaborn as sns
 import pandas as pd
 
 from ..data.loader import parse_filename
+from ..data.manifest import load_manifest_index
+from ..data.component_ranges import mult_to_pct
 from .plotter import load_transfer_function, plot_amplitude, plot_phase
 from .deck_style import (
     apply_deck_style,
@@ -61,6 +63,26 @@ def extract_single_component_anomalies(
 
     logger.info(f"Scanning {data_dir} for single-component variations...")
     import os
+
+    # Manifest-based datasets (opaque IDs): read component multipliers from the CSV.
+    manifest = load_manifest_index(data_dir)
+    if manifest:
+        for filename, entry in manifest.items():
+            filepath = data_dir / filename
+            variations = {
+                c: mult_to_pct(float(m))
+                for c, m in (entry.get("multipliers", {}) or {}).items()
+            }
+            non_zero_components = [k for k, v in variations.items() if abs(v) > 0.1]
+            if len(non_zero_components) == 0:
+                normal_file = filepath
+            elif len(non_zero_components) == 1:
+                comp = non_zero_components[0]
+                results.setdefault(comp, {})[variations[comp]] = filepath
+        if normal_file:
+            for comp in results:
+                results[comp][0.0] = normal_file
+        return results
 
     try:
         filenames = os.listdir(data_dir)

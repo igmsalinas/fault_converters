@@ -96,30 +96,34 @@ def deploy_hardware() -> None:
     rows.sort(key=lambda r: r[1])  # fastest first
     labels = [r[0] for r in rows]
     values = [r[1] for r in rows]
-    highlight = [n for n in labels if n.startswith("TensorRT")]
+    highlight = [n for n in labels if n.startswith("TFLite FP16")]
     doc = svg.hbar_log(
         labels=labels,
         values=values,
         title="Per-sample inference time by export format",
-        subtitle="Lower is faster \u00b7 TensorRT engines highlighted",
+        subtitle="Lower is faster \u00b7 batch-1: lightweight CPU runtimes lead, GPU engines dispatch-bound",
         highlight_labels=highlight,
-        axis_min=1e-6,
-        axis_max=1e-3,
+        axis_min=1e-4,
+        axis_max=1e-1,
     )
     _write("deploy_hardware_conv1d_ae.svg", doc)
 
 
 def deploy_tradeoff() -> None:
     rep = _deployment()
-    # Only label the informative outliers; the tight high-AUC cluster is left
-    # unlabelled (the adjacent deck table lists every value) to avoid overlap.
-    # Per-label placement keeps text off the points and inside the canvas.
+    # Label every point with a short tag. The high-AUC cluster shares nearly the
+    # same y, so its labels are dropped into the empty band below the cluster
+    # (staggered dy for near-coincident pairs) to stay readable.
     label_place = {
-        "TensorRT FP16 (GPU)": {"label_anchor": "middle", "label_dy": -18},
-        "TensorRT INT8 (GPU)": {"label_anchor": "start", "label_dy": 4},
-        "TFLite Dynamic": {"label_anchor": "end", "label_dx": -12, "label_dy": 4},
-        "TFLite INT8": {"label_anchor": "start", "label_dy": 4},
-        "Keras FP32 (Baseline)": {"label_anchor": "end", "label_dx": -12, "label_dy": -10},
+        "TFLite FP16":          {"label": "TFLite FP16", "label_anchor": "start",  "label_dx": 13, "label_dy": -12},
+        "TFLite Dynamic":       {"label": "TFLite Dyn",  "label_anchor": "end",    "label_dx": -13, "label_dy": 4},
+        "TFLite INT8":          {"label": "TFLite INT8", "label_anchor": "start",  "label_dx": 13, "label_dy": 4},
+        "TensorRT INT8 (GPU)":  {"label": "TRT INT8",    "label_anchor": "middle", "label_dy": 24},
+        "ONNX (CPU)":           {"label": "ONNX",        "label_anchor": "middle", "label_dy": 44},
+        "TensorRT FP16 (GPU)":  {"label": "TRT FP16",    "label_anchor": "middle", "label_dy": 24},
+        "TensorRT FP32 (GPU)":  {"label": "TRT FP32",    "label_anchor": "middle", "label_dy": 24},
+        "Keras FP32 (CPU)":     {"label": "Keras CPU",   "label_anchor": "middle", "label_dy": 24},
+        "Keras FP32 (Baseline)": {"label": "Keras GPU",  "label_anchor": "start",  "label_dx": 13, "label_dy": -12},
     }
     pts = []
     for name, v in rep.items():
@@ -132,8 +136,8 @@ def deploy_tradeoff() -> None:
             "x": lat / 1000.0,
             "y": auc,
             "label": name if name in label_place else None,
-            "color": svg.ACCENT if name.startswith("TensorRT") else "#4a6670",
-            "highlight": name == "TensorRT FP16 (GPU)",
+            "color": svg.ACCENT if name.startswith("TFLite FP16") else "#4a6670",
+            "highlight": name == "TFLite FP16",
             "r": 7,
         }
         point.update(label_place.get(name, {}))
@@ -144,9 +148,11 @@ def deploy_tradeoff() -> None:
         subtitle="Pareto-optimal corner: fast and faithful (top-left)",
         x_label="Seconds per sample (log scale)",
         y_label="ROC-AUC",
-        x_range=(1e-6, 1e-3),
-        y_range=(0.3, 1.0),
+        x_range=(6e-5, 1.5e-1),
+        y_range=(0.28, 1.0),
         log_x=True,
+        width=1180,
+        height=660,
     )
     _write("deploy_tradeoff_conv1d_ae.svg", doc)
 

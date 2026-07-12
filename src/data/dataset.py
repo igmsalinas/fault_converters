@@ -101,21 +101,28 @@ class PowerConverterDataset:
 
     def __init__(
         self,
-        data_dir: str,
+        data_dir,
         cache_dir: Optional[str] = None,
         preprocessor: Optional[DataPreprocessor] = None,
         normal_threshold: float = 5.0,
+        use_component_ranges: bool = True,
+        component_ranges=None,
     ):
         """
         Initialize dataset.
 
         Args:
-            data_dir: Directory containing simulation files
+            data_dir: Directory, or list of directories, with simulation files
             cache_dir: Directory for caching
             preprocessor: Optional preprocessor instance
-            normal_threshold: Threshold for normal/anomaly classification
+            normal_threshold: Fallback flat threshold (%) for components without
+                a declared range (and the rule when component ranges are off)
+            use_component_ranges: Label samples with the per-component
+                tolerance/degradation bands (default) vs. the legacy flat rule.
+            component_ranges: Optional ranges spec; if None it is auto-discovered
+                from ``data/<converter>/component_ranges.json``.
         """
-        self.data_dir = Path(data_dir)
+        self.data_dir = data_dir
         self.cache_dir = Path(cache_dir) if cache_dir else None
         self.normal_threshold = normal_threshold
 
@@ -124,6 +131,8 @@ class PowerConverterDataset:
             data_dir=data_dir,
             cache_dir=cache_dir,
             normal_threshold=normal_threshold,
+            use_component_ranges=use_component_ranges,
+            component_ranges=component_ranges,
         )
 
         # Preprocessor
@@ -376,6 +385,11 @@ class PowerConverterDataset:
     def input_shape(self) -> Tuple[int, int]:
         """Input shape for model (seq_len, n_features)."""
         return (self.sequence_length, self.num_features)
+
+    @property
+    def frequencies(self) -> Optional[np.ndarray]:
+        """Frequency grid (Hz) shared by every sample, or ``None`` if unavailable."""
+        return self.loader.frequencies
 
     def get_metadata_for_split(self, split: str) -> List[SimulationMetadata]:
         """Get metadata for a specific split."""

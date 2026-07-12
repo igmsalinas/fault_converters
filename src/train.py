@@ -125,8 +125,9 @@ def parse_args(argv=None) -> argparse.Namespace:
     parser.add_argument(
         "--data-dir",
         type=str,
-        default="data/buck/buck_data",
-        help="Directory containing simulation .txt files",
+        nargs="+",
+        default=["data/buck/buck_data"],
+        help="One or more directories with simulation .txt files (concatenated)",
     )
     parser.add_argument(
         "--cache-dir",
@@ -414,6 +415,9 @@ def _train_carla(
         project_name=f"{model_name}_hp_search",
         directory=str(output_dir / "hp_tuning"),
         objective=args.objective,
+        frequencies=dataset.frequencies,
+        scaler=dataset.preprocessor.scaler,
+        use_real_imag=dataset.preprocessor.use_real_imag,
     )
 
     # ---- 1. Search ----
@@ -492,6 +496,11 @@ def _train_carla(
         kernel_size=int(best_config["kernel_size"]),
         num_heads=int(best_config["num_heads"]),
         dropout_rate=float(best_config["dropout_rate"]),
+    )
+    trainer.set_physics_context(
+        frequencies=dataset.frequencies,
+        scaler=dataset.preprocessor.scaler,
+        use_real_imag=dataset.preprocessor.use_real_imag,
     )
     trainer.setup_training()
 

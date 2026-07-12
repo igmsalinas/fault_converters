@@ -108,6 +108,49 @@ This document lists the key papers and resources that influenced the implementat
 
 ---
 
+## Component Tolerances & Degradation Ranges
+
+These sources ground the **normal (healthy) operating envelopes** and the
+**anomalous (degraded) ranges** used to (a) generate the training/normal data
+(`data/generate_data.py`, reading each converter's
+`data/<converter>/component_ranges.json`) and (b) inject synthetic faults on
+the transfer function (`src/data/physics_anomaly.py`, `DEFAULT_FAULT_MODES`).
+The ranges live in the converter's data folder (not in code) so a new topology
+only needs its own `component_ranges.json`; the generic load/classify machinery
+is in `src/data/component_ranges.py`. The healthy band per component is *not* a
+flat ±5 %: it is dominated by manufacturing tolerance **plus temperature and
+ageing**, which differ strongly by component type.
+
+### Small-signal converter model (control-to-output)
+- **Reference**: Erickson, R. W., & Maksimović, D. — *Fundamentals of Power Electronics*, 2nd ed., Springer, 2001 (Ch. 8, Table 8.2).
+- **Influence**: Canonical `Gvd(s)` used to map component values → pole/zero Bode.
+- **Key Ideas**: `ω0 = 1/√(LC)`, `Q = R√(C/L)`, ESR zero `ωz = 1/(Rc·C)`, RHP zero for boost/buck-boost.
+
+### Capacitor value tolerance (E-series / preferred numbers)
+- **Standards**: IEC 60063 (E-series preferred numbers); IEC 60384-1 (fixed capacitors, generic spec); tolerance letter codes IEC 60062 (J = ±5 %, K = ±10 %, M = ±20 %).
+- **Influence**: Base tolerance of the output capacitor (electrolytic typ. ±20 %, film/MLCC tighter).
+
+### Ceramic (Class 2) temperature + DC-bias + ageing
+- **Standards**: EIA RS-198 / IEC 60384-9 (Class-2 codes; e.g. **X7R = ±15 %** over −55…+125 °C).
+- **App note**: Waugh, M. D. — "Design solutions for DC bias in multilayer ceramic capacitors," Murata (Class-2 MLCC capacitance can derate by 20–80 % under rated DC bias).
+- **Key Ideas**: X7R ageing ≈ 2.5 %/decade-hour; Z5U up to 7 %/decade — so the *effective* healthy spread is well beyond the nameplate tolerance.
+
+### Electrolytic capacitor ageing (C↓, ESR↑) and end-of-life
+- **Paper**: Kulkarni, C., & Biswas, G. — "Experimental Studies of Ageing in Electrolytic Capacitors," Annual Conf. of the PHM Society, 2010.
+- **Standard**: IEC 60384-4-1 endurance (wear-out) test — a component is a *degradation failure* when **capacitance drops > 30 %** or **ESR / impedance / loss factor rises by > 3×** the initial value. These are the thresholds used for the `Cout` (−30 % ⇒ 0.70×) and `Esr_C` (≥ 3× ⇒ 3.0×) fault onsets.
+- **App guides**: Nichicon / Cornell-Dubilier (CDE) Aluminum Electrolytic Capacitor Application Guides — the more conservative *design* end-of-life criteria often quoted are **capacitance −20 %** and/or **ESR ≥ 2× initial**.
+- **Key Ideas**: ESR of electrolytics also *decreases* with temperature (≈ 2–3× at cold, ≈ 0.5× at hot) — a reversible healthy variation distinct from ageing; the ×3 fault onset keeps this cold-temperature swing out of the fault band.
+
+### Inductor tolerance and saturation (Isat)
+- **App notes**: Coilcraft / Würth Elektronik power-inductor datasheets (typ. **±20 %** tolerance; `Isat` defined as the current at which L drops by 20 % or 30 %); Vishay — "Inductors 101."
+- **Key Ideas**: Effective inductance rolls off under DC bias / core saturation; ferrite permeability (hence L) falls as the Curie point is approached.
+
+### MOSFET on-resistance vs. temperature and ageing
+- **Datasheets**: Infineon / Vishay power-MOSFET normalized `RDS(on)` vs. junction-temperature curves — positive tempco, typically **≈ 1.7–2.2× from 25 °C to 125 °C** (normal operation).
+- **Paper**: Celaya, J. R., et al. — "Towards Prognostics of Power MOSFETs: Accelerated Aging and Precursors of Failure," PHM Society, 2011 (`RDS(on)` rise from die-attach/bond-wire degradation is a recognized ageing precursor).
+
+---
+
 ## Additional Resources
 
 ### Keras Documentation
@@ -229,6 +272,44 @@ This document lists the key papers and resources that influenced the implementat
   journal={arXiv preprint arXiv:2211.02632},
   year={2022},
   url={https://arxiv.org/abs/2211.02632}
+}
+
+% Component Tolerances & Degradation
+
+@book{erickson2001fundamentals,
+  title={Fundamentals of Power Electronics},
+  author={Erickson, Robert W. and Maksimovi\'c, Dragan},
+  edition={2nd},
+  publisher={Springer},
+  year={2001}
+}
+
+@inproceedings{kulkarni2010electrolytic,
+  title={Experimental Studies of Ageing in Electrolytic Capacitors},
+  author={Kulkarni, Chetan and Biswas, Gautam},
+  booktitle={Annual Conference of the PHM Society},
+  volume={2},
+  year={2010}
+}
+
+@inproceedings{celaya2011mosfet,
+  title={Towards Prognostics of Power {MOSFETs}: Accelerated Aging and Precursors of Failure},
+  author={Celaya, Jose R. and Saxena, Abhinav and Vashchenko, Vladislav and Saha, Sankalita and Goebel, Kai},
+  booktitle={Annual Conference of the PHM Society},
+  year={2011}
+}
+
+@techreport{iec60384_1,
+  title={{IEC 60384-1}: Fixed capacitors for use in electronic equipment -- Part 1: Generic specification},
+  institution={International Electrotechnical Commission},
+  note={See also IEC 60063 (E-series preferred numbers) and EIA RS-198 (ceramic Class-2 codes, e.g. X7R $\pm$15\%)}
+}
+
+@misc{waugh_dcbias,
+  title={Design Solutions for {DC} Bias in Multilayer Ceramic Capacitors},
+  author={Waugh, Mark D.},
+  howpublished={Murata Manufacturing application note},
+  note={Class-2 MLCC capacitance derates 20--80\% under rated DC bias}
 }
 ```
 

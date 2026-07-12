@@ -201,6 +201,10 @@ class CARLAHyperparameterSearch:
         project_name: str = "carla_hp_search",
         directory: str = "hp_tuning/carla",
         objective: str = "roc_auc",  # "roc_auc", "f1_score", "val_loss"
+        frequencies: Optional[np.ndarray] = None,
+        scaler=None,
+        use_real_imag: bool = True,
+        converter_spec=None,
     ):
         """
         Initialize CARLA hyperparameter search.
@@ -211,6 +215,9 @@ class CARLAHyperparameterSearch:
             project_name: Project name for organizing results
             directory: Directory for search results
             objective: Metric to optimize ("roc_auc", "f1_score", "val_loss")
+            frequencies: Frequency grid (Hz) enabling physics-based anomaly injection.
+            scaler: Fitted feature scaler for physics-based injection.
+            use_real_imag: Whether channels are (Real, Imag) of the response.
         """
         self.input_shape = input_shape
         self.search_space = search_space or CARLASearchSpace()
@@ -218,6 +225,10 @@ class CARLAHyperparameterSearch:
         self.directory = Path(directory) / project_name
         self.directory.mkdir(parents=True, exist_ok=True)
         self.objective = objective
+        self.frequencies = frequencies
+        self.scaler = scaler
+        self.use_real_imag = use_real_imag
+        self.converter_spec = converter_spec
 
         self.trials: List[TrialResult] = []
         self.best_trial: Optional[TrialResult] = None
@@ -328,6 +339,12 @@ class CARLAHyperparameterSearch:
         )
 
         # Setup and train
+        trainer.set_physics_context(
+            frequencies=self.frequencies,
+            scaler=self.scaler,
+            use_real_imag=self.use_real_imag,
+            converter_spec=self.converter_spec,
+        )
         trainer.setup_training()
 
         try:

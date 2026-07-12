@@ -289,7 +289,7 @@ def render_hero_linear(name: str) -> None:
     ax.axis("off")
     fig.tight_layout()
     path = OUT / f"arch_hero_{name}.png"
-    fig.savefig(path, dpi=300, bbox_inches="tight", facecolor=PAPER)
+    fig.savefig(path, dpi=300, bbox_inches="tight", transparent=True)
     plt.close(fig)
     print(f"  wrote {path}")
 
@@ -358,7 +358,7 @@ def render_hero_vae(name: str = "vae") -> None:
     ax.axis("off")
     fig.tight_layout()
     path = OUT / f"arch_hero_{name}.png"
-    fig.savefig(path, dpi=300, bbox_inches="tight", facecolor=PAPER)
+    fig.savefig(path, dpi=300, bbox_inches="tight", transparent=True)
     plt.close(fig)
     print(f"  wrote {path}")
 

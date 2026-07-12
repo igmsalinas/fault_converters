@@ -231,6 +231,88 @@ Quantum computing approaches to anomaly detection showing promise.
 
 ---
 
+## 9. Multi-Signal Fusion & Fault Identifiability Analysis
+
+### Overview
+The models are currently trained on a **single** measurement — the control-to-output
+Bode $G_{vd}(j\omega)$. This makes several component degradations *confounded*: distinct
+faults map to nearly the same frequency response, so the detector can flag "a fault"
+but cannot reliably attribute it to a component, and healthy multi-component tolerance
+excursions can masquerade as faults. This direction proposes (A) **quantifying** those
+overlaps and (B) **breaking** them with complementary signals.
+
+### Why the overlaps exist (grounded in the plant model)
+Using the canonical buck $G_{vd}(s)$ (`src/data/physics_anomaly.py`):
+
+- **Capacitance vs. inductance** — both shift the resonance $\omega_0 = 1/\sqrt{LC}$, so
+  they are *degenerate in resonant frequency*. They are **not** fully degenerate: since
+  $Q = R\sqrt{C/L}$, a cap drop *lowers* the peak while an inductance drop *raises* it
+  (verified: $C\times0.7 \Rightarrow$ peak $-0.9$ dB; $L\times0.7 \Rightarrow +0.8$ dB, both
+  at $f_{res}\!\approx\!+20\%$). Separation therefore lives in the **~1 dB peak-shape
+  difference**, demanding fine resolution and low noise (<~0.3 dB) around resonance.
+- **Cap-ESR vs. switch/inductor resistance** — both add series resistance that lowers $Q$
+  and flattens the peak; ESR additionally drags the ESR zero $\omega_z = 1/(R_cC)$ toward
+  the origin, but for this converter $\omega_z\!\approx\!80$ kHz sits **above** $f_{sw}/2 = 50$
+  kHz (the averaged-model / sweep ceiling), so that disambiguating signature is
+  unobservable — extending the sweep does **not** help (see the note in
+  `data/generate_data.py`).
+- **Correlated ageing** — a real electrolytic ages with $C\!\downarrow$ **and** $\text{ESR}\!\uparrow$
+  *together*; modelling them as independent single-component faults is a simplification.
+
+### Two research thrusts
+
+**(A) Fault identifiability analysis** (purely analytic — no PSIM/hardware needed)
+- Build the sensitivity Jacobian $J = \partial(\text{Bode})/\partial\theta$ at nominal
+  ($\theta = [C, L, R_c, R_{ds}, \dots]$); the **SVD / condition number** reveals which
+  fault combinations are well- vs. poorly-observed (near-parallel columns = confounded).
+- Add a noise model to get the **Fisher Information Matrix** and **Cramér–Rao bounds**
+  per component; the off-diagonal correlations *quantify* each overlap and give a
+  principled, measurement-aware answer to "which faults can this signal set resolve?".
+
+**(B) Multi-signal fusion** — add measurements that are orthogonal to $G_{vd}$:
+
+| Extra signal | Breaks which overlap | Physics |
+|---|---|---|
+| Output impedance $Z_{out}(s)$ | C / ESR vs. L | $Z_{out}\approx \text{ESR} + 1/(sC)$ |
+| Inductor-current ripple | L vs. C / ESR | $\Delta I_L \propto 1/(L\,f_{sw})$ |
+| Output-voltage ripple @ $f_{sw}$ | ESR vs. C | amp $\sim \text{ESR}\cdot\Delta I$; slope $\sim \Delta I/C$ |
+| Load-step transient | L vs. C / ESR | di/dt vs. hold-up |
+| Temperature | resistive (Rds/DCR/ESR) vs. reactive | resistive loss = heat |
+| Operating-point diversity $(D, R)$ | L vs. load; RHP-zero faults | $Q(R)$, $\omega_{rhp}(R, L)$ |
+
+### Potential Implementation
+```python
+# Future: expose complementary transfer functions on the converter model,
+# then fuse them as extra channels / run identifiability analysis.
+class PowerConverter(ABC):
+    def transfer_function(self) -> TransferFunctionModel: ...   # G_vd(s)  (exists)
+    def output_impedance(self)  -> TransferFunctionModel: ...   # Z_out(s) (NEW)
+    def audiosusceptibility(self) -> TransferFunctionModel: ... # G_vg(s)  (NEW)
+
+# Identifiability study (analytic):
+#   J = numerical d(Bode)/d(theta) at nominal
+#   U, S, Vt = svd(J);  cond = S[0]/S[-1];  FIM = J.T @ Sigma_inv @ J
+#   -> report confounded component pairs, Cramer-Rao bounds, and the
+#      improvement when Z_out(s) is stacked alongside G_vd(s).
+
+# Multi-channel CARLA: feed (G_vd, Z_out, ripple stats, T) as feature channels;
+# correlated fault injection: sample joint (C-down, ESR-up) ageing trajectories
+# instead of axis-aligned single-component faults.
+```
+
+**Benefits for project:**
+- Turns "anomaly vs. normal" into **component-level attribution** (which part is degrading).
+- Quantifies, before any hardware change, whether a proposed signal/sweep actually
+  improves separability (answers the "widen the sweep?" question rigorously).
+- Correlated fault injection aligns the synthetic negatives with real ageing manifolds,
+  reducing false positives from stacked healthy tolerances.
+
+**Relevant concepts:** structural/practical identifiability, Fisher information &
+Cramér–Rao bound, multi-transfer-function (EIS-style) system identification. See also
+`docs/REFERENCES.md` → "Component Tolerances & Degradation Ranges".
+
+---
+
 ## Priority Roadmap for Implementation
 
 ### Phase 1: Near-term (1-3 months)
@@ -253,12 +335,18 @@ Quantum computing approaches to anomaly detection showing promise.
    - Wav-KAN for frequency domain analysis
    - Extract interpretable symbolic equations
 
+5. **Fault Identifiability & Multi-Signal Fusion** (see §9)
+   - Analytic sensitivity/Fisher-information study to quantify confounded faults
+     (C↔L, ESR↔Rds) — no hardware needed
+   - Add `output_impedance()` / `audiosusceptibility()` to `PowerConverter`;
+     stack as extra CARLA channels; correlated (C↓ & ESR↑) fault injection
+
 ### Phase 3: Long-term (6-12 months)
-5. **Foundation Model Integration**
+6. **Foundation Model Integration**
    - Fine-tune TSFMs on Buck converter data
    - Explore multimodal approaches (visual transfer functions)
 
-6. **Diffusion-based Detection**
+7. **Diffusion-based Detection**
    - Score-based anomaly scoring
    - Counterfactual generation for explainability
 
