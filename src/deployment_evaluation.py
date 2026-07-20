@@ -218,8 +218,9 @@ def main(argv=None):
         
         cpu_res = None
         try:
+            import sys
             subprocess.run([
-                "uv", "run", "python", "-m", "src.deployment.benchmark_cpu",
+                sys.executable, "-m", "src.deployment.benchmark_cpu",
                 "--model-dir", str(model_dir),
                 "--data-file", temp_data_file,
                 "--labels-file", temp_labels_file,
