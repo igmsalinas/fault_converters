@@ -23,6 +23,8 @@ class Sampling(layers.Layer):
 
     def call(self, inputs):
         z_mean, z_log_var = inputs
+        # Clip log_var to prevent exp overflow (exp(0.5 * 80) = exp(40) is safe for float32)
+        z_log_var = tf.clip_by_value(z_log_var, -80.0, 80.0)
         batch = tf.shape(z_mean)[0]
         dim = tf.shape(z_mean)[1]
         epsilon = tf.random.normal(shape=(batch, dim))

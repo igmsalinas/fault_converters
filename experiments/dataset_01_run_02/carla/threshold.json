@@ -1,0 +1,5 @@
+{
+  "threshold": 1123.3800048828125,
+  "method": "mahalanobis_p70_k5",
+  "f1_test": 0.1397288842544317
+}

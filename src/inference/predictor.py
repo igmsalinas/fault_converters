@@ -16,6 +16,7 @@ from ..models.lstm_ae import LSTMAutoencoder
 from ..models.mlp_ae import MLPAutoencoder
 from ..models.vae import VariationalAutoencoder
 from ..models.transformer_ae import TransformerAutoencoder
+from ..models.gru_ae import GRUAutoencoder
 from ..data.preprocessor import DataPreprocessor
 from ..data.loader import load_simulation_file
 from ..utils.logger import get_logger
@@ -29,6 +30,7 @@ MODEL_CLASSES = {
     "mlp_ae": MLPAutoencoder,
     "vae": VariationalAutoencoder,
     "transformer_ae": TransformerAutoencoder,
+    "gru_ae": GRUAutoencoder,
 }
 
 
@@ -136,6 +138,20 @@ class AnomalyPredictor:
                 model_kwargs["lstm_units"] = ss.lstm_unit_options[idx]
             elif "gru" in self.config.get("name", ""):
                 model_kwargs["gru_units"] = ss.gru_unit_options[idx]
+
+        if "enc_units_idx" in model_kwargs and "encoder_units" not in model_kwargs:
+            from ..training.hyperparameter_search import SearchSpace
+
+            ss = SearchSpace()
+            idx = model_kwargs.pop("enc_units_idx")
+            model_kwargs["encoder_units"] = ss.mlp_encoder_unit_options[idx]
+
+        if "dec_units_idx" in model_kwargs and "decoder_units" not in model_kwargs:
+            from ..training.hyperparameter_search import SearchSpace
+
+            ss = SearchSpace()
+            idx = model_kwargs.pop("dec_units_idx")
+            model_kwargs["decoder_units"] = ss.mlp_decoder_unit_options[idx]
 
         # Filter kwargs to only include what the model constructor accepts
         import inspect

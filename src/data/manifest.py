@@ -55,12 +55,15 @@ def manifest_path(data_dir: Union[str, Path], mode: str) -> Path:
 
 
 def all_manifest_paths(data_dir: Union[str, Path]) -> List[Path]:
-    """Existing manifest files (grid and/or lhs) present in ``data_dir``."""
+    """Existing manifest files (manifest.csv, grid and/or lhs) present in ``data_dir``."""
     d = Path(data_dir)
     seen: List[Path] = []
+    p_new = d / "manifest.csv"
+    if p_new.is_file():
+        seen.append(p_new)
     for name in dict.fromkeys(_MODE_TO_MANIFEST.values()):
         p = d / name
-        if p.is_file():
+        if p.is_file() and p not in seen:
             seen.append(p)
     return seen
 

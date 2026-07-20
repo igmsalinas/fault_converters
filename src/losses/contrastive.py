@@ -411,12 +411,22 @@ def anomaly_score_from_embeddings(
         # k-NN distance scoring
         from sklearn.neighbors import NearestNeighbors
 
-        nn = NearestNeighbors(n_neighbors=k)
+        # Check if we are doing self-matching (embeddings identical to reference_embeddings)
+        is_self = False
+        if embeddings.shape == reference_embeddings.shape:
+            n_check = min(10, embeddings.shape[0])
+            if np.allclose(embeddings[:n_check], reference_embeddings[:n_check]):
+                is_self = True
+
+        k_neighbors = k + 1 if is_self else k
+        nn = NearestNeighbors(n_neighbors=k_neighbors)
         nn.fit(reference_embeddings)
 
         for i in range(0, n_samples, batch_size):
             chunk = embeddings[i:i + batch_size]
             distances, _ = nn.kneighbors(chunk)
+            if is_self:
+                distances = distances[:, 1:]
             scores[i:i + batch_size] = np.mean(distances, axis=1)
 
     elif method == "cosine":

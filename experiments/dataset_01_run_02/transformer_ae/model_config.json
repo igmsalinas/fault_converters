@@ -1,0 +1,20 @@
+{
+  "name": "transformer_ae",
+  "type": "standard",
+  "input_shape": [
+    101,
+    2
+  ],
+  "latent_dim": 64,
+  "d_model": 64,
+  "num_heads": 2,
+  "num_layers": 3,
+  "dropout_rate": 0.0,
+  "activation": "relu",
+  "optimizer": "adamw",
+  "learning_rate": 0.001,
+  "weight_decay": 3.011756605816218e-05,
+  "lr_schedule": "constant",
+  "warmup_ratio": 0.1,
+  "clipnorm": 0.0
+}

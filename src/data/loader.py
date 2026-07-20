@@ -30,6 +30,40 @@ logger = get_logger(__name__)
 _OPAQUE_ID_RE = re.compile(r"^(?:grid|lhs|random)_\d+$")
 
 
+def resolve_data_dir(data_dir: Union[str, Path]) -> Path:
+    """Resolve data directory to the actual folder containing the data (txts & manifest).
+    
+    Checks two levels of structure:
+    1. If the dir contains a 'txts' subdirectory, it is a dataset folder. Returns it.
+    2. If the dir contains subdirectories that themselves contain 'txts', it is a base converter folder.
+       Returns the alphabetical last dataset folder.
+    3. Otherwise, falls back to returning the original directory path (legacy structure).
+    """
+    data_dir = Path(data_dir)
+    if not data_dir.exists():
+        return data_dir
+
+    # 1. Check if it's already a dataset folder (contains 'txts' subdirectory)
+    if (data_dir / "txts").is_dir():
+        return data_dir
+
+    # 2. Check if it contains dataset subfolders which contain 'txts'
+    dataset_dirs = []
+    try:
+        for p in data_dir.iterdir():
+            if p.is_dir() and (p / "txts").is_dir():
+                dataset_dirs.append(p)
+    except OSError:
+        pass
+
+    if dataset_dirs:
+        # Return alphabetically last dataset directory (e.g. dataset_00)
+        dataset_dirs.sort(key=lambda p: p.name)
+        return dataset_dirs[-1]
+
+    return data_dir
+
+
 def _dirs_cache_key(dirs: List[Union[str, Path]], max_files: Optional[int]) -> str:
     """Stable short cache key for a (multi-)directory + max_files combination."""
     import hashlib
@@ -182,7 +216,7 @@ def load_simulation_file(
 
 def _load_task(
     task: Tuple[Union[str, Path], Optional[Dict]],
-) -> Tuple[np.ndarray, SimulationMetadata]:
+) -> Optional[Tuple[np.ndarray, SimulationMetadata]]:
     """Executor helper: load a file, using a manifest entry for metadata if given."""
     filepath, entry = task
     metadata = (
@@ -190,7 +224,11 @@ def _load_task(
         if entry is not None
         else None
     )
-    return load_simulation_file(filepath, metadata=metadata)
+    try:
+        return load_simulation_file(filepath, metadata=metadata)
+    except Exception as e:
+        logger.warning(f"Skipping {Path(filepath).name}: {e}")
+        return None
 
 
 def load_all_simulations(
@@ -215,14 +253,37 @@ def load_all_simulations(
         Data array shape: (num_samples, num_points, 3)
     """
     data_dir = Path(data_dir)
-    files = sorted(data_dir.glob("*.txt"))
+    txt_dir = data_dir / "txts" if (data_dir / "txts").is_dir() else data_dir
+    files = sorted(txt_dir.glob("*.txt"))
     files = [f for f in files if f.name != "parameters.txt"]
 
     # Manifest (opaque-id datasets) -> per-file metadata; empty for legacy datasets.
     manifest_index = load_manifest_index(data_dir)
 
     if max_files is not None:
-        files = files[:max_files]
+        if manifest_index:
+            healthy_files = []
+            faulty_files = []
+            for f in files:
+                entry = manifest_index.get(f.name)
+                if entry:
+                    if entry.get("set") == "healthy" or entry.get("label") == "normal":
+                        healthy_files.append(f)
+                    else:
+                        faulty_files.append(f)
+                else:
+                    healthy_files.append(f)
+            
+            if healthy_files and faulty_files:
+                n_healthy = max_files // 2
+                n_faulty = max_files - n_healthy
+                # Slice and combine
+                selected_files = healthy_files[:n_healthy] + faulty_files[:n_faulty]
+                files = sorted(selected_files)
+            else:
+                files = files[:max_files]
+        else:
+            files = files[:max_files]
 
     logger.info(f"Loading {len(files)} simulation files from {data_dir}")
     if manifest_index:
@@ -244,18 +305,19 @@ def load_all_simulations(
                 )
             )
 
-        for data, metadata in results:
-            data_list.append(data)
-            metadata_list.append(metadata)
+        for res in results:
+            if res is not None:
+                data, metadata = res
+                data_list.append(data)
+                metadata_list.append(metadata)
     else:
         iterator = tqdm(tasks, desc="Loading simulations", disable=not show_progress)
         for task in iterator:
-            try:
-                data, metadata = _load_task(task)
+            res = _load_task(task)
+            if res is not None:
+                data, metadata = res
                 data_list.append(data)
                 metadata_list.append(metadata)
-            except Exception as e:
-                logger.warning(f"Skipping {task[0].name}: {e}")
 
     # Stack into single array
     data_array = np.stack(data_list, axis=0)
@@ -300,17 +362,20 @@ class DataLoader:
                 without an entry fall back to ``normal_threshold``.
         """
         dirs = data_dir if isinstance(data_dir, (list, tuple)) else [data_dir]
-        self.data_dirs = [Path(d) for d in dirs]
-        # Primary dir: frequency grid + ranges auto-discovery.
+        
+        # Discover ranges using the original first directory path
+        self.ranges = (
+            component_ranges
+            if component_ranges is not None
+            else load_ranges_for(dirs[0])
+        )
+
+        # Resolve directories
+        self.data_dirs = [resolve_data_dir(d) for d in dirs]
         self.data_dir = self.data_dirs[0]
         self.cache_dir = Path(cache_dir) if cache_dir else None
         self.normal_threshold = normal_threshold
         self.use_component_ranges = use_component_ranges
-        self.ranges = (
-            component_ranges
-            if component_ranges is not None
-            else load_ranges_for(self.data_dir)
-        )
 
         self._data = None
         self._metadata = None
@@ -392,7 +457,8 @@ class DataLoader:
         if self._frequencies is not None:
             return self._frequencies
 
-        files = sorted(self.data_dir.glob("*.txt"))
+        txt_dir = self.data_dir / "txts" if (self.data_dir / "txts").is_dir() else self.data_dir
+        files = sorted(txt_dir.glob("*.txt"))
         if not files:
             return None
         try:

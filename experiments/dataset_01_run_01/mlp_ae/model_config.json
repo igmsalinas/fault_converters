@@ -1,0 +1,20 @@
+{
+  "name": "mlp_ae",
+  "type": "standard",
+  "input_shape": [
+    101,
+    2
+  ],
+  "latent_dim": 16,
+  "enc_units_idx": 1,
+  "dec_units_idx": 0,
+  "dropout_rate": 0.0,
+  "use_batch_norm": false,
+  "activation": "swish",
+  "optimizer": "adamw",
+  "learning_rate": 0.0007492836137711606,
+  "weight_decay": 0.03861347510214769,
+  "lr_schedule": "constant",
+  "warmup_ratio": 0.0,
+  "clipnorm": 1.0
+}

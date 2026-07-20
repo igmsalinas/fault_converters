@@ -1,0 +1,6 @@
+2026-07-17 08:33:15 | training_carla_gru_best | INFO | Epoch 1: loss=11.5520, recon=0.9970, contrast=3.1636
+2026-07-17 08:33:15 | training_carla_gru_best | INFO | Epoch 2: loss=11.4917, recon=0.9967, contrast=3.0494
+2026-07-17 08:33:16 | training_carla_gru_best | INFO | Epoch 3: loss=11.1213, recon=0.9964, contrast=2.3145
+2026-07-17 08:33:16 | training_carla_gru_best | INFO | Epoch 4: loss=10.8481, recon=0.9960, contrast=1.7758
+2026-07-17 08:33:17 | training_carla_gru_best | INFO | Epoch 5: loss=10.7985, recon=0.9956, contrast=1.6851
+2026-07-17 08:33:17 | training_carla_gru_best | INFO | Epoch 6: loss=10.8247, recon=0.9951, contrast=1.7479

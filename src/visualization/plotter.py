@@ -330,12 +330,17 @@ def create_comparison_plot(
     if not data_dir.exists():
         raise FileNotFoundError(f"Data directory not found: {data_dir}")
 
+    # Resolve version directory and find the raw simulation files directory
+    from ..data.loader import resolve_data_dir
+    resolved_dir = resolve_data_dir(data_dir)
+    txt_dir = resolved_dir / "txts" if (resolved_dir / "txts").is_dir() else resolved_dir
+
     # Find normal files (0% variation - all parameters at +0)
-    normal_files = list(data_dir.glob(normal_pattern))
+    normal_files = list(txt_dir.glob(normal_pattern))
     logger.info(f"Found {len(normal_files)} normal files (0% variation)")
 
     # Find anomaly files (parameter variations)
-    all_files = list(data_dir.glob(anomaly_pattern))
+    all_files = list(txt_dir.glob(anomaly_pattern))
     if exclude_normal:
         anomaly_files = [f for f in all_files if f not in normal_files]
     else:

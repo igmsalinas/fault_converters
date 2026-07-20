@@ -28,8 +28,8 @@ class CARLASearchSpace:
     encoder_types: List[str] = field(
         default_factory=lambda: ["conv1d", "lstm", "gru", "transformer", "mlp"]
     )
-    latent_dims: List[int] = field(default_factory=lambda: [16, 32, 64, 128])
-    projection_dims: List[int] = field(default_factory=lambda: [32, 64, 128, 256])
+    latent_dims: List[int] = field(default_factory=lambda: [32, 64, 128])
+    projection_dims: List[int] = field(default_factory=lambda: [64, 128])
     encoder_filters: List[List[int]] = field(
         default_factory=lambda: [[32, 64], [32, 64, 128], [64, 128]]
     )
@@ -41,30 +41,30 @@ class CARLASearchSpace:
 
     # Training
     learning_rates: List[float] = field(
-        default_factory=lambda: [1e-5, 5e-5, 1e-4, 5e-4, 1e-3, 5e-3]
+        default_factory=lambda: [5e-5, 1e-4, 3e-4, 5e-4]
     )
 
     # CARLA-specific
     reconstruction_weights: List[float] = field(
-        default_factory=lambda: [0.1, 0.5, 1.0, 2.0, 5.0]
+        default_factory=lambda: [5.0, 10.0, 20.0]
     )
     contrastive_weights: List[float] = field(
-        default_factory=lambda: [0.1, 0.5, 1.0, 2.0, 5.0]
+        default_factory=lambda: [0.5, 1.0]
     )
     temperatures: List[float] = field(
-        default_factory=lambda: [0.07, 0.1, 0.15, 0.2, 0.3]
+        default_factory=lambda: [0.05, 0.07, 0.1]
     )
-    anomaly_ratios: List[float] = field(default_factory=lambda: [0.1, 0.3, 0.5, 0.7])
+    anomaly_ratios: List[float] = field(default_factory=lambda: [0.3, 0.5])
 
     # Anomaly scoring
     scoring_methods: List[str] = field(
-        default_factory=lambda: ["knn", "centroid", "cosine", "mahalanobis"]
+        default_factory=lambda: ["knn", "centroid"]
     )
     k_neighbors: List[int] = field(default_factory=lambda: [3, 5, 10])
 
     # Dropout
     dropout_rates: List[float] = field(
-        default_factory=lambda: [0.0, 0.05, 0.1, 0.15, 0.2]
+        default_factory=lambda: [0.0, 0.1]
     )
 
     def get_random_config(self) -> Dict[str, Any]:
@@ -382,11 +382,16 @@ class CARLAHyperparameterSearch:
                 monitor_data, percentile=95.0, batch_size=batch_size
             )
 
-            roc_auc = roc_auc_score(monitor_labels, scores)
-            f1 = f1_score(monitor_labels, predictions)
-
-            precision, recall, _ = precision_recall_curve(monitor_labels, scores)
-            pr_auc = auc(recall, precision)
+            if len(np.unique(monitor_labels)) > 1:
+                roc_auc = roc_auc_score(monitor_labels, scores)
+                f1 = f1_score(monitor_labels, predictions)
+                precision, recall, _ = precision_recall_curve(monitor_labels, scores)
+                pr_auc = auc(recall, precision)
+            else:
+                logger.warning("Monitor labels only contain one class. ROC-AUC and F1 cannot be calculated.")
+                roc_auc = 0.0
+                f1 = 0.0
+                pr_auc = 0.0
 
         except Exception as e:
             logger.error(f"Trial {trial_id} failed: {e}")

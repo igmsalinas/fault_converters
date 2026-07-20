@@ -1,0 +1,19 @@
+{
+  "name": "conv1d_ae",
+  "type": "standard",
+  "input_shape": [
+    101,
+    2
+  ],
+  "latent_dim": 64,
+  "filters_idx": 0,
+  "kernel_size": 5,
+  "dropout_rate": 0.0,
+  "activation": "swish",
+  "optimizer": "nadam",
+  "learning_rate": 0.0006438560217460418,
+  "weight_decay": 0.0036449927802537385,
+  "lr_schedule": "cosine",
+  "warmup_ratio": 0.05,
+  "clipnorm": 1.0
+}

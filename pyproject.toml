@@ -29,6 +29,7 @@ dependencies = [
     # GPU deployment stack (TensorRT / CUDA) is Linux-only and has no macOS wheels.
     "tensorrt-cu12>=11.1.0.106 ; sys_platform == 'linux'",
     "cuda-python>=13.3.1 ; sys_platform == 'linux'",
+    "tensorflow>=2.21.0",
 ]
 
 # NVIDIA index provides real Linux wheels for the TensorRT stub packages so uv can
@@ -39,4 +40,5 @@ url = "https://pypi.nvidia.com/"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+norecursedirs = [".venv", "build", "dist", "node_modules"]
 

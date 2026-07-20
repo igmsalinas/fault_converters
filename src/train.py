@@ -48,14 +48,14 @@ STANDARD_MODELS = [
     "vae",
     "transformer_ae",
 ]
-CARLA_MODEL = "carla"
-ALL_MODELS = STANDARD_MODELS + [CARLA_MODEL]
+CARLA_MODELS = ["carla_conv1d", "carla_lstm", "carla_gru", "carla_transformer", "carla_mlp"]
+ALL_MODELS = STANDARD_MODELS + CARLA_MODELS
 
 # ---- Default search spaces ----
 STANDARD_SEARCH_SPACES = {
     "conv1d_ae": SearchSpace(
         lr_min=1e-5,
-        lr_max=1e-2,
+        lr_max=2e-3,
         latent_dims=[16, 32, 64],
         filter_options=[[32, 64], [32, 64, 128], [64, 128]],
         kernel_sizes=[3, 5],
@@ -63,33 +63,33 @@ STANDARD_SEARCH_SPACES = {
     ),
     "lstm_ae": SearchSpace(
         lr_min=1e-5,
-        lr_max=1e-2,
+        lr_max=1e-3,
         latent_dims=[16, 32, 64],
         lstm_unit_options=[[32, 16], [64, 32], [128, 64]],
         dropout_rates=[0.0, 0.1, 0.2],
     ),
     "gru_ae": SearchSpace(
         lr_min=1e-5,
-        lr_max=1e-2,
+        lr_max=1e-3,
         latent_dims=[16, 32, 64],
         gru_unit_options=[[32, 16], [64, 32], [128, 64]],
         dropout_rates=[0.0, 0.1, 0.2],
     ),
     "vae": SearchSpace(
         lr_min=1e-5,
-        lr_max=1e-2,
+        lr_max=1e-3,
         latent_dims=[16, 32, 64],
         dropout_rates=[0.0, 0.1, 0.2],
     ),
     "transformer_ae": SearchSpace(
         lr_min=1e-5,
-        lr_max=1e-2,
+        lr_max=1e-3,
         latent_dims=[16, 32, 64],
         dropout_rates=[0.0, 0.1, 0.2],
     ),
     "mlp_ae": SearchSpace(
         lr_min=1e-5,
-        lr_max=1e-2,
+        lr_max=1e-3,
         latent_dims=[16, 32, 64, 128],
         mlp_encoder_unit_options=[[128, 64], [256, 128], [256, 128, 64]],
         mlp_decoder_unit_options=[[64, 128], [128, 256], [64, 128, 256]],
@@ -98,19 +98,27 @@ STANDARD_SEARCH_SPACES = {
 }
 
 CARLA_SEARCH_SPACE = CARLASearchSpace(
-    encoder_types=["conv1d", "transformer", "mlp"],
-    latent_dims=[16, 32, 64, 128],
-    projection_dims=[32, 64, 128, 256],
-    learning_rates=[1e-5, 5e-5, 1e-4, 5e-4, 1e-3, 5e-3],
-    reconstruction_weights=[0.1, 0.5, 1.0, 2.0, 5.0],
-    contrastive_weights=[0.1, 0.5, 1.0, 2.0, 5.0],
-    temperatures=[0.05, 0.1, 0.15, 0.2, 0.3],
-    anomaly_ratios=[0.1, 0.3, 0.5, 0.7],
-    dropout_rates=[0.0, 0.05, 0.1, 0.15, 0.2],
-    encoder_filters=[[32, 64], [32, 64, 128], [64, 128]],
+    encoder_types=["conv1d", "lstm", "gru", "transformer", "mlp"],  # Overridden per-variant in _train_carla()
+    latent_dims=[32, 64, 128, 256],
+    projection_dims=[64, 128, 256, 512],
+    learning_rates=[5e-5, 1e-4, 3e-4, 5e-4],
+    reconstruction_weights=[5.0, 10.0, 20.0],
+    contrastive_weights=[0.5, 1.0],
+    temperatures=[0.05, 0.07, 0.1],
+    anomaly_ratios=[0.3, 0.5],
+    dropout_rates=[0.0, 0.1],
+    encoder_filters=[
+        [64, 128], [128, 256],
+        [64, 128, 256], [128, 256, 512]
+    ],
+    encoder_unit_options=[
+        [128, 64], [256, 128], [512, 256],
+        [256, 128, 64], [512, 256, 128]
+    ],
     kernel_sizes=[3, 5],
     num_heads=[2, 4, 8],
-    scoring_methods=["knn", "centroid", "cosine", "mahalanobis"],
+    scoring_methods=["knn", "centroid"],
+    k_neighbors=[3, 5, 10],
 )
 
 
@@ -202,21 +210,21 @@ def parse_args(argv=None) -> argparse.Namespace:
         "--encoder-types",
         type=str,
         nargs="+",
-        default=["conv1d", "lstm", "gru", "transformer", "mlp"],
-        help="Encoder types to search (CARLA only)",
+        default=None,
+        help="Encoder types to search (CARLA only, default: derived from model name)",
     )
     parser.add_argument(
         "--latent-dims",
         type=int,
         nargs="+",
-        default=[16, 32, 64],
+        default=[32, 64, 128],
         help="Latent dimensions to search (CARLA only)",
     )
     parser.add_argument(
         "--learning-rates",
         type=float,
         nargs="+",
-        default=[1e-4, 5e-4, 1e-3],
+        default=[5e-5, 1e-4, 3e-4, 5e-4],
         help="Learning rates to search (CARLA only)",
     )
 
@@ -396,16 +404,22 @@ def _train_carla(
 ) -> dict:
     """HP search + final training for the CARLA contrastive autoencoder."""
 
+    # Extract encoder type from model name (e.g. "carla_conv1d" -> "conv1d")
+    encoder_type = model_name.replace("carla_", "")
     logger.info(f"\n{'=' * 60}")
-    logger.info("Hyperparameter Search: CARLA Contrastive AE")
+    logger.info(f"Hyperparameter Search: CARLA Contrastive AE ({encoder_type} encoder)")
     logger.info("=" * 60)
 
     # CARLA trains only on normal data
     train_normal = dataset.train_data
     val_normal = dataset.val_data
 
-    # Build search space from base search space
+    # Build search space from base search space and apply CLI overrides
     search_space = CARLA_SEARCH_SPACE
+    # Pin encoder type from model name, unless explicitly overridden via CLI
+    search_space.encoder_types = args.encoder_types or [encoder_type]
+    search_space.latent_dims = args.latent_dims
+    search_space.learning_rates = args.learning_rates
 
     logger.info(f"Search space combinations: {search_space.total_combinations()}")
 
@@ -493,6 +507,7 @@ def _train_carla(
         projection_dim=int(best_config["projection_dim"]),
         encoder_type=str(best_config["encoder_type"]),
         encoder_filters=best_config["encoder_filters"],
+        encoder_units=best_config.get("encoder_units", [64, 32]),
         kernel_size=int(best_config["kernel_size"]),
         num_heads=int(best_config["num_heads"]),
         dropout_rate=float(best_config["dropout_rate"]),
@@ -634,7 +649,7 @@ def main(argv=None) -> None:
     logger.info(f"Test:          {len(dataset.test_data)}")
 
     # ---- Train ----
-    if args.model == CARLA_MODEL:
+    if args.model in CARLA_MODELS:
         result = _train_carla(args.model, dataset, output_dir, args)
     else:
         result = _train_standard(args.model, dataset, output_dir, args)

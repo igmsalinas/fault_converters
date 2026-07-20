@@ -1,0 +1,1777 @@
+{
+  "best_config": {
+    "encoder_type": "conv1d",
+    "latent_dim": 32,
+    "projection_dim": 256,
+    "encoder_filters": [
+      128,
+      256,
+      512
+    ],
+    "encoder_units": [
+      256,
+      128
+    ],
+    "kernel_size": 5,
+    "num_heads": 8,
+    "learning_rate": 5e-05,
+    "reconstruction_weight": 10.0,
+    "contrastive_weight": 1.0,
+    "temperature": 0.1,
+    "anomaly_ratio": 0.5,
+    "scoring_method": "knn",
+    "k_neighbors": 3,
+    "dropout_rate": 0.0
+  },
+  "best_metrics": {
+    "roc_auc": 0.9864846522097677,
+    "pr_auc": 0.9882519433974073,
+    "f1_score": 0.9342770475227502,
+    "val_loss": 0.29294743592088873
+  },
+  "n_trials": 50,
+  "all_trials": [
+    {
+      "trial_id": 0,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 128,
+        "projection_dim": 512,
+        "encoder_filters": [
+          64,
+          128,
+          256
+        ],
+        "encoder_units": [
+          128,
+          64
+        ],
+        "kernel_size": 3,
+        "num_heads": 2,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 20.0,
+        "contrastive_weight": 0.5,
+        "temperature": 0.05,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "centroid",
+        "k_neighbors": 3,
+        "dropout_rate": 0.1
+      },
+      "val_loss": 0.5515285134315491,
+      "val_recon_loss": 0.02213795381513509,
+      "val_contrast_loss": 0.21753887290304358,
+      "roc_auc": 0.8549017112141917,
+      "pr_auc": 0.8972283984926711,
+      "f1_score": 0.8039740160489109,
+      "training_time": 191.85826802253723,
+      "epochs_trained": 39
+    },
+    {
+      "trial_id": 1,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 64,
+        "projection_dim": 512,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          512,
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 2,
+        "learning_rate": 0.0005,
+        "reconstruction_weight": 20.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.05,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 3,
+        "dropout_rate": 0.1
+      },
+      "val_loss": 0.5120415416630831,
+      "val_recon_loss": 0.021869637749411842,
+      "val_contrast_loss": 0.07464879073879936,
+      "roc_auc": 0.9759715282725732,
+      "pr_auc": 0.9791866792812468,
+      "f1_score": 0.9149156045470204,
+      "training_time": 150.41954112052917,
+      "epochs_trained": 31
+    },
+    {
+      "trial_id": 2,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 64,
+        "projection_dim": 128,
+        "encoder_filters": [
+          128,
+          256
+        ],
+        "encoder_units": [
+          512,
+          256
+        ],
+        "kernel_size": 3,
+        "num_heads": 2,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 0.5,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "centroid",
+        "k_neighbors": 3,
+        "dropout_rate": 0.1
+      },
+      "val_loss": 0.1683794314211065,
+      "val_recon_loss": 0.006841924761167981,
+      "val_contrast_loss": 0.19992037252946335,
+      "roc_auc": 0.8752866598635247,
+      "pr_auc": 0.9136823576202884,
+      "f1_score": 0.8158790170132325,
+      "training_time": 72.20274043083191,
+      "epochs_trained": 16
+    },
+    {
+      "trial_id": 3,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.1
+      },
+      "val_loss": 0.49594648588787427,
+      "val_recon_loss": 0.026855873451991516,
+      "val_contrast_loss": 0.22738774120807648,
+      "roc_auc": 0.9677094046687118,
+      "pr_auc": 0.9748880471387339,
+      "f1_score": 0.9103448275862069,
+      "training_time": 82.5775101184845,
+      "epochs_trained": 16
+    },
+    {
+      "trial_id": 4,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 128,
+        "projection_dim": 64,
+        "encoder_filters": [
+          128,
+          256
+        ],
+        "encoder_units": [
+          256,
+          128,
+          64
+        ],
+        "kernel_size": 5,
+        "num_heads": 4,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 5.0,
+        "contrastive_weight": 0.5,
+        "temperature": 0.07,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "centroid",
+        "k_neighbors": 5,
+        "dropout_rate": 0.1
+      },
+      "val_loss": 0.1362975307486274,
+      "val_recon_loss": 0.010289954698898575,
+      "val_contrast_loss": 0.16969551552425732,
+      "roc_auc": 0.8635479022928784,
+      "pr_auc": 0.901979557343388,
+      "f1_score": 0.8077655119908641,
+      "training_time": 67.78728008270264,
+      "epochs_trained": 15
+    },
+    {
+      "trial_id": 5,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 64,
+        "projection_dim": 128,
+        "encoder_filters": [
+          128,
+          256
+        ],
+        "encoder_units": [
+          512,
+          256
+        ],
+        "kernel_size": 3,
+        "num_heads": 2,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 0.5,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "centroid",
+        "k_neighbors": 3,
+        "dropout_rate": 0.1
+      },
+      "val_loss": 0.1268422772938555,
+      "val_recon_loss": 0.00368359627794813,
+      "val_contrast_loss": 0.18001262572678653,
+      "roc_auc": 0.8707624073153506,
+      "pr_auc": 0.9103717845157852,
+      "f1_score": 0.8089802130898022,
+      "training_time": 193.39732456207275,
+      "epochs_trained": 50
+    },
+    {
+      "trial_id": 6,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 64,
+        "projection_dim": 128,
+        "encoder_filters": [
+          128,
+          256
+        ],
+        "encoder_units": [
+          512,
+          256
+        ],
+        "kernel_size": 3,
+        "num_heads": 2,
+        "learning_rate": 0.0003,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 0.5,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "centroid",
+        "k_neighbors": 3,
+        "dropout_rate": 0.1
+      },
+      "val_loss": 0.13171518458561463,
+      "val_recon_loss": 0.0038930394856089897,
+      "val_contrast_loss": 0.18556957895105536,
+      "roc_auc": 0.8730605816374803,
+      "pr_auc": 0.9106077180511049,
+      "f1_score": 0.800462249614792,
+      "training_time": 147.95145773887634,
+      "epochs_trained": 37
+    },
+    {
+      "trial_id": 7,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 64,
+        "projection_dim": 512,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          512,
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 2,
+        "learning_rate": 0.0005,
+        "reconstruction_weight": 20.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.07,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 10,
+        "dropout_rate": 0.1
+      },
+      "val_loss": 0.5767529986121438,
+      "val_recon_loss": 0.023063838481903076,
+      "val_contrast_loss": 0.11547621881419962,
+      "roc_auc": 0.9452363394586829,
+      "pr_auc": 0.9593575724482776,
+      "f1_score": 0.8831627250264737,
+      "training_time": 154.28119111061096,
+      "epochs_trained": 31
+    },
+    {
+      "trial_id": 8,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.1
+      },
+      "val_loss": 0.3933145132931796,
+      "val_recon_loss": 0.021852795373309742,
+      "val_contrast_loss": 0.17478655820543115,
+      "roc_auc": 0.9641864867883904,
+      "pr_auc": 0.9717660966745825,
+      "f1_score": 0.9022608695652173,
+      "training_time": 229.17979264259338,
+      "epochs_trained": 50
+    },
+    {
+      "trial_id": 9,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.298074180429632,
+      "val_recon_loss": 0.020416879857128315,
+      "val_contrast_loss": 0.09390538321299986,
+      "roc_auc": 0.9805500754116264,
+      "pr_auc": 0.9844765289297022,
+      "f1_score": 0.9304849101390302,
+      "training_time": 119.46259331703186,
+      "epochs_trained": 29
+    },
+    {
+      "trial_id": 10,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 20.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.1
+      },
+      "val_loss": 0.5863744074648077,
+      "val_recon_loss": 0.021592820909890263,
+      "val_contrast_loss": 0.15451798926700244,
+      "roc_auc": 0.9666333036789927,
+      "pr_auc": 0.9738262171549525,
+      "f1_score": 0.90619591554171,
+      "training_time": 239.51938843727112,
+      "epochs_trained": 50
+    },
+    {
+      "trial_id": 11,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          512,
+          256
+        ],
+        "kernel_size": 3,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.07,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.1
+      },
+      "val_loss": 0.3780235268852927,
+      "val_recon_loss": 0.021217740902846508,
+      "val_contrast_loss": 0.16584612022746692,
+      "roc_auc": 0.9665389557013994,
+      "pr_auc": 0.9735329902003493,
+      "f1_score": 0.9061082024432809,
+      "training_time": 235.8437957763672,
+      "epochs_trained": 50
+    },
+    {
+      "trial_id": 12,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 4,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 0.5,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.1
+      },
+      "val_loss": 0.2904086410999298,
+      "val_recon_loss": 0.021284888075156647,
+      "val_contrast_loss": 0.15511951934207568,
+      "roc_auc": 0.9669515055845548,
+      "pr_auc": 0.9735914432025132,
+      "f1_score": 0.9046132500867152,
+      "training_time": 253.3689124584198,
+      "epochs_trained": 50
+    },
+    {
+      "trial_id": 13,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 128,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.29143268953670154,
+      "val_recon_loss": 0.020356018096208572,
+      "val_contrast_loss": 0.08787251060659235,
+      "roc_auc": 0.9769519461718086,
+      "pr_auc": 0.9817042854720942,
+      "f1_score": 0.9259007477906186,
+      "training_time": 135.52230978012085,
+      "epochs_trained": 32
+    },
+    {
+      "trial_id": 14,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.32609768076376483,
+      "val_recon_loss": 0.020544555715539238,
+      "val_contrast_loss": 0.12065211954441937,
+      "roc_auc": 0.9778825198564665,
+      "pr_auc": 0.9828221236933796,
+      "f1_score": 0.9319264805990469,
+      "training_time": 120.3844883441925,
+      "epochs_trained": 28
+    },
+    {
+      "trial_id": 15,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 128,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          128,
+          64
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.30612840164791455,
+      "val_recon_loss": 0.02046353861012242,
+      "val_contrast_loss": 0.1014930165626786,
+      "roc_auc": 0.9786381937524729,
+      "pr_auc": 0.9831432893068582,
+      "f1_score": 0.9301056938288442,
+      "training_time": 118.11769962310791,
+      "epochs_trained": 27
+    },
+    {
+      "trial_id": 16,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.16496894237670032,
+      "val_recon_loss": 0.002895666582679207,
+      "val_contrast_loss": 0.13601227443326602,
+      "roc_auc": 0.9784526130606973,
+      "pr_auc": 0.9832283415843265,
+      "f1_score": 0.9290322580645162,
+      "training_time": 171.62239909172058,
+      "epochs_trained": 48
+    },
+    {
+      "trial_id": 17,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 4,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.33583163944157685,
+      "val_recon_loss": 0.020299451595002956,
+      "val_contrast_loss": 0.1328371221368963,
+      "roc_auc": 0.979161112967907,
+      "pr_auc": 0.9835512709096403,
+      "f1_score": 0.9276538201487492,
+      "training_time": 153.37114238739014,
+      "epochs_trained": 36
+    },
+    {
+      "trial_id": 18,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 4,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 0.5,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.24453199451619928,
+      "val_recon_loss": 0.020356743173165756,
+      "val_contrast_loss": 0.08192911676385185,
+      "roc_auc": 0.9739719742002784,
+      "pr_auc": 0.9801659621802612,
+      "f1_score": 0.9294520547945205,
+      "training_time": 126.0717306137085,
+      "epochs_trained": 29
+    },
+    {
+      "trial_id": 19,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          64,
+          128
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 4,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.13528087802908637,
+      "val_recon_loss": 0.002892213492569598,
+      "val_contrast_loss": 0.10635874555869536,
+      "roc_auc": 0.9800907965773046,
+      "pr_auc": 0.9843718945846919,
+      "f1_score": 0.932157394843962,
+      "training_time": 152.76604294776917,
+      "epochs_trained": 41
+    },
+    {
+      "trial_id": 20,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          64,
+          128
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 4,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.13915457779710944,
+      "val_recon_loss": 0.0029113767456940627,
+      "val_contrast_loss": 0.11004080758853392,
+      "roc_auc": 0.9764161208650998,
+      "pr_auc": 0.9816479378035275,
+      "f1_score": 0.9260013577732519,
+      "training_time": 116.51612877845764,
+      "epochs_trained": 30
+    },
+    {
+      "trial_id": 21,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          512,
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 4,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.30279986424879596,
+      "val_recon_loss": 0.020553236657922917,
+      "val_contrast_loss": 0.09726749766956676,
+      "roc_auc": 0.9788010775251101,
+      "pr_auc": 0.9833298251312832,
+      "f1_score": 0.9306594153636981,
+      "training_time": 131.31667590141296,
+      "epochs_trained": 30
+    },
+    {
+      "trial_id": 22,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.31574752926826477,
+      "val_recon_loss": 0.020323594524101776,
+      "val_contrast_loss": 0.11251159283247861,
+      "roc_auc": 0.9765420665144341,
+      "pr_auc": 0.981863127735435,
+      "f1_score": 0.9282068730860837,
+      "training_time": 146.04318475723267,
+      "epochs_trained": 34
+    },
+    {
+      "trial_id": 23,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128,
+          64
+        ],
+        "kernel_size": 5,
+        "num_heads": 4,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.07,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.2730138816616752,
+      "val_recon_loss": 0.02030105245384303,
+      "val_contrast_loss": 0.07000335678458214,
+      "roc_auc": 0.9779741976082786,
+      "pr_auc": 0.9829584913992534,
+      "f1_score": 0.9294915254237288,
+      "training_time": 135.71665811538696,
+      "epochs_trained": 31
+    },
+    {
+      "trial_id": 24,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 4,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.16283766518939624,
+      "val_recon_loss": 0.0028664551421322608,
+      "val_contrast_loss": 0.1341731141914021,
+      "roc_auc": 0.9764170109403602,
+      "pr_auc": 0.9816586448890581,
+      "f1_score": 0.9297113752122241,
+      "training_time": 122.12919425964355,
+      "epochs_trained": 33
+    },
+    {
+      "trial_id": 25,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          64,
+          128
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 4,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 20.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.14215690845792944,
+      "val_recon_loss": 0.002855115019800988,
+      "val_contrast_loss": 0.08505460619926453,
+      "roc_auc": 0.9743248890409929,
+      "pr_auc": 0.9800884641176265,
+      "f1_score": 0.9229202037351443,
+      "training_time": 129.21676468849182,
+      "epochs_trained": 36
+    },
+    {
+      "trial_id": 26,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 4,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.1
+      },
+      "val_loss": 0.3830264048142867,
+      "val_recon_loss": 0.0209203569049185,
+      "val_contrast_loss": 0.17382283644242721,
+      "roc_auc": 0.9641032647515511,
+      "pr_auc": 0.9717228951349083,
+      "f1_score": 0.9031586254772649,
+      "training_time": 245.61552047729492,
+      "epochs_trained": 50
+    },
+    {
+      "trial_id": 27,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 128,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 4,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.07,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.2893459282138131,
+      "val_recon_loss": 0.020341306416825813,
+      "val_contrast_loss": 0.0859328606589274,
+      "roc_auc": 0.9784793153185067,
+      "pr_auc": 0.9828966746242956,
+      "f1_score": 0.9279891304347826,
+      "training_time": 114.60475850105286,
+      "epochs_trained": 26
+    },
+    {
+      "trial_id": 28,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          64,
+          128
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 4,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.07,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.1208220815116709,
+      "val_recon_loss": 0.002995291915298863,
+      "val_contrast_loss": 0.09086916189302098,
+      "roc_auc": 0.9768816302262439,
+      "pr_auc": 0.9819413467425813,
+      "f1_score": 0.9253224711473184,
+      "training_time": 138.15808010101318,
+      "epochs_trained": 37
+    },
+    {
+      "trial_id": 29,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          64,
+          128
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 4,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.13854405758055774,
+      "val_recon_loss": 0.0028855044352398677,
+      "val_contrast_loss": 0.10968901420181448,
+      "roc_auc": 0.9781428668701082,
+      "pr_auc": 0.9828820690121782,
+      "f1_score": 0.9297113752122241,
+      "training_time": 154.56656050682068,
+      "epochs_trained": 43
+    },
+    {
+      "trial_id": 30,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 128,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 4,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.30211950974030927,
+      "val_recon_loss": 0.020390071990815075,
+      "val_contrast_loss": 0.09821878576820547,
+      "roc_auc": 0.9789871032545157,
+      "pr_auc": 0.9835055288820342,
+      "f1_score": 0.9272237196765498,
+      "training_time": 147.73940539360046,
+      "epochs_trained": 33
+    },
+    {
+      "trial_id": 31,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.05,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "knn",
+        "k_neighbors": 3,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.26842463558370416,
+      "val_recon_loss": 0.020480797880075195,
+      "val_contrast_loss": 0.06361665441231294,
+      "roc_auc": 0.9836381915272846,
+      "pr_auc": 0.9860842993218607,
+      "f1_score": 0.9287402904424181,
+      "training_time": 174.3553605079651,
+      "epochs_trained": 40
+    },
+    {
+      "trial_id": 32,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 512,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.05,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "knn",
+        "k_neighbors": 3,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.25191719965501264,
+      "val_recon_loss": 0.020396862517703663,
+      "val_contrast_loss": 0.0479485768486153,
+      "roc_auc": 0.985631515072757,
+      "pr_auc": 0.9879120848981645,
+      "f1_score": 0.933243425488874,
+      "training_time": 150.54344844818115,
+      "epochs_trained": 35
+    },
+    {
+      "trial_id": 33,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 512,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 0.5,
+        "temperature": 0.05,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "centroid",
+        "k_neighbors": 3,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.22927465763959018,
+      "val_recon_loss": 0.020476580851457336,
+      "val_contrast_loss": 0.04901769181544131,
+      "roc_auc": 0.8964642205321671,
+      "pr_auc": 0.9307859401655622,
+      "f1_score": 0.8525429930479327,
+      "training_time": 130.12984800338745,
+      "epochs_trained": 31
+    },
+    {
+      "trial_id": 34,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 0.0003,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.264660735021938,
+      "val_recon_loss": 0.020334909416057846,
+      "val_contrast_loss": 0.06131164086135951,
+      "roc_auc": 0.9758273360804024,
+      "pr_auc": 0.9809273438651404,
+      "f1_score": 0.9236511706820495,
+      "training_time": 203.79475283622742,
+      "epochs_trained": 50
+    },
+    {
+      "trial_id": 35,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 512,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.05,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "knn",
+        "k_neighbors": 3,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.2644393322142688,
+      "val_recon_loss": 0.020306598564440555,
+      "val_contrast_loss": 0.06137334927916527,
+      "roc_auc": 0.9834214582013983,
+      "pr_auc": 0.9860622086310863,
+      "f1_score": 0.9319796954314721,
+      "training_time": 137.62016129493713,
+      "epochs_trained": 32
+    },
+    {
+      "trial_id": 36,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 64,
+        "projection_dim": 512,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "centroid",
+        "k_neighbors": 3,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.31625003706325183,
+      "val_recon_loss": 0.02047338370572437,
+      "val_contrast_loss": 0.11151619865135713,
+      "roc_auc": 0.8987721856821602,
+      "pr_auc": 0.929646027586231,
+      "f1_score": 0.8455584224106155,
+      "training_time": 114.26684331893921,
+      "epochs_trained": 25
+    },
+    {
+      "trial_id": 37,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 0.0003,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.05,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "knn",
+        "k_neighbors": 3,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.2472118450836702,
+      "val_recon_loss": 0.020259535278786312,
+      "val_contrast_loss": 0.044616489078510894,
+      "roc_auc": 0.9804744190144997,
+      "pr_auc": 0.9834225148383905,
+      "f1_score": 0.9250084832032576,
+      "training_time": 191.19862532615662,
+      "epochs_trained": 45
+    },
+    {
+      "trial_id": 38,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 512,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 20.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.05,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "knn",
+        "k_neighbors": 3,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.4716963090679862,
+      "val_recon_loss": 0.020357625050978226,
+      "val_contrast_loss": 0.0645438168536533,
+      "roc_auc": 0.9818259982972861,
+      "pr_auc": 0.9848399018987041,
+      "f1_score": 0.9295392953929539,
+      "training_time": 146.71444177627563,
+      "epochs_trained": 34
+    },
+    {
+      "trial_id": 39,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.05,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 3,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.2514210180802779,
+      "val_recon_loss": 0.020399815148927948,
+      "val_contrast_loss": 0.047422871332276954,
+      "roc_auc": 0.9843787341438656,
+      "pr_auc": 0.9867634906649217,
+      "f1_score": 0.9303264893975093,
+      "training_time": 132.28330516815186,
+      "epochs_trained": 30
+    },
+    {
+      "trial_id": 40,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 3,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.29294743592088873,
+      "val_recon_loss": 0.020406681197610767,
+      "val_contrast_loss": 0.08888062021949074,
+      "roc_auc": 0.9864846522097677,
+      "pr_auc": 0.9882519433974073,
+      "f1_score": 0.9342770475227502,
+      "training_time": 131.1362144947052,
+      "epochs_trained": 29
+    },
+    {
+      "trial_id": 41,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.2975792776454579,
+      "val_recon_loss": 0.02055900510061871,
+      "val_contrast_loss": 0.09198922528461977,
+      "roc_auc": 0.9780240418228564,
+      "pr_auc": 0.98281541505634,
+      "f1_score": 0.9280380176510523,
+      "training_time": 154.41632866859436,
+      "epochs_trained": 35
+    },
+    {
+      "trial_id": 42,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 512,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 3,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 20.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.05,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "knn",
+        "k_neighbors": 3,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.47124799544161017,
+      "val_recon_loss": 0.020398582924496044,
+      "val_contrast_loss": 0.06327633254907349,
+      "roc_auc": 0.983182472994004,
+      "pr_auc": 0.9858032597075297,
+      "f1_score": 0.9286921257181481,
+      "training_time": 160.01413226127625,
+      "epochs_trained": 36
+    },
+    {
+      "trial_id": 43,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          64,
+          128
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 4,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 3,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.1341607618060979,
+      "val_recon_loss": 0.002906620502471924,
+      "val_contrast_loss": 0.10509455678137866,
+      "roc_auc": 0.9852078392488477,
+      "pr_auc": 0.9874745382773051,
+      "f1_score": 0.9349511290866195,
+      "training_time": 102.305428981781,
+      "epochs_trained": 26
+    },
+    {
+      "trial_id": 44,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          64,
+          128
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 10,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.14160296727310528,
+      "val_recon_loss": 0.0031408069401302123,
+      "val_contrast_loss": 0.11019489778713747,
+      "roc_auc": 0.9670258268687909,
+      "pr_auc": 0.9760203905640286,
+      "f1_score": 0.9243927471775573,
+      "training_time": 119.06372213363647,
+      "epochs_trained": 32
+    },
+    {
+      "trial_id": 45,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 512,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.05,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 3,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.2642403651367534,
+      "val_recon_loss": 0.02051837539130991,
+      "val_contrast_loss": 0.05905660817568952,
+      "roc_auc": 0.983202054649731,
+      "pr_auc": 0.9857962969954244,
+      "f1_score": 0.9309410968178741,
+      "training_time": 165.34293365478516,
+      "epochs_trained": 37
+    },
+    {
+      "trial_id": 46,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 512,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 3,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 0.5,
+        "temperature": 0.05,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "knn",
+        "k_neighbors": 10,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.232380365783518,
+      "val_recon_loss": 0.02039421417496421,
+      "val_contrast_loss": 0.05687644874507731,
+      "roc_auc": 0.9634116762742874,
+      "pr_auc": 0.9739175256701308,
+      "f1_score": 0.9149880505291909,
+      "training_time": 169.79822707176208,
+      "epochs_trained": 40
+    },
+    {
+      "trial_id": 47,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          64,
+          128,
+          256
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 5,
+        "num_heads": 4,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 5,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.32512474601919,
+      "val_recon_loss": 0.020508085292848675,
+      "val_contrast_loss": 0.12004389613866806,
+      "roc_auc": 0.9780405082151722,
+      "pr_auc": 0.9828859345235661,
+      "f1_score": 0.9312925170068027,
+      "training_time": 111.56015515327454,
+      "epochs_trained": 25
+    },
+    {
+      "trial_id": 48,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 512,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 3,
+        "num_heads": 8,
+        "learning_rate": 5e-05,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.05,
+        "anomaly_ratio": 0.3,
+        "scoring_method": "knn",
+        "k_neighbors": 3,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.27003526145761664,
+      "val_recon_loss": 0.020776784047484398,
+      "val_contrast_loss": 0.06226742843335325,
+      "roc_auc": 0.9831704569779899,
+      "pr_auc": 0.9857118296632796,
+      "f1_score": 0.931787175989086,
+      "training_time": 154.7939648628235,
+      "epochs_trained": 37
+    },
+    {
+      "trial_id": 49,
+      "config": {
+        "encoder_type": "conv1d",
+        "latent_dim": 32,
+        "projection_dim": 256,
+        "encoder_filters": [
+          128,
+          256,
+          512
+        ],
+        "encoder_units": [
+          256,
+          128
+        ],
+        "kernel_size": 3,
+        "num_heads": 8,
+        "learning_rate": 0.0001,
+        "reconstruction_weight": 10.0,
+        "contrastive_weight": 1.0,
+        "temperature": 0.1,
+        "anomaly_ratio": 0.5,
+        "scoring_method": "knn",
+        "k_neighbors": 3,
+        "dropout_rate": 0.0
+      },
+      "val_loss": 0.303262553431771,
+      "val_recon_loss": 0.020697236399758945,
+      "val_contrast_loss": 0.09629019553011114,
+      "roc_auc": 0.9834499406097282,
+      "pr_auc": 0.9861262281559746,
+      "f1_score": 0.9349593495934959,
+      "training_time": 144.4132215976715,
+      "epochs_trained": 33
+    }
+  ]
+}

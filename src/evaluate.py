@@ -31,7 +31,7 @@ from typing import List, Dict, Any
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, fbeta_score
 
 from .data.dataset import PowerConverterDataset
 from .evaluation.metrics import (
@@ -130,6 +130,12 @@ def parse_args(argv=None) -> argparse.Namespace:
         default=95.0,
         help="Percentile for percentile threshold method",
     )
+    parser.add_argument(
+        "--beta",
+        type=float,
+        default=1.0,
+        help="Beta parameter for F-beta score optimization (beta > 1 gives recall more weight)",
+    )
 
     # ---- CARLA-specific ----
     parser.add_argument(
@@ -186,6 +192,17 @@ def parse_args(argv=None) -> argparse.Namespace:
 
 def _detect_model_type(model_dir: Path) -> str:
     """Detect whether the saved model is standard or CARLA."""
+    # Check model_config.json for explicit type field
+    config_path = model_dir / "model_config.json"
+    if config_path.exists():
+        try:
+            with open(config_path) as f:
+                config = json.load(f)
+            if config.get("type") == "carla":
+                return "carla"
+        except Exception:
+            pass
+
     # CARLA models save a best_config.json or carla_config.json
     carla_indicators = [
         model_dir / "best_config.json",
@@ -196,8 +213,8 @@ def _detect_model_type(model_dir: Path) -> str:
         if path.exists():
             return "carla"
 
-    # Also check directory name
-    if _CARLA_NAME in model_dir.name:
+    # Also check directory name (supports carla, carla_conv1d, carla_lstm, etc.)
+    if model_dir.name.startswith(_CARLA_NAME):
         return "carla"
 
     return "standard"
@@ -226,11 +243,14 @@ def _search_carla_parameters(
 
     logger.info(f"Searching over methods: {', '.join(scoring_methods)}")
     
-    k_range = [1, 3, 5, 10, 20, 50]
+    n_samples_fit = len(trainer.reference_embeddings)
+    k_range = [k for k in [1, 3, 5, 10, 20, 50] if k <= n_samples_fit]
+    if not k_range:
+        k_range = [1]
     percentiles = [70, 80, 90, 95, 98, 99, 99.5, 99.9]
     
     # Also include the user-specified k
-    if args.k_neighbors not in k_range:
+    if args.k_neighbors <= n_samples_fit and args.k_neighbors not in k_range:
         k_range.append(args.k_neighbors)
     k_range.sort()
 
@@ -239,29 +259,19 @@ def _search_carla_parameters(
         for k in ks:
             k_val = k if k is not None else trainer.config.k_neighbors
             
-            # 1. Compute threshold using the training reference embeddings (unsupervisedly)
-            # like in trainer.detect_anomalies
-            from .losses.contrastive import anomaly_score_from_embeddings
-            
-            ref_scores = anomaly_score_from_embeddings(
-                trainer.reference_embeddings,
-                trainer.reference_embeddings,
-                method=method,
-                k=k_val,
-                normalize=False, # They are already normalized
-                batch_size=args.batch_size
-            )
-            
-            # 2. Compute scores for validation set
+            # 1. Compute scores for validation set
             val_scores = trainer.compute_anomaly_scores(
                 dataset.fit_val_data, method=method, k=k_val, batch_size=args.batch_size
             )
             
+            # Separate normal validation scores for percentile calculation
+            normal_val_scores = val_scores[dataset.fit_val_labels == 0]
+            
             for p in percentiles:
-                # 3. Compute threshold from ref_scores and percentile
-                thresh = np.percentile(ref_scores, p)
+                # 2. Compute threshold from normal validation scores
+                thresh = np.percentile(normal_val_scores, p)
                 
-                # 4. Predict on validation set
+                # 3. Predict on validation set
                 preds = (val_scores > thresh).astype(int)
                 f1 = f1_score(dataset.fit_val_labels, preds, zero_division=0)
                 
@@ -338,11 +348,11 @@ def _search_best_threshold(
                 np.mean(normal_errors) + n_std * np.std(normal_errors)
             )
 
-    # --- F1 grid search ---
-    if requested is None or requested == "f1":
-        selector = ThresholdSelector(method="f1")
+    # --- F-beta grid search ---
+    if requested is None or requested == "f1" or requested == "fbeta":
+        selector = ThresholdSelector(method="fbeta", beta=args.beta)
         selector.fit(normal_errors, anomaly_errors)
-        candidates["f1"] = float(selector.threshold)
+        candidates["fbeta"] = float(selector.threshold)
 
     # --- Youden's J ---
     if requested is None or requested == "youden":
@@ -363,12 +373,12 @@ def _search_best_threshold(
 
     for name, thresh in candidates.items():
         preds = (val_errors > thresh).astype(int)
-        f1 = float(f1_score(val_labels, preds, zero_division=0))
-        thresholds_dict[name] = {"threshold": thresh, "val_f1": f1}
-        logger.info(f"  {name:20s}  threshold={thresh:.6f}  val_f1={f1:.4f}")
+        score = float(fbeta_score(val_labels, preds, beta=args.beta, zero_division=0))
+        thresholds_dict[name] = {"threshold": thresh, "val_f1": score}
+        logger.info(f"  {name:20s}  threshold={thresh:.6f}  val_f1={score:.4f}")
 
-        if f1 > best_f1:
-            best_f1 = f1
+        if score > best_f1:
+            best_f1 = score
             best_method = name
 
     if best_method is None:
@@ -599,11 +609,16 @@ def _run_carla_evaluation(args: argparse.Namespace) -> None:
         latent_dim=int(best_config["latent_dim"]),
         projection_dim=int(best_config["projection_dim"]),
         encoder_type=str(best_config["encoder_type"]),
+        encoder_filters=best_config.get("encoder_filters", [32, 64]),
+        encoder_units=best_config.get("encoder_units", [64, 32]),
+        kernel_size=int(best_config.get("kernel_size", 3)),
+        num_heads=int(best_config.get("num_heads", 4)),
         dropout_rate=float(best_config.get("dropout_rate", 0.0)),
     )
 
     # Try loading saved weights
     model_loaded = False
+    loaded_checkpoint_name = None
     for checkpoint_name in ["best", "final"]:
         checkpoint_path = model_dir / "checkpoints" / checkpoint_name
         if checkpoint_path.exists():
@@ -630,6 +645,7 @@ def _run_carla_evaluation(args: argparse.Namespace) -> None:
                     trainer.history = json.load(f)
 
             model_loaded = True
+            loaded_checkpoint_name = checkpoint_name
             break
 
     if not model_loaded:
@@ -644,13 +660,12 @@ def _run_carla_evaluation(args: argparse.Namespace) -> None:
     # ---- 3. Build reference embeddings ----
     logger.info("\n[3/4] Building reference embeddings …")
 
-    # Check for saved reference embeddings
+    # Check for saved reference embeddings ONLY in the loaded checkpoint
     ref_emb_path = None
-    for cp_name in ["best", "final"]:
-        p = model_dir / "checkpoints" / cp_name / "reference_embeddings.npy"
+    if model_loaded and loaded_checkpoint_name is not None:
+        p = model_dir / "checkpoints" / loaded_checkpoint_name / "reference_embeddings.npy"
         if p.exists():
             ref_emb_path = p
-            break
 
     if ref_emb_path is not None and trainer.reference_embeddings is None:
         trainer.reference_embeddings = np.load(ref_emb_path)
@@ -803,6 +818,33 @@ def _save_and_report(
         logger.info("\nGenerating per-sample CSV results …")
         test_labels = dataset.test_labels
         try:
+            # Extract latent embeddings for 2D PCA visualization
+            test_embeddings = None
+            try:
+                if hasattr(model, "get_embeddings"):
+                    # CARLA model
+                    emb_dict = model.get_embeddings(dataset.test_data)
+                    test_embeddings = emb_dict.get("projection", emb_dict.get("latent"))
+                elif hasattr(model, "encode"):
+                    # Standard AE model
+                    try:
+                        test_embeddings = model.encode(dataset.test_data, batch_size=args.batch_size)
+                    except TypeError:
+                        test_embeddings = model.encode(dataset.test_data)
+            except Exception as e:
+                logger.warning(f"Could not extract model latent embeddings: {e}")
+
+            # Project to 2D space using PCA
+            reduced = None
+            if test_embeddings is not None:
+                try:
+                    from sklearn.decomposition import PCA
+                    pca = PCA(n_components=2, random_state=42)
+                    reduced = pca.fit_transform(test_embeddings)
+                    logger.info(f"Generated 2D PCA latent projection of shape: {reduced.shape}")
+                except Exception as e:
+                    logger.warning(f"Failed to compute PCA on latent embeddings: {e}")
+
             test_metadata = dataset.get_metadata_for_split("test")
 
             results = []
@@ -825,6 +867,13 @@ def _save_and_report(
                     "varied_components": ",".join(varied_components),
                     "variations_json": json.dumps(meta.variations),
                 }
+
+                if reduced is not None:
+                    row["pca_x"] = float(reduced[i, 0])
+                    row["pca_y"] = float(reduced[i, 1])
+                else:
+                    row["pca_x"] = 0.0
+                    row["pca_y"] = 0.0
 
                 if row["label"] == 1 and row["prediction"] == 0:
                     row["error_type"] = "FN"

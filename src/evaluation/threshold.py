@@ -7,7 +7,7 @@ Methods for selecting optimal anomaly detection threshold.
 
 import numpy as np
 from typing import Dict, Optional, Literal
-from sklearn.metrics import f1_score, roc_curve
+from sklearn.metrics import f1_score, roc_curve, fbeta_score
 
 from ..utils.logger import get_logger
 
@@ -79,6 +79,12 @@ class ThresholdSelector:
                 raise ValueError("f1 method requires anomaly_errors")
             self.threshold_ = self._find_optimal_f1(normal_errors, anomaly_errors)
 
+        elif self.method == "fbeta":
+            if anomaly_errors is None:
+                raise ValueError("fbeta method requires anomaly_errors")
+            beta = self.kwargs.get("beta", 2.0)
+            self.threshold_ = self._find_optimal_fbeta(normal_errors, anomaly_errors, beta)
+
         elif self.method == "youden":
             if anomaly_errors is None:
                 raise ValueError("youden method requires anomaly_errors")
@@ -119,6 +125,36 @@ class ThresholdSelector:
             f1 = f1_score(labels, predictions, zero_division=0)
             if f1 > best_f1:
                 best_f1 = f1
+                best_threshold = thresh
+
+        return best_threshold
+
+    def _find_optimal_fbeta(
+        self,
+        normal_errors: np.ndarray,
+        anomaly_errors: np.ndarray,
+        beta: float = 2.0,
+    ) -> float:
+        """Find threshold that maximizes F-beta score."""
+        all_errors = np.concatenate([normal_errors, anomaly_errors])
+        labels = np.concatenate(
+            [
+                np.zeros(len(normal_errors)),
+                np.ones(len(anomaly_errors)),
+            ]
+        )
+
+        # Try different thresholds
+        thresholds = np.percentile(all_errors, np.arange(50, 100, 1))
+
+        best_score = 0
+        best_threshold = thresholds[0]
+
+        for thresh in thresholds:
+            predictions = (all_errors > thresh).astype(int)
+            score = fbeta_score(labels, predictions, beta=beta, zero_division=0)
+            if score > best_score:
+                best_score = score
                 best_threshold = thresh
 
         return best_threshold

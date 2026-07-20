@@ -1,0 +1,30 @@
+{
+  "name": "carla",
+  "type": "carla",
+  "input_shape": [
+    101,
+    2
+  ],
+  "encoder_type": "transformer",
+  "latent_dim": 64,
+  "projection_dim": 64,
+  "encoder_filters": [
+    32,
+    64,
+    128
+  ],
+  "encoder_units": [
+    64,
+    32
+  ],
+  "kernel_size": 3,
+  "num_heads": 8,
+  "learning_rate": 0.001,
+  "reconstruction_weight": 0.5,
+  "contrastive_weight": 0.5,
+  "temperature": 0.15,
+  "anomaly_ratio": 0.1,
+  "scoring_method": "knn",
+  "k_neighbors": 3,
+  "dropout_rate": 0.0
+}

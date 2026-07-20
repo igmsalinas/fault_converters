@@ -22,6 +22,43 @@ logger = get_logger(__name__)
 
 
 @keras.saving.register_keras_serializable(package="CARLA")
+class PositionalEncoding(layers.Layer):
+    """Sinusoidal positional encoding."""
+
+    def __init__(self, max_len: int = 5000, **kwargs):
+        super().__init__(**kwargs)
+        self.max_len = max_len
+
+    def build(self, input_shape):
+        d_model = input_shape[-1]
+
+        position = np.arange(self.max_len)[:, np.newaxis]
+        div_term = np.exp(np.arange(0, d_model, 2) * (-np.log(10000.0) / d_model))
+
+        pe = np.zeros((self.max_len, d_model))
+        pe[:, 0::2] = np.sin(position * div_term)
+        if d_model > 1:
+            pe[:, 1::2] = np.cos(position * div_term[: d_model // 2])
+
+        self.pe = self.add_weight(
+            name="pe",
+            shape=(self.max_len, d_model),
+            initializer=keras.initializers.Constant(pe),
+            trainable=False,
+        )
+        super().build(input_shape)
+
+    def call(self, x):
+        seq_len = keras.ops.shape(x)[1]
+        return x + self.pe[:seq_len, :]
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({"max_len": self.max_len})
+        return config
+
+
+@keras.saving.register_keras_serializable(package="CARLA")
 class ProjectionHead(layers.Layer):
     """
     Projection head for contrastive learning.
@@ -232,12 +269,8 @@ class ContrastiveAutoencoder(BaseAutoencoder):
 
         # Linear projection
         x = layers.Dense(self.encoder_filters[0])(inputs)
-
-        # Positional encoding (learnable)
-        positions = layers.Embedding(seq_len, self.encoder_filters[0])(
-            ops.arange(seq_len)
-        )
-        x = x + positions
+        x = PositionalEncoding(max_len=seq_len)(x)
+        x = layers.Dropout(self.dropout_rate)(x)
 
         # Transformer blocks
         for i, filters in enumerate(self.encoder_filters):
@@ -391,15 +424,11 @@ class ContrastiveAutoencoder(BaseAutoencoder):
         """Build Transformer decoder layers."""
         seq_len, n_features = self.input_shape
 
-        # Expand latent to sequence
-        x = layers.Dense(self.encoder_filters[-1])(latent_inputs)
-        x = layers.RepeatVector(seq_len)(x)
-
-        # Positional encoding
-        positions = layers.Embedding(seq_len, self.encoder_filters[-1])(
-            ops.arange(seq_len)
-        )
-        x = x + positions
+        # Expand latent to sequence (like in transformer_ae.py)
+        x = layers.Dense(seq_len * self.encoder_filters[-1])(latent_inputs)
+        x = layers.Reshape((seq_len, self.encoder_filters[-1]))(x)
+        x = PositionalEncoding(max_len=seq_len)(x)
+        x = layers.Dropout(self.dropout_rate)(x)
 
         # Transformer blocks (reverse)
         decoder_filters = self.encoder_filters[::-1]

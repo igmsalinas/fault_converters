@@ -1,0 +1,18 @@
+{
+  "name": "vae",
+  "type": "standard",
+  "input_shape": [
+    101,
+    2
+  ],
+  "latent_dim": 16,
+  "dropout_rate": 0.1,
+  "kl_weight": 0.2,
+  "activation": "gelu",
+  "optimizer": "adam",
+  "learning_rate": 0.00028081091473377076,
+  "weight_decay": 3.133091078416453e-05,
+  "lr_schedule": "constant",
+  "warmup_ratio": 0.05,
+  "clipnorm": 5.0
+}

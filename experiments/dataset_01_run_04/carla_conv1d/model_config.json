@@ -1,0 +1,29 @@
+{
+  "name": "carla_conv1d",
+  "type": "carla",
+  "input_shape": [
+    101,
+    2
+  ],
+  "encoder_type": "conv1d",
+  "latent_dim": 64,
+  "projection_dim": 128,
+  "encoder_filters": [
+    32,
+    64
+  ],
+  "encoder_units": [
+    256,
+    128
+  ],
+  "kernel_size": 5,
+  "num_heads": 2,
+  "learning_rate": 0.0005,
+  "reconstruction_weight": 5.0,
+  "contrastive_weight": 0.5,
+  "temperature": 0.05,
+  "anomaly_ratio": 0.5,
+  "scoring_method": "knn",
+  "k_neighbors": 3,
+  "dropout_rate": 0.0
+}

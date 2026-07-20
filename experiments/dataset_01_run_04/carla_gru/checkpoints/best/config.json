@@ -1,0 +1,23 @@
+{
+  "input_shape": [
+    101,
+    2
+  ],
+  "latent_dim": 32,
+  "projection_dim": 64,
+  "encoder_type": "gru",
+  "encoder_filters": [
+    64,
+    128
+  ],
+  "encoder_units": [
+    256,
+    128
+  ],
+  "num_heads": 2,
+  "projection_hidden_dim": 128,
+  "projection_layers": 2,
+  "dropout_rate": 0.0,
+  "kernel_size": 3,
+  "name": "contrastive_ae"
+}

@@ -119,8 +119,13 @@ class BaseTrainer:
             else:
                 logger.warning("No GPU found. Using CPU.")
         else:
-            tf.config.set_visible_devices([], "GPU")
-            logger.info("GPU disabled. Using CPU.")
+            try:
+                tf.config.set_visible_devices([], "GPU")
+                logger.info("GPU disabled. Using CPU.")
+            except RuntimeError as e:
+                logger.warning(
+                    f"Could not disable GPU (context already initialized): {e}"
+                )
 
         if self.config.mixed_precision:
             keras.mixed_precision.set_global_policy("mixed_float16")

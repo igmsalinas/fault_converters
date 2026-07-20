@@ -170,9 +170,15 @@ def compute_classification_metrics(
     # ROC and PR metrics (require scores)
     if scores is not None:
         try:
-            metrics.auc_roc = roc_auc_score(labels, scores)
-            metrics.auc_pr = average_precision_score(labels, scores)
-            metrics.average_precision = average_precision_score(labels, scores)
+            if len(np.unique(labels)) > 1:
+                metrics.auc_roc = roc_auc_score(labels, scores)
+                metrics.auc_pr = average_precision_score(labels, scores)
+                metrics.average_precision = average_precision_score(labels, scores)
+            else:
+                logger.warning("Labels only contain one class. AUC-ROC/PR metrics cannot be computed.")
+                metrics.auc_roc = 0.0
+                metrics.auc_pr = 0.0
+                metrics.average_precision = 0.0
         except ValueError as e:
             logger.warning(f"Could not compute AUC metrics: {e}")
 

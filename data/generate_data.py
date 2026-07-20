@@ -102,13 +102,30 @@ _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _REPO_ROOT not in sys.path:
     sys.path.insert(0, _REPO_ROOT)
 
-from src.data.component_ranges import (  # noqa: E402
-    ANOMALOUS,
-    classify_variations,
-    load_ranges,
-    mult_to_pct,
+# Import lightweight modules directly (bypass src/data/__init__.py which pulls
+# pandas, sklearn, tensorflow – not available on the PSIM Windows host).
+import importlib.util as _ilu
+
+def _import_module(name, path):
+    spec = _ilu.spec_from_file_location(name, path)
+    mod = _ilu.module_from_spec(spec)
+    sys.modules[name] = mod  # required so @dataclass can resolve the module
+    spec.loader.exec_module(mod)
+    return mod
+
+_cr = _import_module(
+    "src.data.component_ranges",
+    os.path.join(_REPO_ROOT, "src", "data", "component_ranges.py"),
 )
-from src.data import manifest as mf  # noqa: E402
+mf = _import_module(
+    "src.data.manifest",
+    os.path.join(_REPO_ROOT, "src", "data", "manifest.py"),
+)
+
+ANOMALOUS = _cr.ANOMALOUS
+classify_variations = _cr.classify_variations
+load_ranges = _cr.load_ranges
+mult_to_pct = _cr.mult_to_pct
 
 
 # Rough per-simulation wall-clock (seconds) used only for the time ESTIMATE.
@@ -605,13 +622,26 @@ def main():
     )
     parser.add_argument("--output", type=str, default=None, help="Output directory")
     parser.add_argument("--seed", type=int, default=42, help="RNG seed")
+    parser.add_argument(
+        "--dataset-name",
+        type=str,
+        default="default",
+        help="Name of the dataset folder under <converter>_data/"
+    )
 
     args = parser.parse_args()
 
     if args.input_dir is None:
-        args.input_dir = os.path.join(".", "data", args.converter)
+        args.input_dir = os.path.join(_REPO_ROOT, "data", args.converter)
+    else:
+        # Resolve user-supplied relative paths against the repo root too,
+        # so the script works from any CWD (e.g. Windows PowerShell).
+        if not os.path.isabs(args.input_dir):
+            args.input_dir = os.path.join(_REPO_ROOT, args.input_dir)
     if args.output is None:
         args.output = os.path.join(args.input_dir, f"{args.converter}_data")
+    elif not os.path.isabs(args.output):
+        args.output = os.path.join(_REPO_ROOT, args.output)
 
     param_file = os.path.join(args.input_dir, "parameters.txt")
     if not os.path.exists(param_file):
@@ -760,11 +790,22 @@ def main():
         return
 
     output_dir = args.output
-    os.makedirs(output_dir, exist_ok=True)
+    dataset_dir = os.path.join(output_dir, args.dataset_name)
+    os.makedirs(dataset_dir, exist_ok=True)
+
+    txts_dir = os.path.join(dataset_dir, "txts")
+    os.makedirs(txts_dir, exist_ok=True)
 
     # ---- Plan tasks (opaque ids + manifest rows) with resume -------------
-    grid_rows = mf.read_manifest(mf.manifest_path(output_dir, "grid"))[1]
-    lhs_rows = mf.read_manifest(mf.manifest_path(output_dir, "lhs"))[1]
+    manifest_path = os.path.join(dataset_dir, "manifest.csv")
+    if os.path.exists(manifest_path):
+        _, all_rows = mf.read_manifest(manifest_path)
+        grid_rows = [r for r in all_rows if r.get("mode") == "grid"]
+        lhs_rows = [r for r in all_rows if r.get("mode") in ("lhs", "random")]
+    else:
+        grid_rows = []
+        lhs_rows = []
+
     tasks, rows_by_file = plan_generation(
         normal_combos, fault_combos, components_to_vary, nominal_params, ranges,
         args.normal_mode, args.fault_mode, grid_rows, lhs_rows,
@@ -777,14 +818,45 @@ def main():
         print("Nothing to generate; manifests already satisfy the requested counts.")
         return
 
-    # ---- Open manifest writers (real-time, one per mode used) ------------
-    writers = {}
-    for row in rows_by_file.values():
-        m = mf.manifest_name(row["mode"])
-        if m not in writers:
-            writers[m] = mf.ManifestWriter(
-                os.path.join(output_dir, m), components_to_vary
-            )
+    # ---- Open unified manifest writer (real-time) -------------------------
+    writer = mf.ManifestWriter(manifest_path, components_to_vary)
+
+    # ---- Write dataset.json -----------------------------------------------
+    import json
+    from datetime import datetime, timezone
+    
+    ranges_dict = {}
+    for k, v in ranges.items():
+        ranges_dict[k] = {
+            "normal": v.normal,
+            "anomalous": v.anomalous,
+            "normal_step": v.normal_step,
+            "anomalous_step": v.anomalous_step,
+        }
+
+    dataset_json_data = {
+        "converter": args.converter,
+        "dataset_name": args.dataset_name,
+        "normal_mode": args.normal_mode,
+        "n_normal": args.n_normal,
+        "normal_levels": args.normal_levels,
+        "normal_step": args.normal_step,
+        "fault_mode": args.fault_mode,
+        "n_fault": args.n_fault,
+        "fault_prob": args.fault_prob,
+        "fault_levels": args.fault_levels,
+        "fault_step": args.fault_step,
+        "fault_backgrounds": args.fault_backgrounds,
+        "correlated": args.correlated,
+        "seed": args.seed,
+        "components": components_to_vary,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "nominal_parameters": nominal_params,
+        "component_ranges": ranges_dict,
+    }
+    
+    with open(os.path.join(dataset_dir, "dataset.json"), "w", encoding="utf-8") as f:
+        json.dump(dataset_json_data, f, indent=2)
 
     # Create temp root for workers in input_dir instead of output_dir
     workers_temp_root = os.path.join(args.input_dir, "temp_workers")
@@ -795,7 +867,7 @@ def main():
     worker_func = partial(
         run_simulation,
         component_names=components_to_vary,
-        output_dir=output_dir,
+        output_dir=txts_dir,
         nominal_params=nominal_params,
     )
 
@@ -813,7 +885,15 @@ def main():
                 if result is not None:
                     row = rows_by_file.get(result)
                     if row is not None:
-                        writers[mf.manifest_name(row["mode"])].append(**row)
+                        writer.append(
+                            filename=row["filename"],
+                            set_name=row["set_name"],
+                            label=row["label"],
+                            n_faults=row["n_faults"],
+                            mode=row["mode"],
+                            key=row["key"],
+                            multipliers=row["multipliers"]
+                        )
                         written_count += 1
                 if processed_count % 100 == 0 or processed_count == len(tasks):
                     print(
@@ -825,8 +905,7 @@ def main():
     except KeyboardInterrupt:
         print("\nProcess interrupted by user. Partial results kept in manifests.")
     finally:
-        for w in writers.values():
-            w.close()
+        writer.close()
         try:
             shutil.rmtree(workers_temp_root)
         except Exception:

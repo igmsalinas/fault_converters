@@ -1,4 +1,5 @@
 .venv/
+.venv_win/
 __pycache__/
 .env
 .ruff_cache
@@ -6,7 +7,7 @@ __pycache__/
 .agents
 
 simulation_results/
-data/buck/buck_data
+data/buck/buck_data/
 data/buck/simulation_results.zip
 ./data/buck/simulation_results.zip
 cache/
