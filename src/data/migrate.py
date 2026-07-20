@@ -18,9 +18,6 @@ Usage::
     # Or to migrate into the new versioned structured dataset format:
     python -m src.data.migrate --data-dir data/buck/buck_data --dataset-name dataset_00
 """
-
-from __future__ import annotations
-
 import os
 from pathlib import Path
 from typing import Optional, Union

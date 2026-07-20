@@ -16,9 +16,6 @@ rather than re-running Python. The same SVG can be embedded in the HTML deck
 
 The toolkit intentionally uses only the standard library.
 """
-
-from __future__ import annotations
-
 import html
 import math
 from typing import Dict, List, Optional, Sequence, Tuple

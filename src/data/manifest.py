@@ -25,9 +25,6 @@ Schema (one row per simulation)::
 The module is dependency-free (standard library only) so the generator can write
 manifests on the PSIM host, and the training loader can read them without pandas.
 """
-
-from __future__ import annotations
-
 import csv
 import os
 from pathlib import Path

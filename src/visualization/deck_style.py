@@ -16,9 +16,6 @@ package already do this), then use the palette helpers for colours::
     apply_deck_style()
     colors = categorical_colors(n_models)
 """
-
-from __future__ import annotations
-
 from typing import List
 
 import numpy as np

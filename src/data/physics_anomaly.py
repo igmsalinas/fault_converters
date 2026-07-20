@@ -58,9 +58,6 @@ Reference:
     for Time Series Anomaly Detection", arXiv:2308.09296
     Erickson & Maksimovic, "Fundamentals of Power Electronics", 2nd ed., ch. 8.
 """
-
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
 from enum import Enum

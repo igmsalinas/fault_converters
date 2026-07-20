@@ -23,9 +23,6 @@ Usage::
     uv run python scripts/generate_synthetic_buck.py \
         --out data/buck/buck_data_debug --n-normal 34 --n-anomaly 16
 """
-
-from __future__ import annotations
-
 import argparse
 from pathlib import Path
 
