@@ -24,11 +24,11 @@ dependencies = [
     "pytest>=9.1.1",
     "onnxconverter-common>=1.16.0",
     # TensorFlow: CUDA build on Linux for training/eval on GPU, plain build on macOS (CPU/Metal).
-    "tensorflow[and-cuda]>=2.21.0 ; sys_platform == 'linux'",
+    "tensorflow[and-cuda]>=2.21.0 ; sys_platform == 'linux' and platform_machine == 'x86_64'",
     "tensorflow>=2.21.0 ; sys_platform == 'darwin'",
     # GPU deployment stack (TensorRT / CUDA) is Linux-only and has no macOS wheels.
-    "tensorrt-cu12>=11.1.0.106 ; sys_platform == 'linux'",
-    "cuda-python>=13.3.1 ; sys_platform == 'linux'",
+    "tensorrt-cu12>=11.1.0.106 ; sys_platform == 'linux' and platform_machine == 'x86_64'",
+    "cuda-python>=13.3.1 ; sys_platform == 'linux' and platform_machine == 'x86_64'",
     "tensorflow>=2.21.0",
 ]
 
